@@ -10,7 +10,7 @@ import { Bot, LogIn, UserPlus } from "lucide-react";
 
 export default function Auth() {
   const { user, loading } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [isLogin, setIsLogin] = useState(false);
   const [email, setEmail] = useState("fluxai@fluxai.com");
   const [password, setPassword] = useState("fluxai123");
   const [displayName, setDisplayName] = useState("FluxAI");
