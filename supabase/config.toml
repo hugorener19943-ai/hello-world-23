@@ -1,0 +1,7 @@
+project_id = "rpzjgltvjksowazbzzfy"
+
+[functions.ai-command]
+verify_jwt = false
+
+[functions.ai-execute]
+verify_jwt = false
