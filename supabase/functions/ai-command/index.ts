@@ -64,10 +64,12 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um assistente de automação empresarial. Analise o comando do usuário e determine qual ferramenta usar.
+            content: `Você é um agente de prospecção B2B especializado em automação comercial.
 
-Se o usuário pedir para buscar empresas, locais, restaurantes, lojas ou qualquer tipo de estabelecimento em uma cidade, use a ferramenta "buscar_empresas".
-Para outros comandos, use "process_command".
+REGRAS:
+- Nunca invente dados. Use apenas dados reais retornados pelas ferramentas.
+- Quando o usuário pedir para buscar empresas, locais, restaurantes, lojas ou qualquer tipo de estabelecimento, use a ferramenta "buscar_empresas".
+- Para outros comandos, use "process_command".
 
 Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           },
@@ -204,22 +206,53 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
 
         if (fsqResponse.ok) {
           const fsqData = await fsqResponse.json();
-          const places = fsqData.results?.map((p: any) => ({
-            name: p.name,
-            address: p.location?.formatted_address || p.location?.address,
-            categories: p.categories?.map((c: any) => c.name).join(", "),
-            distance: p.distance,
-          })) || [];
+          const places = fsqData.results?.map((p: any) => {
+            // Analyze automation potential based on available data
+            const hasWebsite = !!p.website;
+            const hasSocialMedia = !!p.social_media;
+            const chainCount = p.chains?.length || 0;
+            const categoryNames = p.categories?.map((c: any) => c.name).join(", ") || "";
+            
+            // Score: higher = more potential for automation
+            let score = 0;
+            if (!hasWebsite) score += 2; // No website = needs digital presence
+            if (!hasSocialMedia) score += 1;
+            if (chainCount === 0) score += 1; // Independent business
+            // Categories with high automation potential
+            const highPotentialCategories = ["restaurant", "store", "shop", "clinic", "salon", "gym", "hotel", "office"];
+            if (highPotentialCategories.some(cat => categoryNames.toLowerCase().includes(cat))) score += 1;
+            
+            let ranking: string;
+            if (score >= 4) ranking = "🟢 Alta";
+            else if (score >= 2) ranking = "🟡 Média";
+            else ranking = "🔴 Baixa";
+
+            return {
+              name: p.name,
+              address: p.location?.formatted_address || p.location?.address || "",
+              city: p.location?.locality || parsed.actionPayload.near,
+              categories: categoryNames,
+              distance: p.distance,
+              phone: p.tel || "",
+              website: p.website || "",
+              ranking,
+              score,
+            };
+          }) || [];
+
+          // Sort by score descending (highest potential first)
+          places.sort((a: any, b: any) => b.score - a.score);
 
           const placesText = places.length > 0
             ? places.map((p: any, i: number) =>
-                `${i + 1}. **${p.name}**\n   📍 ${p.address || "Endereço não disponível"}\n   🏷️ ${p.categories || "Sem categoria"}${p.distance ? `\n   📏 ${p.distance}m de distância` : ""}`
+                `${i + 1}. **${p.name}** ${p.ranking}\n   📍 ${p.address || "Endereço não disponível"}\n   🏷️ ${p.categories || "Sem categoria"}${p.phone ? `\n   📞 ${p.phone}` : ""}${p.website ? `\n   🌐 ${p.website}` : ""}${p.distance ? `\n   📏 ${p.distance}m` : ""}`
               ).join("\n\n")
-            : "Nenhum lugar encontrado para essa busca.";
+            : "Nenhuma empresa encontrada para essa busca.";
 
-          parsed.reply = `📍 **Resultados para "${parsed.actionPayload.query}" em ${parsed.actionPayload.near}:**\n\n${placesText}`;
+          parsed.reply = `📊 **Prospecção B2B: "${parsed.actionPayload.query}" em ${parsed.actionPayload.near}**\n\n${placesText}\n\n💡 *Ranking de conversão baseado em potencial de automação. Use o botão abaixo para baixar em Excel.*`;
 
-          await supabase.from("ai_tasks").update({ status: "concluida", result: { places } }).eq("id", task.id);
+          await supabase.from("ai_tasks").update({ status: "concluida", result: { places, searchQuery: parsed.actionPayload.query, searchCity: parsed.actionPayload.near } }).eq("id", task.id);
+          parsed.actionPayload._places = places;
         } else {
           const errText = await fsqResponse.text();
           console.error("Foursquare API error:", errText);
@@ -248,6 +281,7 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
         taskId: task.id,
         requiresConfirmation: parsed.requiresConfirmation,
         actionType: parsed.actionType,
+        places: isFoursquareSearch ? (parsed.actionPayload?._places || []) : undefined,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
