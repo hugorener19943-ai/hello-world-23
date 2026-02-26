@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.ai-execute]
 verify_jwt = false
+
+[functions.foursquare-search]
+verify_jwt = false

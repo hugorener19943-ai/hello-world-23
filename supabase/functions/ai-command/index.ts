@@ -66,8 +66,10 @@ serve(async (req) => {
             role: "system",
             content: `Você é um assistente de automação empresarial. Analise o comando do usuário e retorne um JSON com:
 - "reply": resposta amigável ao usuário
-- "actionType": tipo da ação (criar_projeto, criar_lead, registrar_pagamento, gerar_relatorio, atualizar_status, enviar_mensagem, enviar_whatsapp, consultar, outro)
-- "actionPayload": dados extraídos do comando (objeto JSON)
+- "actionType": tipo da ação (criar_projeto, criar_lead, registrar_pagamento, gerar_relatorio, atualizar_status, enviar_mensagem, enviar_whatsapp, buscar_lugares, consultar, outro)
+- "actionPayload": dados extraídos do comando (objeto JSON). Para buscar_lugares inclua: query (string), ll (lat,lng opcional), radius (metros opcional)
+- "requiresConfirmation": true se a ação modifica dados, false se é apenas consulta
+- "plan": breve descrição do que será feito
 - "requiresConfirmation": true se a ação modifica dados, false se é apenas consulta
 - "plan": breve descrição do que será feito
 
@@ -169,10 +171,49 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
 
     // Auto-execute if no confirmation needed
     if (!parsed.requiresConfirmation) {
-      await supabase
-        .from("ai_tasks")
-        .update({ status: "concluida" })
-        .eq("id", task.id);
+      // If it's a place search, call Foursquare
+      if (parsed.actionType === "buscar_lugares") {
+        try {
+          const FOURSQUARE_API_KEY = Deno.env.get("FOURSQUARE_API_KEY");
+          if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
+
+          const params = new URLSearchParams();
+          if (parsed.actionPayload?.query) params.set("query", parsed.actionPayload.query);
+          if (parsed.actionPayload?.ll) params.set("ll", parsed.actionPayload.ll);
+          if (parsed.actionPayload?.radius) params.set("radius", String(parsed.actionPayload.radius));
+          params.set("limit", "5");
+
+          const fsqResponse = await fetch(
+            `https://api.foursquare.com/v3/places/search?${params.toString()}`,
+            { headers: { Accept: "application/json", Authorization: FOURSQUARE_API_KEY } }
+          );
+
+          if (fsqResponse.ok) {
+            const fsqData = await fsqResponse.json();
+            const places = fsqData.results?.map((p: any) => ({
+              name: p.name,
+              address: p.location?.formatted_address || p.location?.address,
+              categories: p.categories?.map((c: any) => c.name).join(", "),
+              distance: p.distance,
+            })) || [];
+
+            const placesText = places.length > 0
+              ? places.map((p: any, i: number) => `${i + 1}. **${p.name}** - ${p.address || "Endereço não disponível"} (${p.categories || "Sem categoria"}${p.distance ? `, ${p.distance}m` : ""})`).join("\n")
+              : "Nenhum lugar encontrado.";
+
+            parsed.reply = `📍 Encontrei estes lugares:\n\n${placesText}`;
+
+            await supabase.from("ai_tasks").update({ status: "concluida", result: { places } }).eq("id", task.id);
+            // Update assistant message
+            await supabase.from("chat_messages").update({ content: parsed.reply }).eq("task_id", task.id).eq("role", "assistant");
+          }
+        } catch (fsqErr: any) {
+          console.error("Foursquare error:", fsqErr);
+          parsed.reply += "\n\n⚠️ Erro ao buscar lugares no Foursquare.";
+        }
+      } else {
+        await supabase.from("ai_tasks").update({ status: "concluida" }).eq("id", task.id);
+      }
     }
 
     return new Response(
