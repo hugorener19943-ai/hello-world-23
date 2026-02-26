@@ -202,16 +202,15 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
 
         const fsqHeaders: Record<string, string> = {
           Accept: "application/json",
-          Authorization: `Bearer ${normalizedKey}`,
-          "X-Places-Api-Version": "2025-06-17",
+          Authorization: normalizedKey,
         };
 
-        // Geocode city to lat/lng using new autocomplete endpoint
-        const geoParams = new URLSearchParams({ text: parsed.actionPayload.near });
+        // Geocode city to lat/lng using autocomplete endpoint
+        const geoParams = new URLSearchParams({ query: parsed.actionPayload.near, types: "geo" });
         let ll = "";
         try {
           const geoResp = await fetch(
-            `https://places-api.foursquare.com/autocomplete?${geoParams}`,
+            `https://api.foursquare.com/v3/autocomplete?${geoParams}`,
             { headers: fsqHeaders }
           );
           if (geoResp.ok) {
@@ -236,7 +235,7 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
         }
         params.set("limit", String(parsed.actionPayload.limit));
 
-        const fsqUrl = `https://places-api.foursquare.com/places/search?${params}`;
+        const fsqUrl = `https://api.foursquare.com/v3/places/search?${params}`;
         console.log("FSQ request:", fsqUrl);
         let fsqResponse = await fetch(fsqUrl, { headers: fsqHeaders });
         console.log("FSQ status:", fsqResponse.status);
