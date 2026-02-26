@@ -198,22 +198,34 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
       try {
         const FOURSQUARE_API_KEY = Deno.env.get("FOURSQUARE_API_KEY");
         if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
+        const normalizedFoursquareKey = FOURSQUARE_API_KEY.trim().replace(/^Bearer\s+/i, "");
 
         const params = new URLSearchParams();
         params.set("query", parsed.actionPayload.query);
         params.set("near", parsed.actionPayload.near);
         params.set("limit", String(parsed.actionPayload.limit));
 
-        const fsqResponse = await fetch(
-          `https://places-api.foursquare.com/places/search?${params.toString()}`,
-          {
+        const fsqUrl = `https://places-api.foursquare.com/places/search?${params.toString()}`;
+        const baseHeaders = {
+          Accept: "application/json",
+          "X-Places-Api-Version": "2025-06-17",
+        };
+
+        let fsqResponse = await fetch(fsqUrl, {
+          headers: {
+            ...baseHeaders,
+            Authorization: normalizedFoursquareKey,
+          },
+        });
+
+        if (fsqResponse.status === 401) {
+          fsqResponse = await fetch(fsqUrl, {
             headers: {
-              Accept: "application/json",
-              Authorization: FOURSQUARE_API_KEY,
-              "X-Places-Api-Version": "2025-06-17",
+              ...baseHeaders,
+              Authorization: `Bearer ${normalizedFoursquareKey}`,
             },
-          }
-        );
+          });
+        }
 
         if (fsqResponse.ok) {
           const fsqData = await fsqResponse.json();

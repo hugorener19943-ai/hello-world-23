@@ -13,6 +13,7 @@ serve(async (req) => {
   try {
     const FOURSQUARE_API_KEY = Deno.env.get("FOURSQUARE_API_KEY");
     if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
+    const normalizedFoursquareKey = FOURSQUARE_API_KEY.trim().replace(/^Bearer\s+/i, "");
 
     // Auth check
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -35,16 +36,27 @@ serve(async (req) => {
     params.set("limit", String(limit || 10));
     if (categories) params.set("categories", categories);
 
-    const fsqResponse = await fetch(
-      `https://places-api.foursquare.com/places/search?${params.toString()}`,
-      {
+    const fsqUrl = `https://places-api.foursquare.com/places/search?${params.toString()}`;
+    const baseHeaders = {
+      Accept: "application/json",
+      "X-Places-Api-Version": "2025-06-17",
+    };
+
+    let fsqResponse = await fetch(fsqUrl, {
+      headers: {
+        ...baseHeaders,
+        Authorization: normalizedFoursquareKey,
+      },
+    });
+
+    if (fsqResponse.status === 401) {
+      fsqResponse = await fetch(fsqUrl, {
         headers: {
-          Accept: "application/json",
-          Authorization: FOURSQUARE_API_KEY,
-          "X-Places-Api-Version": "2025-06-17",
+          ...baseHeaders,
+          Authorization: `Bearer ${normalizedFoursquareKey}`,
         },
-      }
-    );
+      });
+    }
 
     if (!fsqResponse.ok) {
       const errText = await fsqResponse.text();
