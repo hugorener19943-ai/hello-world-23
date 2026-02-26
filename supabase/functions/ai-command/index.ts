@@ -198,36 +198,39 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
       try {
         const FOURSQUARE_API_KEY = Deno.env.get("FOURSQUARE_API_KEY");
         if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
-        const normalizedFoursquareKey = FOURSQUARE_API_KEY.trim().replace(/^Bearer\s+/i, "");
+        const normalizedKey = FOURSQUARE_API_KEY.trim().replace(/^Bearer\s+/i, "");
+        console.log("FSQ key prefix:", normalizedKey.substring(0, 8) + "..., length:", normalizedKey.length);
 
         const params = new URLSearchParams();
         params.set("query", parsed.actionPayload.query);
         params.set("near", parsed.actionPayload.near);
         params.set("limit", String(parsed.actionPayload.limit));
 
-        const fsqUrl = `https://places-api.foursquare.com/places/search?${params.toString()}`;
-        const baseHeaders = {
+        const baseHeaders: Record<string, string> = {
           Accept: "application/json",
-          "X-Places-Api-Version": "2025-06-17",
         };
 
-        let fsqResponse = await fetch(fsqUrl, {
-          headers: {
-            ...baseHeaders,
-            Authorization: normalizedFoursquareKey,
-          },
-        });
+        // Try multiple endpoint + auth combinations
+        const attempts = [
+          { url: `https://api.foursquare.com/v3/places/search?${params}`, auth: normalizedKey },
+          { url: `https://places-api.foursquare.com/places/search?${params}`, auth: normalizedKey },
+          { url: `https://api.foursquare.com/v3/places/search?${params}`, auth: `Bearer ${normalizedKey}` },
+          { url: `https://places-api.foursquare.com/places/search?${params}`, auth: `Bearer ${normalizedKey}` },
+        ];
 
-        if (fsqResponse.status === 401) {
-          fsqResponse = await fetch(fsqUrl, {
-            headers: {
-              ...baseHeaders,
-              Authorization: `Bearer ${normalizedFoursquareKey}`,
-            },
+        let fsqResponse: Response | null = null;
+        for (const attempt of attempts) {
+          console.log("Trying:", attempt.url.substring(0, 50), "auth format:", attempt.auth.substring(0, 10));
+          fsqResponse = await fetch(attempt.url, {
+            headers: { ...baseHeaders, Authorization: attempt.auth },
           });
+          console.log("Response status:", fsqResponse.status);
+          if (fsqResponse.ok) break;
+          // Consume body to avoid leak
+          await fsqResponse.text();
         }
 
-        if (fsqResponse.ok) {
+        if (fsqResponse && fsqResponse.ok) {
           const fsqData = await fsqResponse.json();
           const places = fsqData.results?.map((p: any) => {
             // Analyze automation potential based on available data
@@ -277,9 +280,9 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           await supabase.from("ai_tasks").update({ status: "concluida", result: { places, searchQuery: parsed.actionPayload.query, searchCity: parsed.actionPayload.near } }).eq("id", task.id);
           parsed.actionPayload._places = places;
         } else {
-          const errText = await fsqResponse.text();
-          console.error("Foursquare API error:", errText);
-          parsed.reply = `⚠️ Erro ao buscar no Foursquare (${fsqResponse.status}). Verifique a API key.`;
+          const errText = fsqResponse ? `Status ${fsqResponse.status}` : "Todas as tentativas falharam";
+          console.error("Foursquare API error: all attempts failed");
+          parsed.reply = `⚠️ Erro ao buscar no Foursquare (${errText}). Verifique a API key.`;
           await supabase.from("ai_tasks").update({ status: "falhou", error_message: errText }).eq("id", task.id);
         }
       } catch (fsqErr: any) {
