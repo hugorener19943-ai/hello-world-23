@@ -9,9 +9,9 @@ const corsHeaders = {
 // Permission map: role -> allowed action types
 const PERMISSIONS: Record<string, string[]> = {
   dono: ["*"],
-  financeiro: ["registrar_pagamento", "gerar_relatorio", "consultar"],
-  vendas: ["criar_lead", "criar_projeto", "consultar"],
-  operacao: ["atualizar_status", "enviar_mensagem", "consultar"],
+  financeiro: ["registrar_pagamento", "gerar_relatorio", "consultar", "buscar_empresas"],
+  vendas: ["criar_lead", "criar_projeto", "consultar", "buscar_empresas"],
+  operacao: ["atualizar_status", "enviar_mensagem", "consultar", "buscar_empresas"],
 };
 
 function hasPermission(roles: string[], actionType: string): boolean {
@@ -64,16 +64,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `Você é um assistente de automação empresarial. Analise o comando do usuário e retorne um JSON com:
-- "reply": resposta amigável ao usuário
-- "actionType": tipo da ação (criar_projeto, criar_lead, registrar_pagamento, gerar_relatorio, atualizar_status, enviar_mensagem, enviar_whatsapp, buscar_lugares, consultar, outro)
-- "actionPayload": dados extraídos do comando (objeto JSON). Para buscar_lugares inclua: query (string), ll (lat,lng opcional), radius (metros opcional)
-- "requiresConfirmation": true se a ação modifica dados, false se é apenas consulta
-- "plan": breve descrição do que será feito
-- "requiresConfirmation": true se a ação modifica dados, false se é apenas consulta
-- "plan": breve descrição do que será feito
+            content: `Você é um assistente de automação empresarial. Analise o comando do usuário e determine qual ferramenta usar.
 
-Responda APENAS com o JSON, sem markdown.
+Se o usuário pedir para buscar empresas, locais, restaurantes, lojas ou qualquer tipo de estabelecimento em uma cidade, use a ferramenta "buscar_empresas".
+Para outros comandos, use "process_command".
+
 Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           },
           { role: "user", content: message },
@@ -83,23 +78,39 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
             type: "function",
             function: {
               name: "process_command",
-              description: "Process a user command and return structured action",
+              description: "Process a general user command and return structured action",
               parameters: {
                 type: "object",
                 properties: {
-                  reply: { type: "string" },
-                  actionType: { type: "string" },
-                  actionPayload: { type: "object" },
-                  requiresConfirmation: { type: "boolean" },
-                  plan: { type: "string" },
+                  reply: { type: "string", description: "Resposta amigável ao usuário" },
+                  actionType: { type: "string", description: "Tipo da ação: criar_projeto, criar_lead, registrar_pagamento, gerar_relatorio, atualizar_status, enviar_mensagem, enviar_whatsapp, consultar, outro" },
+                  actionPayload: { type: "object", description: "Dados extraídos do comando" },
+                  requiresConfirmation: { type: "boolean", description: "true se modifica dados" },
+                  plan: { type: "string", description: "Breve descrição do que será feito" },
                 },
                 required: ["reply", "actionType", "requiresConfirmation", "plan"],
                 additionalProperties: false,
               },
             },
           },
+          {
+            type: "function",
+            function: {
+              name: "buscar_empresas",
+              description: "Busca empresas, restaurantes, lojas ou estabelecimentos por cidade e termo usando Foursquare API",
+              parameters: {
+                type: "object",
+                properties: {
+                  cidade: { type: "string", description: "Cidade e estado (ex: São Paulo, SP)" },
+                  termo: { type: "string", description: "Tipo de empresa a buscar (ex: restaurantes, cafeterias, academias)" },
+                  limite: { type: "number", description: "Quantidade máxima de resultados (padrão: 5)" },
+                },
+                required: ["cidade", "termo"],
+                additionalProperties: false,
+              },
+            },
+          },
         ],
-        tool_choice: { type: "function", function: { name: "process_command" } },
       }),
     });
 
@@ -123,8 +134,20 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
     const aiData = await aiResponse.json();
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     let parsed: any;
+    let isFoursquareSearch = false;
 
-    if (toolCall?.function?.arguments) {
+    if (toolCall?.function?.name === "buscar_empresas" && toolCall?.function?.arguments) {
+      // Foursquare search tool was called
+      const args = JSON.parse(toolCall.function.arguments);
+      isFoursquareSearch = true;
+      parsed = {
+        reply: `🔍 Buscando ${args.termo} em ${args.cidade}...`,
+        actionType: "buscar_empresas",
+        requiresConfirmation: false,
+        plan: `Buscar ${args.termo} em ${args.cidade} via Foursquare`,
+        actionPayload: { query: args.termo, near: args.cidade, limit: args.limite || 5 },
+      };
+    } else if (toolCall?.function?.arguments) {
       parsed = JSON.parse(toolCall.function.arguments);
     } else {
       parsed = {
@@ -163,58 +186,60 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
 
     if (taskError) throw taskError;
 
+    // If Foursquare search, execute it now
+    if (isFoursquareSearch) {
+      try {
+        const FOURSQUARE_API_KEY = Deno.env.get("FOURSQUARE_API_KEY");
+        if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
+
+        const params = new URLSearchParams();
+        params.set("query", parsed.actionPayload.query);
+        params.set("near", parsed.actionPayload.near);
+        params.set("limit", String(parsed.actionPayload.limit));
+
+        const fsqResponse = await fetch(
+          `https://api.foursquare.com/v3/places/search?${params.toString()}`,
+          { headers: { Accept: "application/json", Authorization: FOURSQUARE_API_KEY } }
+        );
+
+        if (fsqResponse.ok) {
+          const fsqData = await fsqResponse.json();
+          const places = fsqData.results?.map((p: any) => ({
+            name: p.name,
+            address: p.location?.formatted_address || p.location?.address,
+            categories: p.categories?.map((c: any) => c.name).join(", "),
+            distance: p.distance,
+          })) || [];
+
+          const placesText = places.length > 0
+            ? places.map((p: any, i: number) =>
+                `${i + 1}. **${p.name}**\n   📍 ${p.address || "Endereço não disponível"}\n   🏷️ ${p.categories || "Sem categoria"}${p.distance ? `\n   📏 ${p.distance}m de distância` : ""}`
+              ).join("\n\n")
+            : "Nenhum lugar encontrado para essa busca.";
+
+          parsed.reply = `📍 **Resultados para "${parsed.actionPayload.query}" em ${parsed.actionPayload.near}:**\n\n${placesText}`;
+
+          await supabase.from("ai_tasks").update({ status: "concluida", result: { places } }).eq("id", task.id);
+        } else {
+          const errText = await fsqResponse.text();
+          console.error("Foursquare API error:", errText);
+          parsed.reply = `⚠️ Erro ao buscar no Foursquare (${fsqResponse.status}). Verifique a API key.`;
+          await supabase.from("ai_tasks").update({ status: "falhou", error_message: errText }).eq("id", task.id);
+        }
+      } catch (fsqErr: any) {
+        console.error("Foursquare error:", fsqErr);
+        parsed.reply = `❌ Erro ao buscar empresas: ${fsqErr.message}`;
+        await supabase.from("ai_tasks").update({ status: "falhou", error_message: fsqErr.message }).eq("id", task.id);
+      }
+    } else if (!parsed.requiresConfirmation) {
+      await supabase.from("ai_tasks").update({ status: "concluida" }).eq("id", task.id);
+    }
+
     // Save chat messages
     await supabase.from("chat_messages").insert([
       { user_id: user.id, task_id: task.id, role: "user", content: message },
       { user_id: user.id, task_id: task.id, role: "assistant", content: parsed.reply },
     ]);
-
-    // Auto-execute if no confirmation needed
-    if (!parsed.requiresConfirmation) {
-      // If it's a place search, call Foursquare
-      if (parsed.actionType === "buscar_lugares") {
-        try {
-          const FOURSQUARE_API_KEY = Deno.env.get("FOURSQUARE_API_KEY");
-          if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
-
-          const params = new URLSearchParams();
-          if (parsed.actionPayload?.query) params.set("query", parsed.actionPayload.query);
-          if (parsed.actionPayload?.ll) params.set("ll", parsed.actionPayload.ll);
-          if (parsed.actionPayload?.radius) params.set("radius", String(parsed.actionPayload.radius));
-          params.set("limit", "5");
-
-          const fsqResponse = await fetch(
-            `https://api.foursquare.com/v3/places/search?${params.toString()}`,
-            { headers: { Accept: "application/json", Authorization: FOURSQUARE_API_KEY } }
-          );
-
-          if (fsqResponse.ok) {
-            const fsqData = await fsqResponse.json();
-            const places = fsqData.results?.map((p: any) => ({
-              name: p.name,
-              address: p.location?.formatted_address || p.location?.address,
-              categories: p.categories?.map((c: any) => c.name).join(", "),
-              distance: p.distance,
-            })) || [];
-
-            const placesText = places.length > 0
-              ? places.map((p: any, i: number) => `${i + 1}. **${p.name}** - ${p.address || "Endereço não disponível"} (${p.categories || "Sem categoria"}${p.distance ? `, ${p.distance}m` : ""})`).join("\n")
-              : "Nenhum lugar encontrado.";
-
-            parsed.reply = `📍 Encontrei estes lugares:\n\n${placesText}`;
-
-            await supabase.from("ai_tasks").update({ status: "concluida", result: { places } }).eq("id", task.id);
-            // Update assistant message
-            await supabase.from("chat_messages").update({ content: parsed.reply }).eq("task_id", task.id).eq("role", "assistant");
-          }
-        } catch (fsqErr: any) {
-          console.error("Foursquare error:", fsqErr);
-          parsed.reply += "\n\n⚠️ Erro ao buscar lugares no Foursquare.";
-        }
-      } else {
-        await supabase.from("ai_tasks").update({ status: "concluida" }).eq("id", task.id);
-      }
-    }
 
     return new Response(
       JSON.stringify({
