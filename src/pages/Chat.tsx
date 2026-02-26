@@ -34,6 +34,9 @@ export default function Chat() {
         id: crypto.randomUUID(),
         role: "assistant",
         content: data.reply || data.plan || "Comando processado.",
+        places: data.places,
+        searchQuery: data.actionType === "buscar_empresas" ? data.plan : undefined,
+        searchCity: data.actionType === "buscar_empresas" ? data.plan : undefined,
       };
       setMessages((prev) => [...prev, assistantMsg]);
 

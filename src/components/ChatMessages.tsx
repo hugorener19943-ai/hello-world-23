@@ -1,12 +1,17 @@
 import ReactMarkdown from "react-markdown";
-import { Bot, User } from "lucide-react";
+import { Bot, User, Download } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
+import { generateExcelCSV, downloadCSV, type PlaceResult } from "@/lib/excelExport";
 
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
+  places?: PlaceResult[];
+  searchQuery?: string;
+  searchCity?: string;
 }
 
 interface ChatMessagesProps {
@@ -21,14 +26,21 @@ export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const handleDownload = (places: PlaceResult[], query: string, city: string) => {
+    const csv = generateExcelCSV(places, query, city);
+    const date = new Date().toISOString().slice(0, 10);
+    const filename = `prospeccao_${query.replace(/\s+/g, "_")}_${city.replace(/\s+/g, "_")}_${date}.csv`;
+    downloadCSV(csv, filename);
+  };
+
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center p-8">
         <div className="text-center space-y-2">
           <Bot className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="text-lg font-medium text-foreground">Chat IA</h3>
+          <h3 className="text-lg font-medium text-foreground">Agente de Prospecção B2B</h3>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Envie comandos como "Crie um projeto", "Envie WhatsApp para cliente X", "Registre pagamento"...
+            Envie comandos como "Busque restaurantes em São Paulo", "Encontre academias em Curitiba"...
           </p>
         </div>
       </div>
@@ -56,8 +68,21 @@ export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
               }`}
             >
               {msg.role === "assistant" ? (
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                <div className="space-y-3">
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                  </div>
+                  {msg.places && msg.places.length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2 mt-2"
+                      onClick={() => handleDownload(msg.places!, msg.searchQuery || "busca", msg.searchCity || "local")}
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Baixar Excel (.csv)
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <p className="whitespace-pre-wrap">{msg.content}</p>
