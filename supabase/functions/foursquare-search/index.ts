@@ -17,8 +17,7 @@ serve(async (req) => {
 
     const fsqHeaders: Record<string, string> = {
       Accept: "application/json",
-      Authorization: `Bearer ${normalizedKey}`,
-      "X-Places-Api-Version": "2025-06-17",
+      Authorization: normalizedKey,
     };
 
     // Auth check
@@ -43,7 +42,7 @@ serve(async (req) => {
     if (categories) params.set("categories", categories);
 
     const fsqResponse = await fetch(
-      `https://places-api.foursquare.com/places/search?${params.toString()}`,
+      `https://api.foursquare.com/v3/places/search?${params.toString()}`,
       { headers: fsqHeaders }
     );
 
