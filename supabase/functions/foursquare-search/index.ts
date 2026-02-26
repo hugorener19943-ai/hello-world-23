@@ -36,11 +36,12 @@ serve(async (req) => {
     if (categories) params.set("categories", categories);
 
     const fsqResponse = await fetch(
-      `https://api.foursquare.com/v3/places/search?${params.toString()}`,
+      `https://places-api.foursquare.com/places/search?${params.toString()}`,
       {
         headers: {
           Accept: "application/json",
-          Authorization: FOURSQUARE_API_KEY,
+          Authorization: `Bearer ${FOURSQUARE_API_KEY}`,
+          "X-Places-Api-Version": "2025-06-17",
         },
       }
     );
