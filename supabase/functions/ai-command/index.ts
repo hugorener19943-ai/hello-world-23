@@ -200,21 +200,27 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
         if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
         const normalizedKey = FOURSQUARE_API_KEY.trim().replace(/^Bearer\s+/i, "");
 
-        // Geocode city to lat/lng using Foursquare autocomplete
+        const fsqHeaders: Record<string, string> = {
+          Accept: "application/json",
+          Authorization: `Bearer ${normalizedKey}`,
+          "X-Places-Api-Version": "2025-06-17",
+        };
+
+        // Geocode city to lat/lng using new autocomplete endpoint
         const geoParams = new URLSearchParams({ text: parsed.actionPayload.near });
         let ll = "";
         try {
           const geoResp = await fetch(
-            `https://api.foursquare.com/v3/autocomplete?${geoParams}`,
-            { headers: { Accept: "application/json", Authorization: normalizedKey } }
+            `https://places-api.foursquare.com/autocomplete?${geoParams}`,
+            { headers: fsqHeaders }
           );
           if (geoResp.ok) {
             const geoData = await geoResp.json();
             const geo = geoData.results?.[0]?.geo?.center;
             if (geo) ll = `${geo.latitude},${geo.longitude}`;
+            console.log("Geocoded ll:", ll);
           } else {
-            console.log("Geocode failed:", geoResp.status);
-            await geoResp.text();
+            console.log("Geocode failed:", geoResp.status, await geoResp.text());
           }
         } catch (e) {
           console.log("Geocode error:", e);
@@ -230,11 +236,9 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
         }
         params.set("limit", String(parsed.actionPayload.limit));
 
-        const fsqUrl = `https://api.foursquare.com/v3/places/search?${params}`;
+        const fsqUrl = `https://places-api.foursquare.com/places/search?${params}`;
         console.log("FSQ request:", fsqUrl);
-        let fsqResponse = await fetch(fsqUrl, {
-          headers: { Accept: "application/json", Authorization: normalizedKey },
-        });
+        let fsqResponse = await fetch(fsqUrl, { headers: fsqHeaders });
         console.log("FSQ status:", fsqResponse.status);
 
         if (fsqResponse.ok) {
