@@ -40,7 +40,7 @@ serve(async (req) => {
       {
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${FOURSQUARE_API_KEY}`,
+          Authorization: FOURSQUARE_API_KEY,
           "X-Places-Api-Version": "2025-06-17",
         },
       }
