@@ -205,8 +205,14 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
         params.set("limit", String(parsed.actionPayload.limit));
 
         const fsqResponse = await fetch(
-          `https://api.foursquare.com/v3/places/search?${params.toString()}`,
-          { headers: { Accept: "application/json", Authorization: FOURSQUARE_API_KEY } }
+          `https://places-api.foursquare.com/places/search?${params.toString()}`,
+          {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${FOURSQUARE_API_KEY}`,
+              "X-Places-Api-Version": "2025-06-17",
+            },
+          }
         );
 
         if (fsqResponse.ok) {
