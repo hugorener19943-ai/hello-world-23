@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.foursquare-search]
 verify_jwt = false
+
+[functions.n8n-proxy]
+verify_jwt = false
