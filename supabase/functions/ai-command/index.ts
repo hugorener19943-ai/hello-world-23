@@ -219,25 +219,35 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           const places = rawPlaces.map((p: any) => {
             const name = p.name || p.nome || "";
             const address = p.address || p.endereco || p.location?.formatted_address || "";
-            const categories = p.categories || p.categorias || "";
+            const categories = p.categories || p.categorias || p.category || "";
             const phone = p.phone || p.telefone || p.tel || "";
             const website = p.website || p.site || "";
             const distance = p.distance || p.distancia || null;
-            const ranking = p.ranking || "🟡 Média";
-            const score = p.score || 2;
+            const siteStatus = p.site_status || "N/A";
+            const score = typeof p.score === "number" ? p.score : 50;
+            const weakReasons: string[] = Array.isArray(p.weak_reasons) ? p.weak_reasons : [];
+            const pitchAngle = p.pitch_angle || "";
+            const whatsappMessage = p.whatsapp_message || "";
+            const ranking = siteStatus === "FRACO" ? "🟢 Alta" : score >= 60 ? "🟡 Média" : "🔴 Baixa";
 
-            return { name, address, city: p.city || parsed.actionPayload.near, categories, distance, phone, website, ranking, score };
+            return { name, address, city: p.city || parsed.actionPayload.near, categories, distance, phone, website, ranking, score, siteStatus, weakReasons, pitchAngle, whatsappMessage };
           });
 
           places.sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
 
           const placesText = places.length > 0
-            ? places.map((p: any, i: number) =>
-                `${i + 1}. **${p.name}** ${p.ranking}\n   📍 ${p.address || "Endereço não disponível"}\n   🏷️ ${p.categories || "Sem categoria"}${p.phone ? `\n   📞 ${p.phone}` : ""}${p.website ? `\n   🌐 ${p.website}` : ""}${p.distance ? `\n   📏 ${p.distance}m` : ""}`
-              ).join("\n\n")
+            ? places.map((p: any, i: number) => {
+                let entry = `${i + 1}. **${p.name}** ${p.ranking} (Score: ${p.score})\n   📍 ${p.address || "Endereço não disponível"}\n   🏷️ ${p.categories || "Sem categoria"}`;
+                if (p.phone) entry += `\n   📞 ${p.phone}`;
+                if (p.website) entry += `\n   🌐 ${p.website}`;
+                entry += `\n   🔎 Site: **${p.siteStatus}**`;
+                if (p.weakReasons.length > 0) entry += `\n   ⚠️ ${p.weakReasons.join(" | ")}`;
+                if (p.pitchAngle) entry += `\n   💡 *${p.pitchAngle}*`;
+                return entry;
+              }).join("\n\n")
             : "Nenhuma empresa encontrada para essa busca.";
 
-          parsed.reply = `📊 **Prospecção B2B: "${parsed.actionPayload.query}" em ${parsed.actionPayload.near}**\n\n${placesText}\n\n💡 *Ranking de conversão baseado em potencial de automação. Use o botão abaixo para baixar em Excel.*`;
+          parsed.reply = `📊 **Prospecção B2B: "${parsed.actionPayload.query}" em ${parsed.actionPayload.near}**\n\n${placesText}\n\n💡 *Ranking baseado em análise de presença digital. Use o botão abaixo para baixar em Excel.*`;
 
           await supabase.from("ai_tasks").update({ status: "concluida", result: { places, searchQuery: parsed.actionPayload.query, searchCity: parsed.actionPayload.near } }).eq("id", task.id);
           parsed.actionPayload._places = places;

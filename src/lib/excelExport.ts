@@ -8,11 +8,15 @@ export interface PlaceResult {
   website: string;
   ranking: string;
   score: number;
+  siteStatus?: string;
+  weakReasons?: string[];
+  pitchAngle?: string;
+  whatsappMessage?: string;
 }
 
 export function generateExcelCSV(places: PlaceResult[], query: string, city: string): string {
-  const BOM = "\uFEFF"; // UTF-8 BOM for Excel compatibility
-  const sep = ";"; // Use semicolon for better Excel compatibility with PT-BR locale
+  const BOM = "\uFEFF";
+  const sep = ";";
 
   const headers = [
     "#",
@@ -22,8 +26,12 @@ export function generateExcelCSV(places: PlaceResult[], query: string, city: str
     "Categorias",
     "Telefone",
     "Website",
-    "Ranking Conversão",
+    "Status Site",
     "Score",
+    "Ranking Conversão",
+    "Motivos",
+    "Ângulo de Abordagem",
+    "Mensagem WhatsApp",
     "Distância (m)",
   ];
 
@@ -35,8 +43,12 @@ export function generateExcelCSV(places: PlaceResult[], query: string, city: str
     escapeCSV(p.categories),
     escapeCSV(p.phone),
     escapeCSV(p.website),
-    escapeCSV(p.ranking.replace(/🟢|🟡|🔴/g, "").trim()),
+    escapeCSV(p.siteStatus || ""),
     String(p.score),
+    escapeCSV(p.ranking.replace(/🟢|🟡|🔴/g, "").trim()),
+    escapeCSV((p.weakReasons || []).join(", ")),
+    escapeCSV(p.pitchAngle || ""),
+    escapeCSV(p.whatsappMessage || ""),
     p.distance ? String(p.distance) : "",
   ]);
 
