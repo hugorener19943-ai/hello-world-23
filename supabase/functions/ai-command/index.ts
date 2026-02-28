@@ -204,8 +204,8 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({
             query: parsed.actionPayload.query,
-            near: parsed.actionPayload.near,
-            limit: parsed.actionPayload.limit || 5,
+            cidade: parsed.actionPayload.near,
+            limit: parsed.actionPayload.limit || 20,
           }),
         });
 
