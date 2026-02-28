@@ -196,7 +196,7 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
     // If Foursquare search, execute via n8n webhook
     if (isFoursquareSearch) {
       try {
-        const n8nUrl = "http://116.203.112.103:5678/webhook/buscar-empresas";
+        const n8nUrl = "http://116.203.112.103:5678/webhook/Buscar-Empresas";
         console.log("Calling n8n webhook:", n8nUrl, parsed.actionPayload);
 
         const n8nResponse = await fetch(n8nUrl, {
