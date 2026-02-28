@@ -193,91 +193,43 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
 
     if (taskError) throw taskError;
 
-    // If Foursquare search, execute it now
+    // If Foursquare search, execute via n8n webhook
     if (isFoursquareSearch) {
       try {
-        const FOURSQUARE_API_KEY = Deno.env.get("FOURSQUARE_API_KEY");
-        if (!FOURSQUARE_API_KEY) throw new Error("FOURSQUARE_API_KEY not configured");
-        const normalizedKey = FOURSQUARE_API_KEY.trim().replace(/^Bearer\s+/i, "");
+        const n8nUrl = "http://116.203.112.103:5678/webhook/buscar-empresas";
+        console.log("Calling n8n webhook:", n8nUrl, parsed.actionPayload);
 
-        const fsqHeaders: Record<string, string> = {
-          Accept: "application/json",
-          Authorization: normalizedKey,
-        };
+        const n8nResponse = await fetch(n8nUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({
+            query: parsed.actionPayload.query,
+            near: parsed.actionPayload.near,
+            limit: parsed.actionPayload.limit || 5,
+          }),
+        });
 
-        // Geocode city to lat/lng using autocomplete endpoint
-        const geoParams = new URLSearchParams({ query: parsed.actionPayload.near, types: "geo" });
-        let ll = "";
-        try {
-          const geoResp = await fetch(
-            `https://api.foursquare.com/v3/autocomplete?${geoParams}`,
-            { headers: fsqHeaders }
-          );
-          if (geoResp.ok) {
-            const geoData = await geoResp.json();
-            const geo = geoData.results?.[0]?.geo?.center;
-            if (geo) ll = `${geo.latitude},${geo.longitude}`;
-            console.log("Geocoded ll:", ll);
-          } else {
-            console.log("Geocode failed:", geoResp.status, await geoResp.text());
-          }
-        } catch (e) {
-          console.log("Geocode error:", e);
-        }
+        console.log("n8n status:", n8nResponse.status);
 
-        const params = new URLSearchParams();
-        params.set("query", parsed.actionPayload.query);
-        if (ll) {
-          params.set("ll", ll);
-          params.set("radius", "50000");
-        } else {
-          params.set("near", parsed.actionPayload.near);
-        }
-        params.set("limit", String(parsed.actionPayload.limit));
+        if (n8nResponse.ok) {
+          const n8nData = await n8nResponse.json();
+          // n8n can return data in different formats, handle flexibly
+          const rawPlaces = Array.isArray(n8nData) ? n8nData : (n8nData.results || n8nData.places || n8nData.data || []);
 
-        const fsqUrl = `https://api.foursquare.com/v3/places/search?${params}`;
-        console.log("FSQ request:", fsqUrl);
-        let fsqResponse = await fetch(fsqUrl, { headers: fsqHeaders });
-        console.log("FSQ status:", fsqResponse.status);
+          const places = rawPlaces.map((p: any) => {
+            const name = p.name || p.nome || "";
+            const address = p.address || p.endereco || p.location?.formatted_address || "";
+            const categories = p.categories || p.categorias || "";
+            const phone = p.phone || p.telefone || p.tel || "";
+            const website = p.website || p.site || "";
+            const distance = p.distance || p.distancia || null;
+            const ranking = p.ranking || "🟡 Média";
+            const score = p.score || 2;
 
-        if (fsqResponse.ok) {
-          const fsqData = await fsqResponse.json();
-          const places = fsqData.results?.map((p: any) => {
-            // Analyze automation potential based on available data
-            const hasWebsite = !!p.website;
-            const hasSocialMedia = !!p.social_media;
-            const chainCount = p.chains?.length || 0;
-            const categoryNames = p.categories?.map((c: any) => c.name).join(", ") || "";
-            
-            // Score: higher = more potential for automation
-            let score = 0;
-            if (!hasWebsite) score += 2; // No website = needs digital presence
-            if (!hasSocialMedia) score += 1;
-            if (chainCount === 0) score += 1; // Independent business
-            // Categories with high automation potential
-            const highPotentialCategories = ["restaurant", "store", "shop", "clinic", "salon", "gym", "hotel", "office"];
-            if (highPotentialCategories.some(cat => categoryNames.toLowerCase().includes(cat))) score += 1;
-            
-            let ranking: string;
-            if (score >= 4) ranking = "🟢 Alta";
-            else if (score >= 2) ranking = "🟡 Média";
-            else ranking = "🔴 Baixa";
+            return { name, address, city: p.city || parsed.actionPayload.near, categories, distance, phone, website, ranking, score };
+          });
 
-            return {
-              name: p.name,
-              address: p.location?.formatted_address || p.location?.address || "",
-              city: p.location?.locality || parsed.actionPayload.near,
-              categories: categoryNames,
-              distance: p.distance,
-              phone: p.tel || "",
-              website: p.website || "",
-              ranking,
-              score,
-            };
-          }) || [];
-
-          // Sort by score descending (highest potential first)
-          places.sort((a: any, b: any) => b.score - a.score);
+          places.sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
 
           const placesText = places.length > 0
             ? places.map((p: any, i: number) =>
@@ -290,15 +242,15 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           await supabase.from("ai_tasks").update({ status: "concluida", result: { places, searchQuery: parsed.actionPayload.query, searchCity: parsed.actionPayload.near } }).eq("id", task.id);
           parsed.actionPayload._places = places;
         } else {
-          const errText = await fsqResponse.text();
-          console.error("Foursquare API error:", fsqResponse.status, errText);
-          parsed.reply = `⚠️ Erro ao buscar no Foursquare (${fsqResponse.status}). Verifique a API key.`;
+          const errText = await n8nResponse.text();
+          console.error("n8n webhook error:", n8nResponse.status, errText);
+          parsed.reply = `⚠️ Erro ao buscar via n8n (${n8nResponse.status}). Verifique o workflow.`;
           await supabase.from("ai_tasks").update({ status: "falhou", error_message: errText }).eq("id", task.id);
         }
-      } catch (fsqErr: any) {
-        console.error("Foursquare error:", fsqErr);
-        parsed.reply = `❌ Erro ao buscar empresas: ${fsqErr.message}`;
-        await supabase.from("ai_tasks").update({ status: "falhou", error_message: fsqErr.message }).eq("id", task.id);
+      } catch (n8nErr: any) {
+        console.error("n8n error:", n8nErr);
+        parsed.reply = `❌ Erro ao buscar empresas via n8n: ${n8nErr.message}`;
+        await supabase.from("ai_tasks").update({ status: "falhou", error_message: n8nErr.message }).eq("id", task.id);
       }
     } else if (!parsed.requiresConfirmation) {
       await supabase.from("ai_tasks").update({ status: "concluida" }).eq("id", task.id);
