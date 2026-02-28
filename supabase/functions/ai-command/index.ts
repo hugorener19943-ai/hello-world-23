@@ -212,7 +212,16 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
         console.log("n8n status:", n8nResponse.status);
 
         if (n8nResponse.ok) {
-          const n8nData = await n8nResponse.json();
+          const responseText = await n8nResponse.text();
+          console.log("n8n raw response length:", responseText.length, "preview:", responseText.substring(0, 500));
+          
+          let n8nData: any;
+          try {
+            n8nData = responseText ? JSON.parse(responseText) : [];
+          } catch (parseErr) {
+            console.error("Failed to parse n8n response as JSON:", parseErr, "Raw:", responseText.substring(0, 200));
+            n8nData = [];
+          }
           // n8n can return data in different formats, handle flexibly
           const rawPlaces = Array.isArray(n8nData) ? n8nData : (n8nData.results || n8nData.places || n8nData.data || []);
 
@@ -251,6 +260,10 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
 
           await supabase.from("ai_tasks").update({ status: "concluida", result: { places, searchQuery: parsed.actionPayload.query, searchCity: parsed.actionPayload.near } }).eq("id", task.id);
           parsed.actionPayload._places = places;
+          if (places.length === 0 && responseText.length === 0) {
+            parsed.reply = `⚠️ O webhook n8n retornou resposta vazia. Verifique se o workflow está configurado para retornar dados JSON.`;
+            await supabase.from("ai_tasks").update({ status: "falhou", error_message: "Empty response from n8n" }).eq("id", task.id);
+          }
         } else {
           const errText = await n8nResponse.text();
           console.error("n8n webhook error:", n8nResponse.status, errText);
