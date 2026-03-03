@@ -29,18 +29,19 @@ export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
   const handleDownload = (places: PlaceResult[], query: string, city: string) => {
     const csv = generateExcelCSV(places, query, city);
     const date = new Date().toISOString().slice(0, 10);
-    const filename = `prospeccao_${query.replace(/\s+/g, "_")}_${city.replace(/\s+/g, "_")}_${date}.csv`;
-    downloadCSV(csv, filename);
+    downloadCSV(csv, `prospeccao_${query}_${city}_${date}.csv`.replace(/\s+/g, "_"));
   };
 
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center p-8">
-        <div className="text-center space-y-2">
-          <Bot className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="text-lg font-medium text-foreground">Agente de Prospecção B2B</h3>
+        <div className="text-center space-y-3">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+            <Bot className="h-8 w-8 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">Agente de Prospecção B2B</h3>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Envie comandos como "Busque restaurantes em São Paulo", "Encontre academias em Curitiba"...
+            Busque empresas por cidade e segmento. Ex: "Busque clínicas em São Paulo"
           </p>
         </div>
       </div>
@@ -49,7 +50,7 @@ export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
 
   return (
     <ScrollArea className="flex-1">
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 p-4 max-w-3xl mx-auto">
         {messages.map((msg) => (
           <div
             key={msg.id}
@@ -61,26 +62,26 @@ export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
               </div>
             )}
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 text-sm ${
+              className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm ${
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground"
+                  : "bg-card border border-border text-foreground shadow-sm"
               }`}
             >
               {msg.role === "assistant" ? (
                 <div className="space-y-3">
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <div className="prose prose-sm dark:prose-invert max-w-none [&>p]:mb-2 [&>p:last-child]:mb-0">
                     <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                   {msg.places && msg.places.length > 0 && (
                     <Button
                       size="sm"
                       variant="outline"
-                      className="gap-2 mt-2"
+                      className="gap-2"
                       onClick={() => handleDownload(msg.places!, msg.searchQuery || "busca", msg.searchCity || "local")}
                     >
                       <Download className="h-3.5 w-3.5" />
-                      Baixar Excel (.csv)
+                      Baixar CSV
                     </Button>
                   )}
                 </div>
@@ -100,8 +101,8 @@ export function ChatMessages({ messages, isStreaming }: ChatMessagesProps) {
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary">
               <Bot className="h-4 w-4 text-primary-foreground animate-pulse" />
             </div>
-            <div className="rounded-lg bg-muted px-4 py-2">
-              <div className="flex gap-1">
+            <div className="rounded-2xl bg-card border border-border px-4 py-3 shadow-sm">
+              <div className="flex gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0ms" }} />
                 <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
                 <span className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />

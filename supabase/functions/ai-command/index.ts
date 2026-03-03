@@ -6,7 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Permission map: role -> allowed action types
 const PERMISSIONS: Record<string, string[]> = {
   dono: ["*"],
   financeiro: ["registrar_pagamento", "gerar_relatorio", "consultar", "buscar_empresas"],
@@ -14,12 +13,19 @@ const PERMISSIONS: Record<string, string[]> = {
   operacao: ["atualizar_status", "enviar_mensagem", "consultar", "buscar_empresas"],
 };
 
-function hasPermission(roles: string[], actionType: string): boolean {
-  return roles.some((role) => {
-    const allowed = PERMISSIONS[role];
-    if (!allowed) return false;
-    return allowed.includes("*") || allowed.includes(actionType) || allowed.includes("consultar");
+function checkPermission(roles: string[], action: string): boolean {
+  return roles.some((r) => {
+    const allowed = PERMISSIONS[r];
+    return allowed && (allowed.includes("*") || allowed.includes(action) || allowed.includes("consultar"));
   });
+}
+
+function ok(body: unknown) {
+  return new Response(JSON.stringify(body), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
+
+function err(message: string, status = 500) {
+  return new Response(JSON.stringify({ error: message }), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 }
 
 serve(async (req) => {
@@ -29,299 +35,274 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("Não autorizado");
+    // Auth
+    const token = req.headers.get("Authorization")?.replace("Bearer ", "");
+    if (!token) return err("Não autorizado", 401);
+    const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
+    if (authErr || !user) return err("Não autorizado", 401);
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) throw new Error("Não autorizado");
-
+    // Input
     const { message } = await req.json();
-    if (!message || typeof message !== "string" || message.length > 2000) {
-      throw new Error("Mensagem inválida");
-    }
+    if (!message || typeof message !== "string" || message.length > 2000) return err("Mensagem inválida", 400);
 
-    // Get user roles
-    const { data: rolesData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id);
+    // Roles
+    const { data: rolesData } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
     const userRoles = rolesData?.map((r: any) => r.role) ?? [];
 
-    // Call AI to analyze the command
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content: `Você é um agente de prospecção B2B especializado em automação comercial.
+    // AI analysis
+    const aiResult = await callAI(LOVABLE_API_KEY, message, userRoles);
 
-FERRAMENTAS DISPONÍVEIS:
-- Você TEM acesso à Foursquare Places API através da ferramenta "buscar_empresas". Ela já está configurada e pronta para uso.
-- Você NÃO precisa de chaves de API do usuário. Tudo já está integrado.
-
-REGRAS:
-- Nunca invente dados. Use apenas dados reais retornados pelas ferramentas.
-- Quando o usuário pedir para buscar empresas, locais, restaurantes, lojas, laboratórios ou qualquer tipo de estabelecimento em uma cidade, SEMPRE use a ferramenta "buscar_empresas". Não diga que não tem acesso.
-- Para outros comandos, use "process_command".
-- Nunca peça ao usuário para configurar API keys ou variáveis de ambiente. Tudo já está configurado.
-
-Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
-          },
-          { role: "user", content: message },
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "process_command",
-              description: "Process a general user command and return structured action",
-              parameters: {
-                type: "object",
-                properties: {
-                  reply: { type: "string", description: "Resposta amigável ao usuário" },
-                  actionType: { type: "string", description: "Tipo da ação: criar_projeto, criar_lead, registrar_pagamento, gerar_relatorio, atualizar_status, enviar_mensagem, enviar_whatsapp, consultar, outro" },
-                  actionPayload: { type: "object", description: "Dados extraídos do comando" },
-                  requiresConfirmation: { type: "boolean", description: "true se modifica dados" },
-                  plan: { type: "string", description: "Breve descrição do que será feito" },
-                },
-                required: ["reply", "actionType", "requiresConfirmation", "plan"],
-                additionalProperties: false,
-              },
-            },
-          },
-          {
-            type: "function",
-            function: {
-              name: "buscar_empresas",
-              description: "Busca empresas, restaurantes, lojas ou estabelecimentos por cidade e termo usando Foursquare API",
-              parameters: {
-                type: "object",
-                properties: {
-                  cidade: { type: "string", description: "Cidade e estado (ex: São Paulo, SP)" },
-                  termo: { type: "string", description: "Tipo de empresa a buscar (ex: restaurantes, cafeterias, academias)" },
-                  limite: { type: "number", description: "Quantidade máxima de resultados (padrão: 5)" },
-                },
-                required: ["cidade", "termo"],
-                additionalProperties: false,
-              },
-            },
-          },
-        ],
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const status = aiResponse.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit excedido, tente novamente." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error(`AI gateway error: ${status}`);
-    }
-
-    const aiData = await aiResponse.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    let parsed: any;
-    let isFoursquareSearch = false;
-
-    if (toolCall?.function?.name === "buscar_empresas" && toolCall?.function?.arguments) {
-      // Foursquare search tool was called
-      const args = JSON.parse(toolCall.function.arguments);
-      isFoursquareSearch = true;
-      parsed = {
-        reply: `🔍 Buscando ${args.termo} em ${args.cidade}...`,
-        actionType: "buscar_empresas",
-        requiresConfirmation: false,
-        plan: `Buscar ${args.termo} em ${args.cidade} via Foursquare`,
-        actionPayload: { query: args.termo, near: args.cidade, limit: args.limite || 50 },
-      };
-    } else if (toolCall?.function?.arguments) {
-      parsed = JSON.parse(toolCall.function.arguments);
-    } else {
-      parsed = {
-        reply: aiData.choices?.[0]?.message?.content || "Não entendi o comando.",
-        actionType: "consultar",
-        requiresConfirmation: false,
-        plan: "Consulta geral",
-      };
-    }
-
-    // Check permission
-    if (!hasPermission(userRoles.length > 0 ? userRoles : ["consultar"], parsed.actionType)) {
-      return new Response(
-        JSON.stringify({
-          reply: `⚠️ Você não tem permissão para executar ações do tipo "${parsed.actionType}". Suas roles: ${userRoles.join(", ") || "nenhuma"}.`,
-          requiresConfirmation: false,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // Permission check
+    if (!checkPermission(userRoles.length ? userRoles : ["consultar"], aiResult.actionType)) {
+      return ok({ reply: `⚠️ Sem permissão para "${aiResult.actionType}". Roles: ${userRoles.join(", ") || "nenhuma"}.` });
     }
 
     // Create task
-    const { data: task, error: taskError } = await supabase
+    const { data: task, error: taskErr } = await supabase
       .from("ai_tasks")
       .insert({
         user_id: user.id,
         command: message,
-        plan: parsed.plan,
-        status: parsed.requiresConfirmation ? "aguardando_confirmacao" : "pendente",
-        requires_confirmation: parsed.requiresConfirmation ?? false,
-        action_type: parsed.actionType,
-        action_payload: parsed.actionPayload ?? {},
+        plan: aiResult.plan,
+        status: aiResult.requiresConfirmation ? "aguardando_confirmacao" : "pendente",
+        requires_confirmation: aiResult.requiresConfirmation,
+        action_type: aiResult.actionType,
+        action_payload: aiResult.payload,
       })
       .select("id")
       .single();
+    if (taskErr) throw taskErr;
 
-    if (taskError) throw taskError;
+    // Execute search if needed
+    let places: any[] = [];
+    let searchQuery = "";
+    let searchCity = "";
 
-    // If Foursquare search, execute via n8n webhook
-    if (isFoursquareSearch) {
-      try {
-        const n8nUrl = "http://116.203.112.103:5678/webhook/buscar-empresas";
-        console.log("Calling n8n webhook:", n8nUrl, parsed.actionPayload);
+    if (aiResult.actionType === "buscar_empresas") {
+      const result = await executeSearch(aiResult.payload, task.id, supabase);
+      places = result.places;
+      searchQuery = aiResult.payload.query || "";
+      searchCity = aiResult.payload.near || "";
 
-        const n8nResponse = await fetch(n8nUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
-          body: JSON.stringify({
-            query: parsed.actionPayload.query,
-            cidade: parsed.actionPayload.near,
-            limit: parsed.actionPayload.limit || 50,
-          }),
-        });
-
-        console.log("n8n status:", n8nResponse.status);
-
-        if (n8nResponse.ok) {
-          const contentType = n8nResponse.headers.get("content-type") || "";
-          const responseText = await n8nResponse.text();
-          console.log("n8n content-type:", contentType, "response length:", responseText.length, "preview:", responseText.substring(0, 500));
-
-          // Check if n8n returned HTML instead of JSON (auth redirect, error page, etc.)
-          if (!contentType.includes("application/json") && (responseText.trim().startsWith("<!") || responseText.includes("<html"))) {
-            console.error("n8n returned HTML instead of JSON:", responseText.substring(0, 300));
-            parsed.reply = `⚠️ O webhook n8n retornou uma página HTML em vez de JSON. Verifique se o workflow está ativo e configurado com o nó "Respond to Webhook".`;
-            await supabase.from("ai_tasks").update({ status: "falhou", error_message: "n8n returned HTML instead of JSON" }).eq("id", task.id);
-          } else {
-          let n8nData: any;
-          try {
-            n8nData = responseText ? JSON.parse(responseText) : [];
-          } catch (parseErr) {
-            console.error("Failed to parse n8n response as JSON:", parseErr, "Raw:", responseText.substring(0, 200));
-            // Try to recover truncated JSON
-            const lastBrace = responseText.lastIndexOf("}");
-            if (lastBrace > 0) {
-              try {
-                n8nData = JSON.parse(responseText.substring(0, lastBrace + 1) + "]");
-                console.warn(`Recovered ${Array.isArray(n8nData) ? n8nData.length : '?'} items from truncated response`);
-              } catch { n8nData = []; }
-            } else {
-              n8nData = [];
-            }
-          }
-          // n8n can return data in different formats, handle flexibly
-          const rawPlaces = Array.isArray(n8nData) ? n8nData : (n8nData.apiResponse?.empresas || n8nData.empresas || n8nData.results || n8nData.places || n8nData.data || []);
-
-          const places = rawPlaces.map((p: any) => {
-            const name = p.nome || p.name || "";
-            const address = p.endereco || p.address || "";
-            const city = p.cidade || p.city || parsed.actionPayload.near;
-            const categories = p.nicho || p.categories || p.categorias || "";
-            const phone = p.whatsapp || p.phone || p.telefone || "";
-            const email = p.email || "";
-            const website = p.website || p.site || "";
-            const whatsappLink = p.whatsapp_link || "";
-            const score = typeof p.score === "number" ? p.score : 50;
-            const siteStatus = p.site_status || "N/A";
-            const weakReasons: string[] = Array.isArray(p.weak_reasons) ? p.weak_reasons : [];
-            const pitchAngle = p.pitch_angle || "";
-            const whatsappMessage = p.whatsapp_message || "";
-            const ranking = siteStatus === "FRACO" ? "🟢 Alta" : score >= 60 ? "🟡 Média" : "🔴 Baixa";
-
-            return { name, address, city, categories, phone, email, website, whatsappLink, ranking, score, siteStatus, weakReasons, pitchAngle, whatsappMessage };
-          });
-
-          places.sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
-
-          const placesText = places.length > 0
-            ? places.map((p: any, i: number) => {
-                let entry = `${i + 1}. **${p.name}** ${p.ranking} (Score: ${p.score})\n   📍 ${p.address || "Endereço não disponível"} — ${p.city}\n   🏷️ ${p.categories || "Sem categoria"}`;
-                if (p.phone) entry += `\n   📞 ${p.phone}`;
-                if (p.email) entry += `\n   📧 ${p.email}`;
-                if (p.website) entry += `\n   🌐 ${p.website}`;
-                if (p.whatsappLink) entry += `\n   💬 [WhatsApp](${p.whatsappLink})`;
-                entry += `\n   🔎 Site: **${p.siteStatus}**`;
-                if (p.weakReasons.length > 0) entry += `\n   ⚠️ ${p.weakReasons.join(" | ")}`;
-                if (p.pitchAngle) entry += `\n   💡 *${p.pitchAngle}*`;
-                return entry;
-              }).join("\n\n")
-            : "Nenhuma empresa encontrada para essa busca.";
-
-          parsed.reply = `📊 **Prospecção B2B: "${parsed.actionPayload.query}" em ${parsed.actionPayload.near}**\n\n${placesText}\n\n💡 *Ranking baseado em análise de presença digital. Use o botão abaixo para baixar em Excel.*`;
-
-          await supabase.from("ai_tasks").update({ status: "concluida", result: { places, searchQuery: parsed.actionPayload.query, searchCity: parsed.actionPayload.near } }).eq("id", task.id);
-          parsed.actionPayload._places = places;
-          if (places.length === 0 && responseText.length === 0) {
-            parsed.reply = `⚠️ O webhook n8n retornou resposta vazia. Verifique se o workflow está configurado para retornar dados JSON.`;
-            await supabase.from("ai_tasks").update({ status: "falhou", error_message: "Empty response from n8n" }).eq("id", task.id);
-          }
-          } // end else (JSON response)
-        } else {
-          const errText = await n8nResponse.text();
-          console.error("n8n webhook error:", n8nResponse.status, errText);
-          parsed.reply = `⚠️ Erro ao buscar via n8n (${n8nResponse.status}). Verifique o workflow.`;
-          await supabase.from("ai_tasks").update({ status: "falhou", error_message: errText }).eq("id", task.id);
-        }
-      } catch (n8nErr: any) {
-        console.error("n8n error:", n8nErr);
-        parsed.reply = `❌ Erro ao buscar empresas via n8n: ${n8nErr.message}`;
-        await supabase.from("ai_tasks").update({ status: "falhou", error_message: n8nErr.message }).eq("id", task.id);
+      if (places.length > 0) {
+        const text = formatPlaces(places, searchQuery, searchCity);
+        aiResult.reply = text;
+        await supabase.from("ai_tasks").update({ status: "concluida", result: { places, searchQuery, searchCity } }).eq("id", task.id);
+      } else if (result.error) {
+        aiResult.reply = `⚠️ ${result.error}`;
+        await supabase.from("ai_tasks").update({ status: "falhou", error_message: result.error }).eq("id", task.id);
       }
-    } else if (!parsed.requiresConfirmation) {
+    } else if (!aiResult.requiresConfirmation) {
       await supabase.from("ai_tasks").update({ status: "concluida" }).eq("id", task.id);
     }
 
-    // Save chat messages
+    // Save messages
     await supabase.from("chat_messages").insert([
       { user_id: user.id, task_id: task.id, role: "user", content: message },
-      { user_id: user.id, task_id: task.id, role: "assistant", content: parsed.reply },
+      { user_id: user.id, task_id: task.id, role: "assistant", content: aiResult.reply },
     ]);
 
-    return new Response(
-      JSON.stringify({
-        reply: parsed.reply,
-        plan: parsed.plan,
-        taskId: task.id,
-        requiresConfirmation: parsed.requiresConfirmation,
-        actionType: parsed.actionType,
-        places: isFoursquareSearch ? (parsed.actionPayload?._places || []) : undefined,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return ok({
+      reply: aiResult.reply,
+      plan: aiResult.plan,
+      taskId: task.id,
+      requiresConfirmation: aiResult.requiresConfirmation,
+      actionType: aiResult.actionType,
+      places: places.length > 0 ? places : undefined,
+      searchQuery: searchQuery || undefined,
+      searchCity: searchCity || undefined,
+    });
   } catch (error: any) {
     console.error("ai-command error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Erro interno" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return err(error.message || "Erro interno");
   }
 });
+
+// ─── AI Call ──────────────────────────────────────────────
+
+interface AIResult {
+  reply: string;
+  actionType: string;
+  requiresConfirmation: boolean;
+  plan: string;
+  payload: Record<string, any>;
+}
+
+async function callAI(apiKey: string, message: string, roles: string[]): Promise<AIResult> {
+  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        {
+          role: "system",
+          content: `Você é um agente de prospecção B2B. Ferramentas disponíveis: buscar_empresas (Foursquare API integrada), process_command.
+Regras: nunca invente dados. Quando pedirem buscar empresas/locais, use buscar_empresas. Nunca peça API keys.
+Roles do usuário: ${roles.join(", ") || "nenhuma"}`,
+        },
+        { role: "user", content: message },
+      ],
+      tools: [
+        {
+          type: "function",
+          function: {
+            name: "process_command",
+            description: "Processa um comando geral do usuário",
+            parameters: {
+              type: "object",
+              properties: {
+                reply: { type: "string" },
+                actionType: { type: "string" },
+                actionPayload: { type: "object" },
+                requiresConfirmation: { type: "boolean" },
+                plan: { type: "string" },
+              },
+              required: ["reply", "actionType", "requiresConfirmation", "plan"],
+              additionalProperties: false,
+            },
+          },
+        },
+        {
+          type: "function",
+          function: {
+            name: "buscar_empresas",
+            description: "Busca empresas por cidade e termo via Foursquare",
+            parameters: {
+              type: "object",
+              properties: {
+                cidade: { type: "string" },
+                termo: { type: "string" },
+                limite: { type: "number" },
+              },
+              required: ["cidade", "termo"],
+              additionalProperties: false,
+            },
+          },
+        },
+      ],
+    }),
+  });
+
+  if (!res.ok) {
+    if (res.status === 429) throw new Error("Rate limit excedido, tente novamente.");
+    if (res.status === 402) throw new Error("Créditos insuficientes.");
+    throw new Error(`AI gateway error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+
+  if (toolCall?.function?.name === "buscar_empresas") {
+    const args = JSON.parse(toolCall.function.arguments);
+    return {
+      reply: `🔍 Buscando ${args.termo} em ${args.cidade}...`,
+      actionType: "buscar_empresas",
+      requiresConfirmation: false,
+      plan: `Buscar ${args.termo} em ${args.cidade}`,
+      payload: { query: args.termo, near: args.cidade, limit: args.limite || 50 },
+    };
+  }
+
+  if (toolCall?.function?.arguments) {
+    const parsed = JSON.parse(toolCall.function.arguments);
+    return {
+      reply: parsed.reply,
+      actionType: parsed.actionType,
+      requiresConfirmation: parsed.requiresConfirmation ?? false,
+      plan: parsed.plan,
+      payload: parsed.actionPayload ?? {},
+    };
+  }
+
+  return {
+    reply: data.choices?.[0]?.message?.content || "Não entendi o comando.",
+    actionType: "consultar",
+    requiresConfirmation: false,
+    plan: "Consulta geral",
+    payload: {},
+  };
+}
+
+// ─── n8n Search ──────────────────────────────────────────
+
+async function executeSearch(payload: Record<string, any>, taskId: string, supabase: any) {
+  try {
+    const n8nUrl = "http://116.203.112.103:5678/webhook/buscar-empresas";
+    const res = await fetch(n8nUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ query: payload.query, cidade: payload.near, limit: payload.limit || 50 }),
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error("n8n error:", res.status, errText);
+      return { places: [], error: `Erro n8n (${res.status})` };
+    }
+
+    const text = await res.text();
+    const contentType = res.headers.get("content-type") || "";
+
+    if (!contentType.includes("application/json") && (text.trim().startsWith("<!") || text.includes("<html"))) {
+      return { places: [], error: "Webhook retornou HTML em vez de JSON. Verifique o workflow." };
+    }
+
+    let raw: any[];
+    try {
+      const parsed = text ? JSON.parse(text) : [];
+      raw = Array.isArray(parsed) ? parsed : (parsed.empresas || parsed.results || parsed.data || []);
+    } catch {
+      console.error("JSON parse error, raw:", text.substring(0, 300));
+      raw = [];
+    }
+
+    if (raw.length === 0 && text.length === 0) {
+      return { places: [], error: "Webhook retornou resposta vazia." };
+    }
+
+    // Map n8n fields directly — these match the n8n workflow output
+    const places = raw.map((p: any) => ({
+      nome: p.nome || p.name || "",
+      whatsapp: p.whatsapp || p.phone || "",
+      email: p.email || "",
+      website: p.website || p.site || "",
+      endereco: p.endereco || p.address || "",
+      cidade: p.cidade || p.city || payload.near || "",
+      nicho: p.nicho || p.categories || "",
+      score: typeof p.score === "number" ? p.score : 50,
+      whatsapp_link: p.whatsapp_link || "",
+      site_status: p.site_status || "N/A",
+      weak_reasons: Array.isArray(p.weak_reasons) ? p.weak_reasons : [],
+      pitch_angle: p.pitch_angle || "",
+      whatsapp_message: p.whatsapp_message || "",
+      ranking: p.site_status === "FRACO" ? "🟢 Alta" : (p.score >= 60 ? "🟡 Média" : "🔴 Baixa"),
+    }));
+
+    places.sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
+    return { places, error: null };
+  } catch (e: any) {
+    console.error("n8n fetch error:", e);
+    return { places: [], error: `Erro ao buscar: ${e.message}` };
+  }
+}
+
+// ─── Format ──────────────────────────────────────────────
+
+function formatPlaces(places: any[], query: string, city: string): string {
+  const lines = places.map((p: any, i: number) => {
+    let entry = `${i + 1}. **${p.nome}** ${p.ranking} (Score: ${p.score})\n   📍 ${p.endereco || "—"} — ${p.cidade}\n   🏷️ ${p.nicho || "—"}`;
+    if (p.whatsapp) entry += `\n   📞 ${p.whatsapp}`;
+    if (p.email) entry += `\n   📧 ${p.email}`;
+    if (p.website) entry += `\n   🌐 ${p.website}`;
+    if (p.whatsapp_link) entry += `\n   💬 [WhatsApp](${p.whatsapp_link})`;
+    entry += `\n   🔎 Site: **${p.site_status}**`;
+    if (p.weak_reasons.length) entry += `\n   ⚠️ ${p.weak_reasons.join(" | ")}`;
+    if (p.pitch_angle) entry += `\n   💡 *${p.pitch_angle}*`;
+    return entry;
+  });
+
+  return `📊 **Prospecção: "${query}" em ${city}** (${places.length} resultados)\n\n${lines.join("\n\n")}\n\n💡 *Use o botão abaixo para baixar em CSV.*`;
+}

@@ -27,13 +27,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [roles, setRoles] = useState<string[]>([]);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -43,22 +43,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setRoles([]);
-      return;
-    }
+    if (!user) { setRoles([]); return; }
     supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .then(({ data }) => {
-        setRoles(data?.map((r) => r.role) ?? []);
-      });
+      .then(({ data }) => setRoles(data?.map((r) => r.role) ?? []));
   }, [user]);
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
-  };
+  const signOut = async () => { await supabase.auth.signOut(); };
 
   return (
     <AuthContext.Provider value={{ user, session, loading, roles, signOut }}>

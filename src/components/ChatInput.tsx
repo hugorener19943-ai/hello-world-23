@@ -31,11 +31,11 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Digite um comando... Ex: 'Crie um novo projeto para o cliente X'"
-        className="min-h-[44px] max-h-32 resize-none"
+        placeholder="Ex: Busque clínicas em Belo Horizonte..."
+        className="min-h-[44px] max-h-32 resize-none rounded-xl"
         disabled={disabled}
       />
-      <Button type="submit" size="icon" disabled={disabled || !input.trim()}>
+      <Button type="submit" size="icon" disabled={disabled || !input.trim()} className="rounded-xl shrink-0">
         <Send className="h-4 w-4" />
       </Button>
     </form>
