@@ -55,6 +55,16 @@ export async function buscarEmpresasPaginado({
       throw new Error(`Erro API: ${res.status} ${txt}`);
     }
 
+    const contentType = res.headers.get("content-type");
+    if (!contentType?.includes("application/json")) {
+      const textResponse = await res.text();
+      console.error("Expected JSON but got:", contentType, textResponse.substring(0, 200));
+      if (textResponse.trim().startsWith("<!") || textResponse.includes("<html")) {
+        throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}`);
+      }
+      throw new Error(`Formato inesperado: ${contentType}`);
+    }
+
     const data = await res.json();
     const batch: Empresa[] = Array.isArray(data.empresas) ? data.empresas : [];
 
