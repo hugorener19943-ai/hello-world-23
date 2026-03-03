@@ -58,6 +58,8 @@ export default function Chat() {
         throw new Error(msg);
       }
 
+      console.log("RESPOSTA N8N:", data);
+
       // Extrai lista de empresas
       const list: Empresa[] = Array.isArray(data?.empresas)
         ? data.empresas
