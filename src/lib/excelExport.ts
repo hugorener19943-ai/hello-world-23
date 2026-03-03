@@ -1,18 +1,18 @@
 export interface PlaceResult {
-  name: string;
-  address: string;
-  city: string;
-  categories: string;
-  phone: string;
-  email?: string;
+  nome: string;
+  whatsapp: string;
+  email: string;
   website: string;
-  whatsappLink?: string;
-  ranking: string;
+  endereco: string;
+  cidade: string;
+  nicho: string;
   score: number;
-  siteStatus?: string;
-  weakReasons?: string[];
-  pitchAngle?: string;
-  whatsappMessage?: string;
+  whatsapp_link: string;
+  site_status?: string;
+  weak_reasons?: string[];
+  pitch_angle?: string;
+  whatsapp_message?: string;
+  ranking?: string;
 }
 
 export function generateExcelCSV(places: PlaceResult[], query: string, city: string): string {
@@ -20,50 +20,33 @@ export function generateExcelCSV(places: PlaceResult[], query: string, city: str
   const sep = ";";
 
   const headers = [
-    "#",
-    "Empresa",
-    "WhatsApp",
-    "Email",
-    "Website",
-    "Endereço",
-    "Cidade",
-    "Nicho",
-    "Score",
-    "Ranking Conversão",
-    "Status Site",
-    "Motivos",
-    "Ângulo de Abordagem",
-    "Mensagem WhatsApp",
-    "Link WhatsApp",
+    "#", "Empresa", "WhatsApp", "Email", "Website", "Endereço",
+    "Cidade", "Nicho", "Score", "Status Site", "Ranking",
+    "Motivos", "Pitch", "Mensagem WhatsApp", "Link WhatsApp",
   ];
 
   const rows = places.map((p, i) => [
     String(i + 1),
-    escapeCSV(p.name),
-    escapeCSV(p.phone),
-    escapeCSV(p.email || ""),
-    escapeCSV(p.website),
-    escapeCSV(p.address),
-    escapeCSV(p.city),
-    escapeCSV(p.categories),
-    String(p.score),
-    escapeCSV(p.ranking.replace(/🟢|🟡|🔴/g, "").trim()),
-    escapeCSV(p.siteStatus || ""),
-    escapeCSV((p.weakReasons || []).join(", ")),
-    escapeCSV(p.pitchAngle || ""),
-    escapeCSV(p.whatsappMessage || ""),
-    escapeCSV(p.whatsappLink || ""),
+    esc(p.nome),
+    esc(p.whatsapp),
+    esc(p.email),
+    esc(p.website),
+    esc(p.endereco),
+    esc(p.cidade),
+    esc(p.nicho),
+    String(p.score ?? ""),
+    esc(p.site_status || ""),
+    esc(p.ranking || ""),
+    esc((p.weak_reasons || []).join(", ")),
+    esc(p.pitch_angle || ""),
+    esc(p.whatsapp_message || ""),
+    esc(p.whatsapp_link || ""),
   ]);
 
-  const csvContent = [
-    headers.join(sep),
-    ...rows.map((row) => row.join(sep)),
-  ].join("\r\n");
-
-  return BOM + csvContent;
+  return BOM + [headers.join(sep), ...rows.map((r) => r.join(sep))].join("\r\n");
 }
 
-function escapeCSV(value: string): string {
+function esc(value: string): string {
   if (!value) return "";
   if (value.includes(";") || value.includes('"') || value.includes("\n")) {
     return `"${value.replace(/"/g, '""')}"`;
@@ -74,11 +57,11 @@ function escapeCSV(value: string): string {
 export function downloadCSV(csv: string, filename: string) {
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }

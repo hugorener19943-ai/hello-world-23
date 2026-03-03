@@ -17,7 +17,7 @@ interface AITask {
   created_at: string;
 }
 
-const statusConfig: Record<string, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const STATUS: Record<string, { label: string; icon: React.ReactNode; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   pendente: { label: "Pendente", icon: <Clock className="h-3 w-3" />, variant: "secondary" },
   aguardando_confirmacao: { label: "Confirmar", icon: <AlertTriangle className="h-3 w-3" />, variant: "outline" },
   em_execucao: { label: "Executando", icon: <Loader2 className="h-3 w-3 animate-spin" />, variant: "default" },
@@ -36,7 +36,7 @@ export function TaskPanel({ onConfirm }: TaskPanelProps) {
   useEffect(() => {
     if (!user) return;
 
-    const fetchTasks = async () => {
+    const fetch = async () => {
       const { data } = await supabase
         .from("ai_tasks")
         .select("*")
@@ -46,13 +46,16 @@ export function TaskPanel({ onConfirm }: TaskPanelProps) {
       if (data) setTasks(data as AITask[]);
     };
 
-    fetchTasks();
+    fetch();
 
     const channel = supabase
-      .channel("ai_tasks_changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "ai_tasks", filter: `user_id=eq.${user.id}` }, () => {
-        fetchTasks();
-      })
+      .channel("tasks_realtime")
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "ai_tasks",
+        filter: `user_id=eq.${user.id}`,
+      }, () => fetch())
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -61,21 +64,21 @@ export function TaskPanel({ onConfirm }: TaskPanelProps) {
   return (
     <div className="flex h-full flex-col border-l border-border bg-card">
       <div className="border-b border-border p-4">
-        <h2 className="text-sm font-semibold text-foreground">Últimas Tarefas</h2>
+        <h2 className="text-sm font-semibold text-foreground">Tarefas</h2>
       </div>
       <ScrollArea className="flex-1">
         <div className="space-y-2 p-3">
           {tasks.length === 0 && (
-            <p className="text-xs text-muted-foreground text-center py-8">Nenhuma tarefa ainda</p>
+            <p className="text-xs text-muted-foreground text-center py-8">Nenhuma tarefa</p>
           )}
           {tasks.map((task) => {
-            const config = statusConfig[task.status] ?? statusConfig.pendente;
+            const cfg = STATUS[task.status] ?? STATUS.pendente;
             return (
-              <div key={task.id} className="rounded-lg border border-border p-3 space-y-2">
+              <div key={task.id} className="rounded-xl border border-border p-3 space-y-2">
                 <p className="text-xs text-foreground line-clamp-2">{task.command}</p>
                 <div className="flex items-center justify-between">
-                  <Badge variant={config.variant} className="flex items-center gap-1 text-xs">
-                    {config.icon} {config.label}
+                  <Badge variant={cfg.variant} className="flex items-center gap-1 text-xs">
+                    {cfg.icon} {cfg.label}
                   </Badge>
                   {task.status === "aguardando_confirmacao" && !task.confirmed && (
                     <Button size="sm" variant="outline" className="h-6 text-xs" onClick={() => onConfirm(task.id)}>
@@ -83,12 +86,8 @@ export function TaskPanel({ onConfirm }: TaskPanelProps) {
                     </Button>
                   )}
                 </div>
-                {task.error_message && (
-                  <p className="text-xs text-destructive">{task.error_message}</p>
-                )}
-                {task.plan && (
-                  <p className="text-xs text-muted-foreground line-clamp-2">{task.plan}</p>
-                )}
+                {task.error_message && <p className="text-xs text-destructive">{task.error_message}</p>}
+                {task.plan && <p className="text-xs text-muted-foreground line-clamp-2">{task.plan}</p>}
               </div>
             );
           })}

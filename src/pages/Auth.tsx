@@ -6,18 +6,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { Bot, LogIn, UserPlus } from "lucide-react";
+import { Zap, LogIn, UserPlus } from "lucide-react";
 
 export default function Auth() {
   const { user, loading } = useAuth();
-  const [isLogin, setIsLogin] = useState(false);
-  const [email, setEmail] = useState("fluxai@fluxai.com");
-  const [password, setPassword] = useState("fluxai123");
-  const [displayName, setDisplayName] = useState("FluxAI");
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  if (loading) return <div className="flex min-h-screen items-center justify-center bg-background"><p className="text-muted-foreground">Carregando...</p></div>;
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Carregando...</div>
+      </div>
+    );
+  }
   if (user) return <Navigate to="/" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,7 +43,7 @@ export default function Auth() {
           },
         });
         if (error) throw error;
-        toast({ title: "Cadastro realizado!", description: "Verifique seu email para confirmar." });
+        toast({ title: "Conta criada!", description: "Verifique seu email para confirmar o cadastro." });
       }
     } catch (err: any) {
       toast({ title: "Erro", description: err.message, variant: "destructive" });
@@ -48,19 +54,21 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary">
-            <Bot className="h-6 w-6 text-primary-foreground" />
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="text-center space-y-3">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary shadow-md">
+            <Zap className="h-7 w-7 text-primary-foreground" />
           </div>
-          <CardTitle className="text-2xl">{isLogin ? "Entrar" : "Criar conta"}</CardTitle>
-          <CardDescription>Chat IA com automação inteligente</CardDescription>
+          <CardTitle className="text-2xl font-bold tracking-tight">
+            {isLogin ? "Entrar" : "Criar conta"}
+          </CardTitle>
+          <CardDescription>Agente de prospecção B2B com IA</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <Input
-                placeholder="Nome"
+                placeholder="Seu nome"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
@@ -75,20 +83,24 @@ export default function Auth() {
             />
             <Input
               type="password"
-              placeholder="Senha"
+              placeholder="Senha (mínimo 6 caracteres)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
             />
-            <Button type="submit" className="w-full" disabled={submitting}>
-              {isLogin ? <><LogIn className="mr-2 h-4 w-4" /> Entrar</> : <><UserPlus className="mr-2 h-4 w-4" /> Criar conta</>}
+            <Button type="submit" className="w-full font-medium" disabled={submitting}>
+              {isLogin ? (
+                <><LogIn className="mr-2 h-4 w-4" /> Entrar</>
+              ) : (
+                <><UserPlus className="mr-2 h-4 w-4" /> Criar conta</>
+              )}
             </Button>
           </form>
           <div className="mt-4 text-center">
             <button
               type="button"
-              className="text-sm text-muted-foreground hover:text-foreground underline"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setIsLogin(!isLogin)}
             >
               {isLogin ? "Não tem conta? Cadastre-se" : "Já tem conta? Entre"}
