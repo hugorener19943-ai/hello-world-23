@@ -32,6 +32,8 @@ export async function buscarEmpresasPaginado({
   const target = Math.max(1, Number(limit) || 1);
   const size = Math.min(50, Math.max(1, Number(pageSize) || 50));
 
+  let semNovos = 0;
+
   onProgress?.({ fetched: 0, target, percent: 0 });
 
   while (empresas.length < target) {
@@ -67,8 +69,9 @@ export async function buscarEmpresasPaginado({
 
     const data = await res.json();
     const batch: Empresa[] = Array.isArray(data.empresas) ? data.empresas : [];
-
     if (batch.length === 0) break;
+
+    const antes = empresas.length;
 
     for (const e of batch) {
       const key = e?.fsq_id
@@ -82,12 +85,21 @@ export async function buscarEmpresasPaginado({
       }
     }
 
+    const added = empresas.length - antes;
+
+    if (added === 0) {
+      semNovos += 1;
+      if (semNovos >= 2) break;
+    } else {
+      semNovos = 0;
+    }
+
     const fetched = Math.min(empresas.length, target);
     onProgress?.({ fetched, target, percent: Math.round((fetched / target) * 100) });
 
     if (empresas.length >= target) break;
     offset += size;
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   return { status: "ok", cidade: `${cidade}, ${estado}, ${pais}`, nicho: query, total: empresas.length, empresas };
