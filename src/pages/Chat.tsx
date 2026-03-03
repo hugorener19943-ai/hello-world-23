@@ -98,7 +98,7 @@ export default function Chat() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "leads.csv";
+    a.download = `leads_${query.replace(/\s+/g, "_")}_${cidade.replace(/\s+/g, "_")}_${estado}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
