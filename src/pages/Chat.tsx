@@ -40,15 +40,23 @@ export default function Chat() {
         }
       );
 
-      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("HTTP error response:", res.status, errorText);
+        throw new Error(`Erro ${res.status}: ${errorText}`);
+      }
+
+      const contentType = res.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        const textResponse = await res.text();
+        console.error("Expected JSON but got:", contentType, textResponse.substring(0, 200));
+        throw new Error(`Resposta inesperada: ${contentType}`);
+      }
 
       const response = await res.json();
-
       console.log("RESPOSTA N8N:", response);
 
-      const list: Empresa[] = Array.isArray(response.empresas)
-        ? response.empresas
-        : [];
+      const list: Empresa[] = Array.isArray(response?.empresas) ? response.empresas : [];
 
       setEmpresas(list);
 
