@@ -59,10 +59,9 @@ export default function Chat() {
       }
 
       // Extrai lista de empresas
-      const list: Empresa[] =
-        (data && Array.isArray(data.empresas) && data.empresas) ||
-        (data && Array.isArray(data.results) && data.results) ||
-        (Array.isArray(data) ? data : []);
+      const list: Empresa[] = Array.isArray(data?.empresas)
+        ? data.empresas
+        : [];
 
       setEmpresas(list);
 
