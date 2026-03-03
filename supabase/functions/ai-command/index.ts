@@ -152,7 +152,7 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
         actionType: "buscar_empresas",
         requiresConfirmation: false,
         plan: `Buscar ${args.termo} em ${args.cidade} via Foursquare`,
-        actionPayload: { query: args.termo, near: args.cidade, limit: args.limite || 5 },
+        actionPayload: { query: args.termo, near: args.cidade, limit: args.limite || 50 },
       };
     } else if (toolCall?.function?.arguments) {
       parsed = JSON.parse(toolCall.function.arguments);
@@ -205,7 +205,7 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           body: JSON.stringify({
             query: parsed.actionPayload.query,
             cidade: parsed.actionPayload.near,
-            limit: parsed.actionPayload.limit || 20,
+            limit: parsed.actionPayload.limit || 50,
           }),
         });
 
