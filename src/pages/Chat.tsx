@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Download, Loader2 } from "lucide-react";
-import { buscarEmpresasPaginado, type Empresa } from "@/lib/buscarEmpresas";
+import { buscarEmpresas, type Empresa } from "@/lib/buscarEmpresas";
 
 const ESTADOS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
@@ -28,13 +28,9 @@ export default function Chat() {
   const buscar = async () => {
     setLoading(true);
     setEmpresas([]);
-    setProgress({ fetched: 0, target: limit, percent: 0 });
+    setProgress(null);
     try {
-      const result = await buscarEmpresasPaginado({
-        query, cidade, estado, limit,
-        onProgress: (p) => setProgress(p),
-      });
-
+      const result = await buscarEmpresas({ query, cidade, estado, limit });
       setEmpresas(result.empresas);
 
       if (result.empresas.length === 0) {
@@ -46,7 +42,6 @@ export default function Chat() {
       toast({ title: "Erro na busca", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
-      setProgress(null);
     }
   };
 
