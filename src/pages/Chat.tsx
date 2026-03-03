@@ -40,29 +40,14 @@ export default function Chat() {
         }
       );
 
-      // Lê como texto primeiro (evita erro de JSON duplicado)
-      const raw = await res.text();
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
 
-      let data: any;
-      try {
-        data = JSON.parse(raw);
-      } catch {
-        data = raw;
-      }
+      const response = await res.json();
 
-      if (!res.ok) {
-        const msg =
-          typeof data === "string"
-            ? data
-            : (data?.message || data?.hint || `Erro ${res.status}`);
-        throw new Error(msg);
-      }
+      console.log("RESPOSTA N8N:", response);
 
-      console.log("RESPOSTA N8N:", data);
-
-      // Extrai lista de empresas
-      const list: Empresa[] = Array.isArray(data?.empresas)
-        ? data.empresas
+      const list: Empresa[] = Array.isArray(response.empresas)
+        ? response.empresas
         : [];
 
       setEmpresas(list);
