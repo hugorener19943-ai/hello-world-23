@@ -239,7 +239,7 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
             }
           }
           // n8n can return data in different formats, handle flexibly
-          const rawPlaces = Array.isArray(n8nData) ? n8nData : (n8nData.results || n8nData.places || n8nData.data || []);
+          const rawPlaces = Array.isArray(n8nData) ? n8nData : (n8nData.apiResponse?.empresas || n8nData.empresas || n8nData.results || n8nData.places || n8nData.data || []);
 
           const places = rawPlaces.map((p: any) => {
             const name = p.name || p.nome || "";
