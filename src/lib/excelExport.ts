@@ -3,9 +3,10 @@ export interface PlaceResult {
   address: string;
   city: string;
   categories: string;
-  distance?: number;
   phone: string;
+  email?: string;
   website: string;
+  whatsappLink?: string;
   ranking: string;
   score: number;
   siteStatus?: string;
@@ -21,35 +22,37 @@ export function generateExcelCSV(places: PlaceResult[], query: string, city: str
   const headers = [
     "#",
     "Empresa",
+    "WhatsApp",
+    "Email",
+    "Website",
     "Endereço",
     "Cidade",
-    "Categorias",
-    "Telefone",
-    "Website",
-    "Status Site",
+    "Nicho",
     "Score",
     "Ranking Conversão",
+    "Status Site",
     "Motivos",
     "Ângulo de Abordagem",
     "Mensagem WhatsApp",
-    "Distância (m)",
+    "Link WhatsApp",
   ];
 
   const rows = places.map((p, i) => [
     String(i + 1),
     escapeCSV(p.name),
+    escapeCSV(p.phone),
+    escapeCSV(p.email || ""),
+    escapeCSV(p.website),
     escapeCSV(p.address),
     escapeCSV(p.city),
     escapeCSV(p.categories),
-    escapeCSV(p.phone),
-    escapeCSV(p.website),
-    escapeCSV(p.siteStatus || ""),
     String(p.score),
     escapeCSV(p.ranking.replace(/🟢|🟡|🔴/g, "").trim()),
+    escapeCSV(p.siteStatus || ""),
     escapeCSV((p.weakReasons || []).join(", ")),
     escapeCSV(p.pitchAngle || ""),
     escapeCSV(p.whatsappMessage || ""),
-    p.distance ? String(p.distance) : "",
+    escapeCSV(p.whatsappLink || ""),
   ]);
 
   const csvContent = [
@@ -62,7 +65,6 @@ export function generateExcelCSV(places: PlaceResult[], query: string, city: str
 
 function escapeCSV(value: string): string {
   if (!value) return "";
-  // If contains separator, quotes, or newlines, wrap in quotes
   if (value.includes(";") || value.includes('"') || value.includes("\n")) {
     return `"${value.replace(/"/g, '""')}"`;
   }
