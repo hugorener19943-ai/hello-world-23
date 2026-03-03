@@ -2,10 +2,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Download, Loader2 } from "lucide-react";
+
+const ESTADOS = [
+  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
+  "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"
+];
 
 interface Empresa {
   nome: string;
@@ -21,8 +27,9 @@ interface Empresa {
 
 export default function Chat() {
   const [query, setQuery] = useState("clinica estetica");
-  const [cidade, setCidade] = useState("Sao Jose do Rio Preto, SP, Brasil");
-  const [limit, setLimit] = useState(50);
+  const [cidade, setCidade] = useState("Sao Jose do Rio Preto");
+  const [estado, setEstado] = useState("SP");
+  const [limit, setLimit] = useState(300);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -32,17 +39,16 @@ export default function Chat() {
     setEmpresas([]);
     try {
       const res = await fetch(
-        "https://unmeaning-hawthorny-kinley.ngrok-free.dev/webhook/buscar-empresas",
+        "https://api.fluxleads.com.br/webhook/buscar-empresas",
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Authorization": "Bearer key_pro_123",
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             query,
-            local: {
-              cidade: cidade.split(",")[0]?.trim() || cidade,
-              estado: cidade.split(",")[1]?.trim() || "SP",
-              pais: cidade.split(",")[2]?.trim() || "Brasil",
-            },
+            local: { cidade, estado, pais: "Brasil" },
             limit,
           }),
         }
@@ -109,18 +115,40 @@ export default function Chat() {
             <CardTitle className="text-lg">Buscar Empresas</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div className="space-y-2">
-                <Label htmlFor="query">Nicho</Label>
-                <Input id="query" value={query} onChange={(e) => setQuery(e.target.value)} />
+                <Label htmlFor="query">Nicho / Query</Label>
+                <Input id="query" placeholder="Ex: clinica estetica" value={query} onChange={(e) => setQuery(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="cidade">Cidade</Label>
-                <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} />
+                <Input id="cidade" placeholder="Ex: São Paulo" value={cidade} onChange={(e) => setCidade(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="limit">Limite</Label>
-                <Input id="limit" type="number" value={limit} onChange={(e) => setLimit(Number(e.target.value))} />
+                <Label>Estado</Label>
+                <Select value={estado} onValueChange={setEstado}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="UF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ESTADOS.map((uf) => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Limite</Label>
+                <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="300">300</SelectItem>
+                    <SelectItem value="1000">1000</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <Button onClick={buscar} disabled={loading} className="h-10">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
