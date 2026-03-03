@@ -40,10 +40,30 @@ export default function Chat() {
         }
       );
 
-      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      // Lê como texto primeiro (evita erro de JSON duplicado)
+      const raw = await res.text();
 
-      const data = await res.json();
-      const list: Empresa[] = data.empresas || data.results || data.data || (Array.isArray(data) ? data : []);
+      let data: any;
+      try {
+        data = JSON.parse(raw);
+      } catch {
+        data = raw;
+      }
+
+      if (!res.ok) {
+        const msg =
+          typeof data === "string"
+            ? data
+            : (data?.message || data?.hint || `Erro ${res.status}`);
+        throw new Error(msg);
+      }
+
+      // Extrai lista de empresas
+      const list: Empresa[] =
+        (data && Array.isArray(data.empresas) && data.empresas) ||
+        (data && Array.isArray(data.results) && data.results) ||
+        (Array.isArray(data) ? data : []);
+
       setEmpresas(list);
 
       if (list.length === 0) {
