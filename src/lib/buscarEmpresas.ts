@@ -77,7 +77,7 @@ export async function buscarEmpresasPaginado({
 
     if (empresas.length >= target) break;
     offset += size;
-    await new Promise((r) => setTimeout(r, 250));
+    await new Promise((r) => setTimeout(r, 300));
   }
 
   return { status: "ok", cidade: `${cidade}, ${estado}, ${pais}`, nicho: query, total: empresas.length, empresas };
