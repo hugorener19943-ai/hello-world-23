@@ -242,29 +242,33 @@ Roles do usuário: ${userRoles.join(", ") || "nenhuma"}`,
           const rawPlaces = Array.isArray(n8nData) ? n8nData : (n8nData.apiResponse?.empresas || n8nData.empresas || n8nData.results || n8nData.places || n8nData.data || []);
 
           const places = rawPlaces.map((p: any) => {
-            const name = p.name || p.nome || "";
-            const address = p.address || p.endereco || p.location?.formatted_address || "";
-            const categories = p.categories || p.categorias || p.category || "";
-            const phone = p.phone || p.telefone || p.tel || "";
+            const name = p.nome || p.name || "";
+            const address = p.endereco || p.address || "";
+            const city = p.cidade || p.city || parsed.actionPayload.near;
+            const categories = p.nicho || p.categories || p.categorias || "";
+            const phone = p.whatsapp || p.phone || p.telefone || "";
+            const email = p.email || "";
             const website = p.website || p.site || "";
-            const distance = p.distance || p.distancia || null;
-            const siteStatus = p.site_status || "N/A";
+            const whatsappLink = p.whatsapp_link || "";
             const score = typeof p.score === "number" ? p.score : 50;
+            const siteStatus = p.site_status || "N/A";
             const weakReasons: string[] = Array.isArray(p.weak_reasons) ? p.weak_reasons : [];
             const pitchAngle = p.pitch_angle || "";
             const whatsappMessage = p.whatsapp_message || "";
             const ranking = siteStatus === "FRACO" ? "🟢 Alta" : score >= 60 ? "🟡 Média" : "🔴 Baixa";
 
-            return { name, address, city: p.city || parsed.actionPayload.near, categories, distance, phone, website, ranking, score, siteStatus, weakReasons, pitchAngle, whatsappMessage };
+            return { name, address, city, categories, phone, email, website, whatsappLink, ranking, score, siteStatus, weakReasons, pitchAngle, whatsappMessage };
           });
 
           places.sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
 
           const placesText = places.length > 0
             ? places.map((p: any, i: number) => {
-                let entry = `${i + 1}. **${p.name}** ${p.ranking} (Score: ${p.score})\n   📍 ${p.address || "Endereço não disponível"}\n   🏷️ ${p.categories || "Sem categoria"}`;
+                let entry = `${i + 1}. **${p.name}** ${p.ranking} (Score: ${p.score})\n   📍 ${p.address || "Endereço não disponível"} — ${p.city}\n   🏷️ ${p.categories || "Sem categoria"}`;
                 if (p.phone) entry += `\n   📞 ${p.phone}`;
+                if (p.email) entry += `\n   📧 ${p.email}`;
                 if (p.website) entry += `\n   🌐 ${p.website}`;
+                if (p.whatsappLink) entry += `\n   💬 [WhatsApp](${p.whatsappLink})`;
                 entry += `\n   🔎 Site: **${p.siteStatus}**`;
                 if (p.weakReasons.length > 0) entry += `\n   ⚠️ ${p.weakReasons.join(" | ")}`;
                 if (p.pitchAngle) entry += `\n   💡 *${p.pitchAngle}*`;
