@@ -5,25 +5,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Download, Loader2 } from "lucide-react";
+import { buscarEmpresasPaginado, type Empresa } from "@/lib/buscarEmpresas";
 
 const ESTADOS = [
   "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
   "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"
 ];
-
-interface Empresa {
-  nome: string;
-  whatsapp: string;
-  email: string;
-  website: string;
-  endereco: string;
-  cidade: string;
-  nicho: string;
-  score: number | string;
-  whatsapp_link: string;
-}
 
 export default function Chat() {
   const [query, setQuery] = useState("clinica estetica");
@@ -32,57 +22,31 @@ export default function Chat() {
   const [limit, setLimit] = useState(300);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<{ fetched: number; target: number; percent: number } | null>(null);
   const { toast } = useToast();
 
   const buscar = async () => {
     setLoading(true);
     setEmpresas([]);
+    setProgress({ fetched: 0, target: limit, percent: 0 });
     try {
-      const res = await fetch(
-        "https://api.fluxleads.com.br/webhook/buscar-empresas",
-        {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer key_pro_123",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            query,
-            local: { cidade, estado, pais: "Brasil" },
-            limit,
-          }),
-        }
-      );
+      const result = await buscarEmpresasPaginado({
+        query, cidade, estado, limit,
+        onProgress: (p) => setProgress(p),
+      });
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        console.error("HTTP error response:", res.status, errorText);
-        throw new Error(`Erro ${res.status}: ${errorText}`);
-      }
+      setEmpresas(result.empresas);
 
-      const contentType = res.headers.get("content-type");
-      if (!contentType?.includes("application/json")) {
-        const textResponse = await res.text();
-        console.error("Expected JSON but got:", contentType, textResponse.substring(0, 200));
-        throw new Error(`Resposta inesperada: ${contentType}`);
-      }
-
-      const response = await res.json();
-      console.log("RESPOSTA N8N:", response);
-
-      const list: Empresa[] = Array.isArray(response?.empresas) ? response.empresas : [];
-
-      setEmpresas(list);
-
-      if (list.length === 0) {
+      if (result.empresas.length === 0) {
         toast({ title: "Nenhum resultado", description: "A busca não retornou empresas." });
       } else {
-        toast({ title: `${list.length} empresas encontradas` });
+        toast({ title: `${result.empresas.length} empresas encontradas` });
       }
     } catch (err: any) {
       toast({ title: "Erro na busca", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   };
 
@@ -114,7 +78,7 @@ export default function Chat() {
           <CardHeader>
             <CardTitle className="text-lg">Buscar Empresas</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div className="space-y-2">
                 <Label htmlFor="query">Nicho / Query</Label>
@@ -127,22 +91,16 @@ export default function Chat() {
               <div className="space-y-2">
                 <Label>Estado</Label>
                 <Select value={estado} onValueChange={setEstado}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="UF" />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="UF" /></SelectTrigger>
                   <SelectContent>
-                    {ESTADOS.map((uf) => (
-                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                    ))}
+                    {ESTADOS.map((uf) => (<SelectItem key={uf} value={uf}>{uf}</SelectItem>))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Limite</Label>
                 <Select value={String(limit)} onValueChange={(v) => setLimit(Number(v))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="100">100</SelectItem>
                     <SelectItem value="300">300</SelectItem>
@@ -155,6 +113,15 @@ export default function Chat() {
                 Buscar empresas
               </Button>
             </div>
+
+            {loading && progress && (
+              <div className="space-y-1">
+                <Progress value={progress.percent} className="h-2" />
+                <p className="text-sm text-muted-foreground">
+                  {progress.fetched} / {progress.target} empresas ({progress.percent}%)
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -191,9 +158,7 @@ export default function Chat() {
                       <TableCell>{e.email}</TableCell>
                       <TableCell>
                         {e.website ? (
-                          <a href={e.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                            {e.website}
-                          </a>
+                          <a href={e.website} target="_blank" rel="noopener noreferrer" className="text-primary underline">{e.website}</a>
                         ) : "—"}
                       </TableCell>
                       <TableCell>{e.endereco || "—"}</TableCell>
@@ -202,9 +167,7 @@ export default function Chat() {
                       <TableCell>{e.score}</TableCell>
                       <TableCell>
                         {e.whatsapp_link ? (
-                          <a href={e.whatsapp_link} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-                            Abrir
-                          </a>
+                          <a href={e.whatsapp_link} target="_blank" rel="noopener noreferrer" className="text-primary underline">Abrir</a>
                         ) : "—"}
                       </TableCell>
                     </TableRow>
