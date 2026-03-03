@@ -47,8 +47,6 @@ export async function buscarEmpresasPaginado({
         query,
         local: { cidade, estado, pais },
         limit: target,
-        pageSize: size,
-        offset,
       }),
     });
 
