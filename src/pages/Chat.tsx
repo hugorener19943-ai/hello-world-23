@@ -36,7 +36,15 @@ export default function Chat() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, cidade, limit }),
+          body: JSON.stringify({
+            query,
+            local: {
+              cidade: cidade.split(",")[0]?.trim() || cidade,
+              estado: cidade.split(",")[1]?.trim() || "SP",
+              pais: cidade.split(",")[2]?.trim() || "Brasil",
+            },
+            limit,
+          }),
         }
       );
 
