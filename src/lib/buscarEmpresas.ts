@@ -35,22 +35,22 @@ export async function buscarEmpresas({
     }),
   });
 
+  const text = await res.text();
+  
   if (!res.ok) {
-    const txt = await res.text().catch(() => "");
-    throw new Error(`Erro API: ${res.status} ${txt}`);
+    console.error("API error:", res.status, text.substring(0, 300));
+    throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
   }
 
-  const contentType = res.headers.get("content-type");
-  if (!contentType?.includes("application/json")) {
-    const textResponse = await res.text();
-    console.error("Expected JSON but got:", contentType, textResponse.substring(0, 200));
-    if (textResponse.trim().startsWith("<!") || textResponse.includes("<html")) {
-      throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}`);
-    }
-    throw new Error(`Formato inesperado: ${contentType}`);
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    console.error("Response is not JSON:", text.substring(0, 300));
+    throw new Error("API retornou resposta inválida (não é JSON)");
   }
 
-  const data = await res.json();
+  console.log("API response:", { status: res.status, total: data?.empresas?.length });
   const empresas: Empresa[] = Array.isArray(data.empresas) ? data.empresas : [];
 
   return { status: "ok", cidade: `${cidade}, ${estado}, ${pais}`, nicho: query, total: empresas.length, empresas };
