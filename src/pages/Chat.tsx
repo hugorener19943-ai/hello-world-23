@@ -25,28 +25,39 @@ export default function Chat() {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<{ fetched: number; target: number; percent: number } | null>(null);
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(300);
+  const [rowsPerPage, setRowsPerPage] = useState(50);
   const { toast } = useToast();
 
   const buscar = async () => {
     setLoading(true);
     setEmpresas([]);
-    setProgress(null);
+    setApiTotal(0);
+    setProgress({ fetched: 0, target: limit, percent: 0 });
+    setPage(1);
     try {
-      const result = await buscarEmpresas({ query, cidade, estado, limit });
+      const result = await buscarEmpresas({
+        query, cidade, estado, limit,
+        onProgress: (fetched, target) => {
+          setProgress({
+            fetched,
+            target,
+            percent: Math.min(100, Math.round((fetched / target) * 100)),
+          });
+        },
+      });
       setEmpresas(result.empresas);
       setApiTotal(result.total);
-      setPage(1);
 
       if (result.empresas.length === 0) {
         toast({ title: "Nenhum resultado", description: "A busca não retornou empresas." });
       } else {
-        toast({ title: `${result.total} empresas encontradas (${result.empresas.length} carregadas)` });
+        toast({ title: `${result.total} empresas encontradas (${result.empresas.length} únicos)` });
       }
     } catch (err: any) {
       toast({ title: "Erro na busca", description: err.message, variant: "destructive" });
     } finally {
       setLoading(false);
+      setProgress(null);
     }
   };
 
@@ -62,12 +73,17 @@ export default function Chat() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `leads_${query.replace(/\s+/g, "_")}_${cidade.replace(/\s+/g, "_")}_${estado}.csv`;
+    const date = new Date().toISOString().slice(0, 10);
+    a.download = `leads_${query.replace(/\s+/g, "_")}_${cidade.replace(/\s+/g, "_")}_${date}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const totalPages = Math.ceil(empresas.length / rowsPerPage);
+  const start = (page - 1) * rowsPerPage;
+  const visibleEmpresas = empresas.slice(start, start + rowsPerPage);
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
@@ -125,15 +141,12 @@ export default function Chat() {
           </CardContent>
         </Card>
 
-        {empresas.length > 0 && (() => {
-          const totalPages = Math.ceil(empresas.length / rowsPerPage);
-          const start = (page - 1) * rowsPerPage;
-          const visibleEmpresas = rowsPerPage >= empresas.length ? empresas : empresas.slice(start, start + rowsPerPage);
-
-          return (
+        {empresas.length > 0 && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
-              <CardTitle className="text-lg">{apiTotal} resultados (exibindo {visibleEmpresas.length} de {empresas.length})</CardTitle>
+              <CardTitle className="text-lg">
+                {apiTotal} resultados — exibindo {start + 1}–{Math.min(start + rowsPerPage, empresas.length)} de {empresas.length} únicos
+              </CardTitle>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <Label className="text-sm whitespace-nowrap">Por página:</Label>
@@ -147,7 +160,7 @@ export default function Chat() {
                   </Select>
                 </div>
                 <Button variant="outline" size="sm" onClick={exportCSV}>
-                  <Download className="h-4 w-4 mr-2" /> Exportar CSV
+                  <Download className="h-4 w-4 mr-2" /> Exportar CSV ({empresas.length})
                 </Button>
               </div>
             </CardHeader>
@@ -169,7 +182,7 @@ export default function Chat() {
                 </TableHeader>
                 <TableBody>
                   {visibleEmpresas.map((e, i) => (
-                    <TableRow key={i}>
+                    <TableRow key={e.fsq_id || `${start + i}`}>
                       <TableCell>{start + i + 1}</TableCell>
                       <TableCell className="font-medium">{e.nome}</TableCell>
                       <TableCell>{e.whatsapp}</TableCell>
@@ -203,8 +216,7 @@ export default function Chat() {
               )}
             </CardContent>
           </Card>
-          );
-        })()}
+        )}
       </div>
     </div>
   );
