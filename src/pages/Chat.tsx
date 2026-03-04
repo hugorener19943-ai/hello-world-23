@@ -21,8 +21,11 @@ export default function Chat() {
   const [estado, setEstado] = useState("SP");
   const [limit, setLimit] = useState(300);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [apiTotal, setApiTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState<{ fetched: number; target: number; percent: number } | null>(null);
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(300);
   const { toast } = useToast();
 
   const buscar = async () => {
@@ -32,11 +35,13 @@ export default function Chat() {
     try {
       const result = await buscarEmpresas({ query, cidade, estado, limit });
       setEmpresas(result.empresas);
+      setApiTotal(result.total);
+      setPage(1);
 
       if (result.empresas.length === 0) {
         toast({ title: "Nenhum resultado", description: "A busca não retornou empresas." });
       } else {
-        toast({ title: `${result.empresas.length} empresas encontradas` });
+        toast({ title: `${result.total} empresas encontradas (${result.empresas.length} carregadas)` });
       }
     } catch (err: any) {
       toast({ title: "Erro na busca", description: err.message, variant: "destructive" });
@@ -120,13 +125,31 @@ export default function Chat() {
           </CardContent>
         </Card>
 
-        {empresas.length > 0 && (
+        {empresas.length > 0 && (() => {
+          const totalPages = Math.ceil(empresas.length / rowsPerPage);
+          const start = (page - 1) * rowsPerPage;
+          const visibleEmpresas = rowsPerPage >= empresas.length ? empresas : empresas.slice(start, start + rowsPerPage);
+
+          return (
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">{empresas.length} resultados</CardTitle>
-              <Button variant="outline" size="sm" onClick={exportCSV}>
-                <Download className="h-4 w-4 mr-2" /> Exportar CSV
-              </Button>
+            <CardHeader className="flex flex-row items-center justify-between flex-wrap gap-2">
+              <CardTitle className="text-lg">{apiTotal} resultados (exibindo {visibleEmpresas.length} de {empresas.length})</CardTitle>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm whitespace-nowrap">Por página:</Label>
+                  <Select value={String(rowsPerPage)} onValueChange={(v) => { setRowsPerPage(Number(v)); setPage(1); }}>
+                    <SelectTrigger className="w-20 h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="300">300</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button variant="outline" size="sm" onClick={exportCSV}>
+                  <Download className="h-4 w-4 mr-2" /> Exportar CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="overflow-x-auto">
               <Table>
@@ -145,9 +168,9 @@ export default function Chat() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {empresas.map((e, i) => (
+                  {visibleEmpresas.map((e, i) => (
                     <TableRow key={i}>
-                      <TableCell>{i + 1}</TableCell>
+                      <TableCell>{start + i + 1}</TableCell>
                       <TableCell className="font-medium">{e.nome}</TableCell>
                       <TableCell>{e.whatsapp}</TableCell>
                       <TableCell>{e.email}</TableCell>
@@ -169,9 +192,19 @@ export default function Chat() {
                   ))}
                 </TableBody>
               </Table>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 px-2">
+                  <p className="text-sm text-muted-foreground">Página {page} de {totalPages}</p>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Anterior</Button>
+                    <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Próxima</Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
