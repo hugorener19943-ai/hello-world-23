@@ -1,5 +1,6 @@
 export interface Empresa {
   nome: string;
+  telefone?: string;
   whatsapp: string;
   email: string;
   website: string;
@@ -15,8 +16,7 @@ interface BuscarParams {
   query: string;
   cidade: string;
   estado: string;
-  pais?: string;
-  limit?: number;
+  target_total?: number;
   onProgress?: (fetched: number, target: number) => void;
 }
 
@@ -30,14 +30,14 @@ function dedupeKey(e: Empresa): string {
 }
 
 export async function buscarEmpresas({
-  query, cidade, estado, pais = "Brasil", limit = 300, onProgress,
+  query, cidade, estado, target_total = 300, onProgress,
 }: BuscarParams): Promise<{ status: string; cidade: string; nicho: string; total: number; empresas: Empresa[] }> {
   const seen = new Map<string, Empresa>();
   let apiTotal = 0;
   let offset = 0;
   let keepGoing = true;
 
-  while (keepGoing && offset < limit) {
+  while (keepGoing && offset < target_total) {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: {
@@ -46,8 +46,9 @@ export async function buscarEmpresas({
       },
       body: JSON.stringify({
         query,
-        local: { cidade, estado, pais },
-        limit,
+        local: { cidade, estado, pais: "Brasil" },
+        target_total,
+        format: "json",
         pageSize: PAGE_SIZE,
         offset,
       }),
@@ -78,13 +79,12 @@ export async function buscarEmpresas({
       if (!seen.has(key)) seen.set(key, e);
     }
 
-    onProgress?.(seen.size, apiTotal || limit);
+    onProgress?.(seen.size, apiTotal || target_total);
 
     if (batch.length < PAGE_SIZE) {
       keepGoing = false;
     } else {
       offset += PAGE_SIZE;
-      // Small delay to avoid rate limiting
       await new Promise(r => setTimeout(r, 150));
     }
   }
@@ -94,9 +94,40 @@ export async function buscarEmpresas({
 
   return {
     status: "ok",
-    cidade: `${cidade}, ${estado}, ${pais}`,
+    cidade: `${cidade}, ${estado}`,
     nicho: query,
     total: apiTotal || empresas.length,
     empresas,
   };
+}
+
+export async function exportarExcel(query: string, cidade: string, estado: string, target_total: number): Promise<void> {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": AUTH,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query,
+      local: { cidade, estado, pais: "Brasil" },
+      target_total,
+      format: "xlsx",
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Erro ao exportar: ${text.substring(0, 200)}`);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "fluxleads.xlsx";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
