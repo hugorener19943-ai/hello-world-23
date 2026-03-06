@@ -8,7 +8,9 @@ import { Search, Loader2, Download, Filter, Plus, Zap } from "lucide-react";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { LeadCard } from "@/components/leads/LeadCard";
+import { TemplateSelector } from "@/components/leads/TemplateSelector";
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
+import type { FluxTemplate } from "@/lib/fluxTemplates";
 import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
 import { deduplicateLeads } from "@/lib/deduplicateLeads";
 
@@ -77,6 +79,18 @@ export default function LeadsAutomacao() {
 
   const addBlock = useCallback(() => {
     setBlocks((prev) => (prev.length < MAX_BLOCKS ? [...prev, newBlock()] : prev));
+  }, []);
+
+  const applyTemplate = useCallback((template: FluxTemplate) => {
+    const newBlocks = template.buscas.slice(0, MAX_BLOCKS).map((b) => ({
+      ...newBlock(),
+      query: b.query,
+      cidade: b.cidade,
+      estado: b.estado,
+      bairro: b.bairro || "",
+    }));
+    setBlocks(newBlocks);
+    setLeads([]);
   }, []);
 
   const buscar = async () => {
@@ -230,6 +244,7 @@ export default function LeadsAutomacao() {
                     <Plus className="h-4 w-4 mr-1" /> Adicionar busca
                   </Button>
                 )}
+                <TemplateSelector onApplyTemplate={applyTemplate} />
                 <Button onClick={buscar} disabled={loading} className="glow-neon">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
                   Buscar Empresas
