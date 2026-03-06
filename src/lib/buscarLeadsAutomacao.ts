@@ -35,8 +35,17 @@ export async function buscarLeadsAutomacao(params: {
     }),
   });
 
+  const contentType = res.headers.get("content-type");
   const text = await res.text();
+
+  console.log("API status:", res.status, "content-type:", contentType);
+  console.log("Response preview:", text.substring(0, 300));
+
   if (!res.ok) throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
+
+  if (text.trim().startsWith("<!") || text.includes("<html")) {
+    throw new Error("API retornou HTML em vez de JSON. Verifique a URL e autenticação.");
+  }
 
   let data: any;
   try {
@@ -44,6 +53,8 @@ export async function buscarLeadsAutomacao(params: {
   } catch {
     throw new Error("Resposta inválida da API (não é JSON)");
   }
+
+  console.log("Parsed data — total:", data.total, "empresas:", Array.isArray(data.empresas) ? data.empresas.length : "N/A");
 
   const leads: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
 
