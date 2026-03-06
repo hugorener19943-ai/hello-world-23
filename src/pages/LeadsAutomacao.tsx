@@ -206,11 +206,11 @@ export default function LeadsAutomacao() {
           {/* Search blocks */}
           <Card className="border border-primary/50 bg-[hsl(0_0%_7%)] glow-neon-strong">
             <CardHeader className="pb-4">
-              <CardTitle className="text-xl flex items-center gap-2 font-display text-white">
-                <Search className="h-6 w-6 text-neon" />
+              <CardTitle className="text-2xl flex items-center gap-2 font-display text-white">
+                <Search className="h-7 w-7 text-neon" />
                 Buscar Empresas com Potencial de Automação
               </CardTitle>
-              <CardDescription className="text-base text-white/60">Adicione até {MAX_BLOCKS} buscas diferentes e execute todas de uma vez</CardDescription>
+              <CardDescription className="text-lg text-white/60">Adicione até {MAX_BLOCKS} buscas diferentes e execute todas de uma vez</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {blocks.map((block, i) => (
