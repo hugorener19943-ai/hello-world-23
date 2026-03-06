@@ -82,17 +82,21 @@ export default function LeadsAutomacao() {
   }, []);
 
   const applyTemplate = useCallback((template: FluxTemplate) => {
+    if (!template || !Array.isArray(template.buscas) || template.buscas.length === 0) {
+      toast({ title: "Template inválido", variant: "destructive" });
+      return;
+    }
     const newBlocks = template.buscas.slice(0, MAX_BLOCKS).map((b: any) => ({
       ...newBlock(),
-      query: b.query,
-      cidade: b.cidade,
-      estado: b.estado,
-      bairro: b.bairro || "",
-      targetTotal: b.targetTotal || b.quantidade || 20,
+      query: b?.query || "",
+      cidade: b?.cidade || "",
+      estado: b?.estado || "",
+      bairro: b?.bairro || "",
+      targetTotal: b?.targetTotal || b?.quantidade || 20,
     }));
-    setBlocks(newBlocks);
+    setBlocks(newBlocks.length > 0 ? newBlocks : [newBlock()]);
     setLeads([]);
-  }, []);
+  }, [toast]);
 
   const buscar = async () => {
     const valid = blocks.filter((b) => b.query && b.cidade && b.estado);
