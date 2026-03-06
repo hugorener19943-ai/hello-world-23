@@ -32,12 +32,28 @@ async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
       format: "json",
     }),
   });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
-  if (text.trim().startsWith("<!") || text.includes("<html")) {
-    throw new Error("API retornou HTML em vez de JSON.");
+
+  const contentType = res.headers.get("content-type");
+
+  if (!contentType?.includes("application/json")) {
+    const text = await res.text();
+    console.error("Expected JSON but got:", contentType);
+    console.error("Response preview:", text.substring(0, 200));
+
+    if (text.trim().startsWith("<!") || text.includes("<html")) {
+      throw new Error(
+        `API retornou HTML em vez de JSON. Status: ${res.status}. Verifique autenticação ou rate limiting.`
+      );
+    }
+    throw new Error(`Formato inesperado da resposta: ${contentType}`);
   }
-  const data = JSON.parse(text);
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
+  }
+
+  const data = await res.json();
   return Array.isArray(data.empresas) ? data.empresas : [];
 }
 
