@@ -48,7 +48,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", onCh
           <Select value={String(block.targetTotal)} onValueChange={(v) => onChange(block.id, "targetTotal", Number(v))}>
             <SelectTrigger className="bg-secondary border-border"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {[10, 20, 50, 100, 200].map((n) => (
+              {[10, 20, 50, 100, 200, 300, 400].map((n) => (
                 <SelectItem key={n} value={String(n)}>{n} leads</SelectItem>
               ))}
             </SelectContent>
