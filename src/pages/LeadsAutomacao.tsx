@@ -82,12 +82,13 @@ export default function LeadsAutomacao() {
   }, []);
 
   const applyTemplate = useCallback((template: FluxTemplate) => {
-    const newBlocks = template.buscas.slice(0, MAX_BLOCKS).map((b) => ({
+    const newBlocks = template.buscas.slice(0, MAX_BLOCKS).map((b: any) => ({
       ...newBlock(),
       query: b.query,
       cidade: b.cidade,
       estado: b.estado,
       bairro: b.bairro || "",
+      targetTotal: b.targetTotal || b.quantidade || 20,
     }));
     setBlocks(newBlocks);
     setLeads([]);

@@ -29,10 +29,20 @@ export function TemplateSelector({ onApplyTemplate }: Props) {
 
       if (parsed.maps_flux_templates && Array.isArray(parsed.maps_flux_templates)) {
         template = parsed.maps_flux_templates[0];
+      } else if (parsed.templates && Array.isArray(parsed.templates)) {
+        template = parsed.templates[0];
       } else if (parsed.nome && Array.isArray(parsed.buscas)) {
         template = parsed;
       } else {
         throw new Error("Formato inválido");
+      }
+
+      // Map "quantidade" to targetTotal if present
+      if (template.buscas) {
+        template.buscas = template.buscas.map((b: any) => ({
+          ...b,
+          targetTotal: b.quantidade || b.targetTotal,
+        }));
       }
 
       if (!template.buscas?.length) throw new Error("Nenhuma busca encontrada no JSON");
