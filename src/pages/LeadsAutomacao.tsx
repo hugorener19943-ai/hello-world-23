@@ -170,38 +170,36 @@ export default function LeadsAutomacao() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="w-full flex items-center justify-between px-6 py-4 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center glow-neon">
-              <Zap className="h-4 w-4 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-lg font-display text-foreground">
-              Flux<span className="text-neon">AI</span>
-            </span>
-          </div>
-          <span className="text-muted-foreground text-sm hidden sm:inline">— Leads com Potencial de Automação</span>
+    <div className="min-h-screen bg-background flex">
+      {/* Research Flux - Fixed Panel */}
+      <aside className="hidden lg:flex flex-col w-[400px] border-r border-border bg-card shrink-0 h-screen sticky top-0">
+        <div className="px-5 py-4 border-b border-border/50 flex items-center gap-2">
+          <span className="text-destructive text-xl">⚡</span>
+          <span className="text-destructive font-extrabold text-lg">Research Flux</span>
         </div>
-      </header>
+        <div className="flex-1 overflow-hidden">
+          <ResearchFlux />
+        </div>
+      </aside>
 
-      <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6">
-          {/* Research Flux */}
-          <Card className="h-fit max-h-[750px] overflow-hidden border-border bg-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 font-bold">
-                <span className="text-destructive text-xl">⚡</span>
-                <span className="text-destructive font-extrabold">Research Flux</span>
-              </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">Nichos com maior potencial de automação</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ResearchFlux />
-            </CardContent>
-          </Card>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-h-screen">
+        {/* Header */}
+        <header className="w-full flex items-center justify-between px-6 py-4 border-b border-border/50">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center glow-neon">
+                <Zap className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <span className="font-bold text-lg font-display text-foreground">
+                Flux<span className="text-neon">AI</span>
+              </span>
+            </div>
+            <span className="text-muted-foreground text-sm hidden sm:inline">— Leads com Potencial de Automação</span>
+          </div>
+        </header>
 
+        <div className="p-4 md:p-8 space-y-6 max-w-[1100px] mx-auto w-full">
           {/* Search blocks */}
           <Card className="border-border bg-card">
             <CardHeader className="pb-4">
@@ -236,7 +234,6 @@ export default function LeadsAutomacao() {
               </div>
             </CardContent>
           </Card>
-        </div>
 
         {/* Loading */}
         {loading && (
@@ -311,6 +308,7 @@ export default function LeadsAutomacao() {
             )}
           </>
         )}
+        </div>
       </div>
     </div>
   );
