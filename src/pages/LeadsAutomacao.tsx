@@ -224,12 +224,13 @@ export default function LeadsAutomacao() {
           </Card>
 
           {/* Research Flux */}
-          <Card className="border-border bg-card h-fit max-h-[600px] overflow-hidden">
+          <Card className="h-fit max-h-[650px] overflow-hidden border-primary/30 bg-gradient-to-b from-primary/20 via-primary/10 to-primary/5 glow-neon-strong">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2 text-neon">
-                📚 Research Flux
+              <CardTitle className="text-base flex items-center gap-2 font-bold text-primary-foreground">
+                <span className="text-neon text-lg animate-pulse">⚡</span>
+                <span className="text-neon">Research Flux</span>
               </CardTitle>
-              <CardDescription className="text-xs">Nichos com maior potencial de automação</CardDescription>
+              <CardDescription className="text-xs text-primary-foreground/60">Nichos com maior potencial de automação</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <ResearchFlux />
