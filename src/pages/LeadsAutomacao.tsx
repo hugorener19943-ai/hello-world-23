@@ -204,7 +204,7 @@ export default function LeadsAutomacao() {
 
         <div className="p-4 md:p-8 space-y-6 max-w-[1100px] mx-auto w-full">
           {/* Search blocks */}
-          <Card className="border-border/30 bg-[hsl(0_0%_7%)]">
+          <Card className="border border-primary/50 bg-[hsl(0_0%_7%)] glow-neon-strong">
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2 font-display text-white">
                 <Search className="h-5 w-5 text-neon" />
