@@ -14,8 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Buscar Leads", url: "/", icon: Search },
-  { title: "Automação", url: "/automacao", icon: Zap },
+  { title: "Automação", url: "/", icon: Zap },
   { title: "Exportações", url: "/exports", icon: FileSpreadsheet },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];

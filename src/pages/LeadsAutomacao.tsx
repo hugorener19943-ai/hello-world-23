@@ -140,8 +140,8 @@ export default function LeadsAutomacao() {
         {/* Hero */}
         <div className="space-y-1">
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">FluxLeads</h1>
-          <p className="text-muted-foreground">Prospecção Inteligente de Empresas</p>
-          <p className="text-sm text-muted-foreground">Encontre empresas com alto potencial para automação comercial e atendimento.</p>
+          <p className="text-muted-foreground">Leads com Potencial de Automação</p>
+          <p className="text-sm text-muted-foreground">Buscar Empresas com Potencial de Automação</p>
         </div>
 
         {/* Search Card */}
@@ -149,7 +149,7 @@ export default function LeadsAutomacao() {
           <CardHeader className="pb-4">
             <CardTitle className="text-lg flex items-center gap-2">
               <Search className="h-5 w-5 text-primary" />
-              Buscar Leads
+              Buscar Empresas com Potencial de Automação
             </CardTitle>
             <CardDescription>Informe o nicho e localização para encontrar empresas</CardDescription>
           </CardHeader>
