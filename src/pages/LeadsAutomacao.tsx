@@ -4,12 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, Download, Filter, Plus } from "lucide-react";
-import { AppLayout } from "@/components/AppLayout";
+import { Search, Loader2, Download, Filter, Plus, ArrowLeft, Zap } from "lucide-react";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { LeadCard } from "@/components/leads/LeadCard";
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
 import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
+import { Link } from "react-router-dom";
 
 const API_URL = "https://api.fluxleads.com.br/webhook/buscar-empresas-automacao";
 const AUTH = "Bearer key_pro_123";
@@ -108,7 +108,14 @@ export default function LeadsAutomacao() {
     const seen = new Map<string, LeadWithOrigin>();
     for (const l of allLeads) {
       const key = l.fsq_id || `${(l.nome || "").toLowerCase()}|${(l.endereco || "").toLowerCase()}`;
-      if (!seen.has(key) || (l.score ?? 0) > (seen.get(key)!.score ?? 0)) {
+      const existing = seen.get(key);
+      if (!existing || (l.score ?? 0) > (existing.score ?? 0)) {
+        // Merge best fields
+        if (existing) {
+          if (!l.email && existing.email) l.email = existing.email;
+          if (!l.website && existing.website) l.website = existing.website;
+          if (!l.telefone_raw && existing.telefone_raw) l.telefone_raw = existing.telefone_raw;
+        }
         seen.set(key, l);
       }
     }
@@ -161,18 +168,33 @@ export default function LeadsAutomacao() {
   };
 
   return (
-    <AppLayout>
-      <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto">
-        <div className="space-y-1">
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">FluxLeads</h1>
-          <p className="text-muted-foreground">Leads com Potencial de Automação</p>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="w-full flex items-center justify-between px-6 py-4 border-b border-border/50">
+        <div className="flex items-center gap-3">
+          <Link to="/">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center glow-neon">
+              <Zap className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-lg font-display text-foreground">
+              Flux<span className="text-neon">AI</span>
+            </span>
+          </div>
+          <span className="text-muted-foreground text-sm hidden sm:inline">— Leads com Potencial de Automação</span>
         </div>
+      </header>
 
+      <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto">
         {/* Search blocks */}
-        <Card>
+        <Card className="border-border bg-card">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Search className="h-5 w-5 text-primary" />
+            <CardTitle className="text-lg flex items-center gap-2 font-display">
+              <Search className="h-5 w-5 text-neon" />
               Buscar Empresas com Potencial de Automação
             </CardTitle>
             <CardDescription>Adicione até {MAX_BLOCKS} buscas diferentes e execute todas de uma vez</CardDescription>
@@ -191,11 +213,11 @@ export default function LeadsAutomacao() {
             ))}
             <div className="flex flex-wrap gap-3">
               {blocks.length < MAX_BLOCKS && (
-                <Button variant="outline" size="sm" onClick={addBlock}>
+                <Button variant="outline" size="sm" onClick={addBlock} className="border-border">
                   <Plus className="h-4 w-4 mr-1" /> Adicionar busca
                 </Button>
               )}
-              <Button onClick={buscar} disabled={loading}>
+              <Button onClick={buscar} disabled={loading} className="glow-neon">
                 {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
                 Buscar Empresas
               </Button>
@@ -205,9 +227,9 @@ export default function LeadsAutomacao() {
 
         {/* Loading */}
         {loading && (
-          <Card>
+          <Card className="border-border bg-card">
             <CardContent className="py-12 flex flex-col items-center gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <Loader2 className="h-8 w-8 animate-spin text-neon" />
               <p className="text-muted-foreground font-medium">Buscando empresas...</p>
             </CardContent>
           </Card>
@@ -215,7 +237,7 @@ export default function LeadsAutomacao() {
 
         {/* Empty */}
         {!loading && leads.length === 0 && (
-          <Card>
+          <Card className="border-border bg-card">
             <CardContent className="py-16 text-center text-muted-foreground">
               <Search className="h-14 w-14 mx-auto mb-4 opacity-20" />
               <p className="text-lg font-medium">Nenhuma empresa encontrada.</p>
@@ -232,11 +254,11 @@ export default function LeadsAutomacao() {
                 <p className="text-sm font-semibold text-foreground">{leads.length} empresas encontradas</p>
                 <div className="flex gap-2">
                   <Badge variant="outline" className="text-destructive border-destructive/30">🔥 {tempCounts.quente}</Badge>
-                  <Badge variant="outline" className="text-yellow-700 border-yellow-500/30">🌡 {tempCounts.morno}</Badge>
+                  <Badge variant="outline" className="text-yellow-500 border-yellow-500/30">🌡 {tempCounts.morno}</Badge>
                   <Badge variant="outline" className="text-muted-foreground">❄️ {tempCounts.frio}</Badge>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={exportCSV}>
+              <Button variant="outline" size="sm" onClick={exportCSV} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
                 <Download className="h-4 w-4 mr-2" /> Exportar CSV ({leads.length})
               </Button>
             </div>
@@ -244,12 +266,25 @@ export default function LeadsAutomacao() {
             <div className="flex flex-wrap items-center gap-3">
               <Filter className="h-4 w-4 text-muted-foreground" />
               {TEMP_FILTERS.map((f) => (
-                <Button key={f} variant={tempFilter === f ? "default" : "outline"} size="sm" className="text-xs h-8" onClick={() => setTempFilter(f)}>
+                <Button
+                  key={f}
+                  variant={tempFilter === f ? "default" : "outline"}
+                  size="sm"
+                  className={`text-xs h-8 ${tempFilter === f ? "glow-neon" : "border-border"}`}
+                  onClick={() => setTempFilter(f)}
+                >
                   {f === "Todos" ? "Todos" : f.charAt(0).toUpperCase() + f.slice(1)}
                 </Button>
               ))}
-              <Input placeholder="Buscar por nome..." className="max-w-[220px] h-8 text-sm" value={searchName} onChange={(e) => setSearchName(e.target.value)} />
-              {filtered.length !== leads.length && <span className="text-xs text-muted-foreground">{filtered.length} de {leads.length}</span>}
+              <Input
+                placeholder="Buscar por nome..."
+                className="max-w-[220px] h-8 text-sm bg-secondary border-border"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+              />
+              {filtered.length !== leads.length && (
+                <span className="text-xs text-muted-foreground">{filtered.length} de {leads.length}</span>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -258,10 +293,12 @@ export default function LeadsAutomacao() {
               ))}
             </div>
 
-            {filtered.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum lead corresponde aos filtros.</p>}
+            {filtered.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">Nenhum lead corresponde aos filtros.</p>
+            )}
           </>
         )}
       </div>
-    </AppLayout>
+    </div>
   );
 }
