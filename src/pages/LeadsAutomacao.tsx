@@ -185,8 +185,11 @@ export default function LeadsAutomacao() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Header */}
-        <header className="w-full flex items-center justify-between px-6 py-4 border-b border-border/50">
-          <div className="flex items-center gap-3">
+        <header className="relative w-full flex items-center justify-between px-6 py-4 border-b border-primary/20 overflow-hidden">
+          {/* Neon glow background */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
+          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent glow-neon-strong" />
+          <div className="relative flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center glow-neon">
                 <Zap className="h-4 w-4 text-primary-foreground" />
