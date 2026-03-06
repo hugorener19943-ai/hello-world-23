@@ -1,4 +1,4 @@
-import { FileSpreadsheet, Settings, Zap, BookOpen } from "lucide-react";
+import { FileSpreadsheet, Settings, Zap } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -12,8 +12,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { ResearchFlux } from "@/components/ResearchFlux";
 
 const items = [
   { title: "Automação", url: "/", icon: Zap },
@@ -61,27 +59,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <div className="mt-auto p-2">
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold text-neon hover:bg-muted/30 rounded-md transition-colors glow-neon">
-                <BookOpen className="h-4 w-4" />
-                {!collapsed && <span>Research Flux</span>}
-              </button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[340px] sm:w-[400px] bg-card border-border p-0">
-              <SheetHeader className="p-4 border-b border-border/30">
-                <SheetTitle className="flex items-center gap-2 text-neon">
-                  <BookOpen className="h-5 w-5" />
-                  Research Flux
-                </SheetTitle>
-              </SheetHeader>
-              <div className="h-[calc(100vh-80px)]">
-                <ResearchFlux />
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
       </SidebarContent>
     </Sidebar>
   );

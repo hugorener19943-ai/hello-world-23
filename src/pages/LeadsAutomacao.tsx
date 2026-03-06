@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Search, Loader2, Download, Filter, Plus, Zap } from "lucide-react";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
+import { ResearchFlux } from "@/components/ResearchFlux";
 import { LeadCard } from "@/components/leads/LeadCard";
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
 import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
@@ -186,40 +187,55 @@ export default function LeadsAutomacao() {
       </header>
 
       <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto">
-        {/* Search blocks */}
-        <Card className="border-border bg-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg flex items-center gap-2 font-display">
-              <Search className="h-5 w-5 text-neon" />
-              Buscar Empresas com Potencial de Automação
-            </CardTitle>
-            <CardDescription>Adicione até {MAX_BLOCKS} buscas diferentes e execute todas de uma vez</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {blocks.map((block, i) => (
-              <SearchBlockCard
-                key={block.id}
-                block={block}
-                index={i}
-                canRemove={blocks.length > 1}
-                status={blockStatuses[block.id] || "idle"}
-                onChange={updateBlock}
-                onRemove={removeBlock}
-              />
-            ))}
-            <div className="flex flex-wrap gap-3">
-              {blocks.length < MAX_BLOCKS && (
-                <Button variant="outline" size="sm" onClick={addBlock} className="bg-background text-foreground border-border hover:bg-secondary">
-                  <Plus className="h-4 w-4 mr-1" /> Adicionar busca
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+          {/* Search blocks */}
+          <Card className="border-border bg-card">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg flex items-center gap-2 font-display">
+                <Search className="h-5 w-5 text-neon" />
+                Buscar Empresas com Potencial de Automação
+              </CardTitle>
+              <CardDescription>Adicione até {MAX_BLOCKS} buscas diferentes e execute todas de uma vez</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {blocks.map((block, i) => (
+                <SearchBlockCard
+                  key={block.id}
+                  block={block}
+                  index={i}
+                  canRemove={blocks.length > 1}
+                  status={blockStatuses[block.id] || "idle"}
+                  onChange={updateBlock}
+                  onRemove={removeBlock}
+                />
+              ))}
+              <div className="flex flex-wrap gap-3">
+                {blocks.length < MAX_BLOCKS && (
+                  <Button variant="outline" size="sm" onClick={addBlock} className="bg-background text-foreground border-border hover:bg-secondary">
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar busca
+                  </Button>
+                )}
+                <Button onClick={buscar} disabled={loading} className="glow-neon">
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
+                  Buscar Empresas
                 </Button>
-              )}
-              <Button onClick={buscar} disabled={loading} className="glow-neon">
-                {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
-                Buscar Empresas
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Research Flux */}
+          <Card className="border-border bg-card h-fit max-h-[600px] overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2 text-neon">
+                📚 Research Flux
+              </CardTitle>
+              <CardDescription className="text-xs">Nichos com maior potencial de automação</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ResearchFlux />
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Loading */}
         {loading && (
