@@ -1,4 +1,4 @@
-import { Search, FileSpreadsheet, Settings } from "lucide-react";
+import { Search, FileSpreadsheet, Settings, Zap } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import {
@@ -15,6 +15,7 @@ import {
 
 const items = [
   { title: "Buscar Leads", url: "/", icon: Search },
+  { title: "Automação", url: "/automacao", icon: Zap },
   { title: "Exportações", url: "/exports", icon: FileSpreadsheet },
   { title: "Configurações", url: "/settings", icon: Settings },
 ];
