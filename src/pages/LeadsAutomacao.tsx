@@ -209,7 +209,7 @@ export default function LeadsAutomacao() {
             ))}
             <div className="flex flex-wrap gap-3">
               {blocks.length < MAX_BLOCKS && (
-                <Button variant="outline" size="sm" onClick={addBlock} className="border-border">
+                <Button variant="outline" size="sm" onClick={addBlock} className="bg-background text-foreground border-border hover:bg-secondary">
                   <Plus className="h-4 w-4 mr-1" /> Adicionar busca
                 </Button>
               )}
