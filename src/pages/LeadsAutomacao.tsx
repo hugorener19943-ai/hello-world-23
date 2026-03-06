@@ -189,16 +189,16 @@ export default function LeadsAutomacao() {
           {/* Neon glow background */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent glow-neon-strong" />
-          <div className="relative flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center glow-neon">
-                <Zap className="h-4 w-4 text-primary-foreground" />
+          <div className="relative flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center glow-neon">
+                <Zap className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-lg font-display text-foreground">
+              <span className="font-extrabold text-2xl font-display text-foreground tracking-tight">
                 Flux<span className="text-neon">AI</span>
               </span>
             </div>
-            <span className="text-muted-foreground text-sm hidden sm:inline">— Leads com Potencial de Automação</span>
+            <span className="text-muted-foreground text-base hidden sm:inline font-medium">— Leads com Potencial de Automação</span>
           </div>
         </header>
 
