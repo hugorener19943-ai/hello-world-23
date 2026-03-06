@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, Download, Filter, Plus, Zap } from "lucide-react";
+import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose } from "lucide-react";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { LeadCard } from "@/components/leads/LeadCard";
@@ -67,6 +67,7 @@ export default function LeadsAutomacao() {
   const [blockStatuses, setBlockStatuses] = useState<Record<string, "idle" | "loading" | "done" | "error">>({});
   const [tempFilter, setTempFilter] = useState("Todos");
   const [searchName, setSearchName] = useState("");
+  const [showResearch, setShowResearch] = useState(true);
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
@@ -190,16 +191,23 @@ export default function LeadsAutomacao() {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Research Flux - Fixed Panel */}
-      <aside className="hidden lg:flex flex-col w-[400px] border-r border-border bg-card shrink-0 h-screen sticky top-0">
-        <div className="px-5 py-4 border-b border-border/50 flex items-center gap-2">
-          <span className="text-destructive text-xl">⚡</span>
-          <span className="text-destructive font-extrabold text-lg">Research Flux</span>
-        </div>
-        <div className="flex-1 overflow-hidden">
-          <ResearchFlux />
-        </div>
-      </aside>
+      {/* Research Flux - Toggleable Panel */}
+      {showResearch && (
+        <aside className="flex flex-col w-[320px] lg:w-[400px] border-r border-border bg-card shrink-0 h-screen sticky top-0">
+          <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-destructive text-xl">⚡</span>
+              <span className="text-destructive font-extrabold text-lg">Research Flux</span>
+            </div>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground" onClick={() => setShowResearch(false)}>
+              <PanelLeftClose className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <ResearchFlux />
+          </div>
+        </aside>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
@@ -209,6 +217,11 @@ export default function LeadsAutomacao() {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 animate-pulse" />
           <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary to-transparent glow-neon-strong" />
           <div className="relative flex items-center gap-4">
+            {!showResearch && (
+              <Button variant="ghost" size="sm" className="h-9 w-9 p-0 text-muted-foreground hover:text-primary" onClick={() => setShowResearch(true)}>
+                <PanelLeftOpen className="h-5 w-5" />
+              </Button>
+            )}
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center glow-neon">
                 <Zap className="h-5 w-5 text-primary-foreground" />
