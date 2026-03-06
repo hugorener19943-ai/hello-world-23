@@ -4,12 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, Download, Filter, Plus, ArrowLeft, Zap } from "lucide-react";
+import { Search, Loader2, Download, Filter, Plus, Zap } from "lucide-react";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { LeadCard } from "@/components/leads/LeadCard";
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
 import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
-
+import { deduplicateLeads } from "@/lib/deduplicateLeads";
 
 const API_URL = "https://api.fluxleads.com.br/webhook/buscar-empresas-automacao";
 const AUTH = "Bearer key_pro_123";
@@ -104,22 +104,7 @@ export default function LeadsAutomacao() {
       }
     });
 
-    // Deduplicate
-    const seen = new Map<string, LeadWithOrigin>();
-    for (const l of allLeads) {
-      const key = l.fsq_id || `${(l.nome || "").toLowerCase()}|${(l.endereco || "").toLowerCase()}`;
-      const existing = seen.get(key);
-      if (!existing || (l.score ?? 0) > (existing.score ?? 0)) {
-        // Merge best fields
-        if (existing) {
-          if (!l.email && existing.email) l.email = existing.email;
-          if (!l.website && existing.website) l.website = existing.website;
-          if (!l.telefone_raw && existing.telefone_raw) l.telefone_raw = existing.telefone_raw;
-        }
-        seen.set(key, l);
-      }
-    }
-    const unique = Array.from(seen.values()).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    const unique = deduplicateLeads(allLeads);
     setLeads(unique);
     setLoading(false);
 
