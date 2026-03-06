@@ -16,7 +16,7 @@ interface Props {
 
 export function SearchBlockCard({ block, index, canRemove, status = "idle", onChange, onRemove }: Props) {
   return (
-    <div className="border border-border rounded-lg p-4 space-y-3 bg-secondary/30 relative">
+    <div className="border border-primary/30 rounded-lg p-4 space-y-3 bg-primary/10 relative glow-neon">
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-foreground flex items-center gap-2">
           Busca {index + 1}
