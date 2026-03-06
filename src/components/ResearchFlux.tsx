@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight, Copy, Lightbulb } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 
 const niches = [
@@ -73,86 +72,56 @@ export function ResearchFlux() {
   };
 
   return (
-    <Tabs defaultValue="termos" className="h-full">
-      <TabsList className="w-full rounded-none border-b border-border/30 bg-transparent px-4">
-        <TabsTrigger value="termos" className="text-xs data-[state=active]:text-primary">
-          🔍 Termos de Busca
-        </TabsTrigger>
-        <TabsTrigger value="ofertas" className="text-xs data-[state=active]:text-destructive">
-          💰 O que Oferecer
-        </TabsTrigger>
-      </TabsList>
+    <ScrollArea className="h-[550px]">
+      <div className="p-4 space-y-2">
+        <p className="text-xs text-muted-foreground px-2 mb-2">
+          Clique em um nicho para ver termos e o que oferecer
+        </p>
+        {niches.map((niche) => {
+          const isOpen = openNiche === niche.name;
+          return (
+            <div key={niche.name}>
+              <button
+                onClick={() => setOpenNiche(isOpen ? null : niche.name)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold bg-muted/30 hover:bg-muted/50 rounded-lg transition-all"
+              >
+                {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-primary" /> : <ChevronRight className="h-4 w-4 shrink-0 text-primary" />}
+                <span className="text-base">{niche.emoji}</span>
+                <span className="text-foreground">{niche.name}</span>
+              </button>
+              {isOpen && (
+                <div className="ml-4 mt-2 mb-3 space-y-3 animate-fade-in">
+                  <p className="text-xs font-semibold text-primary px-2 py-1.5 bg-primary/10 rounded-md inline-block">
+                    💡 {niche.tip}
+                  </p>
 
-      <TabsContent value="termos" className="mt-0">
-        <ScrollArea className="h-[500px]">
-          <div className="p-4 space-y-2">
-            <p className="text-xs text-muted-foreground px-2 mb-2">
-              Clique em um nicho para ver os termos de busca
-            </p>
-            {niches.map((niche) => {
-              const isOpen = openNiche === niche.name;
-              return (
-                <div key={niche.name} className="rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setOpenNiche(isOpen ? null : niche.name)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold bg-muted/30 hover:bg-muted/50 rounded-lg transition-all"
-                  >
-                    {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-primary" /> : <ChevronRight className="h-4 w-4 shrink-0 text-primary" />}
-                    <span className="text-base">{niche.emoji}</span>
-                    <span className="text-foreground">{niche.name}</span>
-                  </button>
-                  {isOpen && (
-                    <div className="ml-4 mt-2 mb-3 space-y-2 animate-fade-in">
-                      <p className="text-xs font-semibold text-primary px-2 py-1.5 bg-primary/10 rounded-md inline-block">
-                        💡 {niche.tip}
-                      </p>
-                      <div className="flex flex-wrap gap-1.5 px-1">
-                        {niche.terms.map((term) => (
-                          <button
-                            key={term}
-                            onClick={() => copyTerm(term)}
-                            className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-muted/50 text-foreground hover:bg-primary/20 hover:text-primary transition-all duration-200 border border-border/30"
-                            title="Clique para copiar"
-                          >
-                            {term}
-                            <Copy className="h-3 w-3 opacity-50" />
-                          </button>
-                        ))}
-                      </div>
+                  {/* Termos de busca */}
+                  <div>
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-1.5">🔍 Termos de busca</p>
+                    <div className="flex flex-wrap gap-1.5 px-1">
+                      {niche.terms.map((term) => (
+                        <button
+                          key={term}
+                          onClick={() => copyTerm(term)}
+                          className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md bg-muted/50 text-foreground hover:bg-primary/20 hover:text-primary transition-all duration-200 border border-border/30"
+                          title="Clique para copiar"
+                        >
+                          {term}
+                          <Copy className="h-3 w-3 opacity-50" />
+                        </button>
+                      ))}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      </TabsContent>
+                  </div>
 
-      <TabsContent value="ofertas" className="mt-0">
-        <ScrollArea className="h-[500px]">
-          <div className="p-4 space-y-3">
-            <p className="text-xs text-muted-foreground px-2 mb-2">
-              Serviços de automação para oferecer a cada nicho
-            </p>
-            {niches.map((niche) => {
-              const isOpen = openNiche === niche.name;
-              return (
-                <div key={niche.name} className="rounded-lg overflow-hidden">
-                  <button
-                    onClick={() => setOpenNiche(isOpen ? null : niche.name)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold bg-muted/30 hover:bg-muted/50 rounded-lg transition-all"
-                  >
-                    {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-destructive" /> : <ChevronRight className="h-4 w-4 shrink-0 text-destructive" />}
-                    <span className="text-base">{niche.emoji}</span>
-                    <span className="text-foreground">{niche.name}</span>
-                  </button>
-                  {isOpen && (
-                    <div className="ml-4 mt-2 mb-3 space-y-1.5 animate-fade-in">
+                  {/* O que oferecer */}
+                  <div>
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide px-1 mb-1.5">💰 O que oferecer</p>
+                    <div className="space-y-1 px-1">
                       {niche.offers.map((offer) => (
                         <button
                           key={offer}
                           onClick={() => copyTerm(offer)}
-                          className="w-full text-left flex items-start gap-2 text-xs font-medium px-3 py-2 rounded-md bg-muted/30 text-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200 border border-border/20"
+                          className="w-full text-left flex items-start gap-2 text-xs font-medium px-2.5 py-2 rounded-md bg-muted/30 text-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200 border border-border/20"
                           title="Clique para copiar"
                         >
                           <Lightbulb className="h-3.5 w-3.5 shrink-0 mt-0.5 text-destructive/70" />
@@ -161,13 +130,13 @@ export function ResearchFlux() {
                         </button>
                       ))}
                     </div>
-                  )}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      </TabsContent>
-    </Tabs>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 }
