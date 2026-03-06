@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { FileSpreadsheet, Settings, Zap, BookOpen } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -13,6 +12,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { ResearchFlux } from "@/components/ResearchFlux";
 
 const items = [
@@ -25,7 +25,6 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
-  const [showResearch, setShowResearch] = useState(false);
 
   return (
     <Sidebar collapsible="icon">
@@ -62,22 +61,27 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {!collapsed && (
-          <SidebarGroup className="flex-1 flex flex-col min-h-0">
-            <button
-              onClick={() => setShowResearch(!showResearch)}
-              className="flex items-center gap-2 px-3 py-2 text-sm font-semibold text-neon hover:bg-muted/30 rounded-md transition-colors mx-2"
-            >
-              <BookOpen className="h-4 w-4" />
-              Research Flux
-            </button>
-            {showResearch && (
-              <div className="flex-1 min-h-0 border-t border-border/30 mt-1">
+        <div className="mt-auto p-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <button className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold text-neon hover:bg-muted/30 rounded-md transition-colors glow-neon">
+                <BookOpen className="h-4 w-4" />
+                {!collapsed && <span>Research Flux</span>}
+              </button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[340px] sm:w-[400px] bg-card border-border p-0">
+              <SheetHeader className="p-4 border-b border-border/30">
+                <SheetTitle className="flex items-center gap-2 text-neon">
+                  <BookOpen className="h-5 w-5" />
+                  Research Flux
+                </SheetTitle>
+              </SheetHeader>
+              <div className="h-[calc(100vh-80px)]">
                 <ResearchFlux />
               </div>
-            )}
-          </SidebarGroup>
-        )}
+            </SheetContent>
+          </Sheet>
+        </div>
       </SidebarContent>
     </Sidebar>
   );
