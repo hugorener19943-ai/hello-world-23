@@ -224,7 +224,7 @@ export default function LeadsAutomacao() {
           </Card>
 
           {/* Research Flux */}
-          <Card className="h-fit max-h-[700px] overflow-hidden border-border bg-[hsl(0_0%_8%)]">
+          <Card className="h-fit max-h-[700px] overflow-hidden border-border bg-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2 font-bold">
                 <span className="text-destructive text-xl">⚡</span>
