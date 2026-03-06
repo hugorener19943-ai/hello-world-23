@@ -9,7 +9,7 @@ import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { LeadCard } from "@/components/leads/LeadCard";
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
 import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
-import { Link } from "react-router-dom";
+
 
 const API_URL = "https://api.fluxleads.com.br/webhook/buscar-empresas-automacao";
 const AUTH = "Bearer key_pro_123";
@@ -172,11 +172,6 @@ export default function LeadsAutomacao() {
       {/* Header */}
       <header className="w-full flex items-center justify-between px-6 py-4 border-b border-border/50">
         <div className="flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center glow-neon">
               <Zap className="h-4 w-4 text-primary-foreground" />
