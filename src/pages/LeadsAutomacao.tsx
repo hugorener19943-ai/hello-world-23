@@ -19,7 +19,7 @@ const TEMP_FILTERS = ["Todos", "quente", "morno", "frio"] as const;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
-  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", targetTotal: 20 };
+  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairro: "", targetTotal: 20 };
 }
 
 async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
@@ -28,7 +28,7 @@ async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
     headers: { Authorization: AUTH, "Content-Type": "application/json" },
     body: JSON.stringify({
       query: block.query,
-      local: { cidade: block.cidade, estado: block.estado },
+      local: { cidade: block.cidade, estado: block.estado, bairro: block.bairro || undefined },
       target_total: block.targetTotal,
       format: "json",
     }),

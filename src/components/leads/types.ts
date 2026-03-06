@@ -5,6 +5,7 @@ export interface SearchBlock {
   query: string;
   cidade: string;
   estado: string;
+  bairro: string;
   targetTotal: number;
 }
 
