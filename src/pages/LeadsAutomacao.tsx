@@ -187,7 +187,21 @@ export default function LeadsAutomacao() {
       </header>
 
       <div className="p-4 md:p-8 space-y-6 max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-6">
+          {/* Research Flux */}
+          <Card className="h-fit max-h-[750px] overflow-hidden border-border bg-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2 font-bold">
+                <span className="text-destructive text-xl">⚡</span>
+                <span className="text-destructive font-extrabold">Research Flux</span>
+              </CardTitle>
+              <CardDescription className="text-sm text-muted-foreground">Nichos com maior potencial de automação</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <ResearchFlux />
+            </CardContent>
+          </Card>
+
           {/* Search blocks */}
           <Card className="border-border bg-card">
             <CardHeader className="pb-4">
@@ -220,20 +234,6 @@ export default function LeadsAutomacao() {
                   Buscar Empresas
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Research Flux */}
-          <Card className="h-fit max-h-[700px] overflow-hidden border-border bg-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 font-bold">
-                <span className="text-destructive text-xl">⚡</span>
-                <span className="text-destructive font-extrabold">Research Flux</span>
-              </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">Nichos com maior potencial de automação</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ResearchFlux />
             </CardContent>
           </Card>
         </div>
