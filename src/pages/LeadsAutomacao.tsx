@@ -198,7 +198,7 @@ export default function LeadsAutomacao() {
                 Flux<span className="text-neon">AI</span>
               </span>
             </div>
-            <span className="text-neon text-lg hidden sm:inline font-black drop-shadow-[0_0_8px_hsl(142_71%_45%/0.8)]">— Leads com Potencial de Automação</span>
+            <span className="text-primary text-lg hidden sm:inline font-black">— Leads com Potencial de Automação</span>
           </div>
         </header>
 
