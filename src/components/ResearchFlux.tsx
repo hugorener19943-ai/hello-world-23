@@ -552,7 +552,9 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setShowConfirm(true)}
+                onClick={() => {
+                  if (onConfirmSubnichos) onConfirmSubnichos(confirmLimit);
+                }}
                 className="px-4 py-2 text-sm font-bold rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-all"
               >
                 ✅ Confirmar subnichos
