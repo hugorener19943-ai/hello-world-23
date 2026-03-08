@@ -36,10 +36,18 @@ function dedupeKey(e: LeadAutomacao): string {
   return `${(e.nome || "").toLowerCase()}|${(e.endereco || "").toLowerCase()}`;
 }
 
-async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
+interface FetchResult {
+  leads: LeadAutomacao[];
+  reason?: "api_limit" | "no_more_pages" | "all_fetched";
+  pagesScanned: number;
+}
+
+async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   const seen = new Map<string, LeadAutomacao>();
   let offset = 0;
   let keepGoing = true;
+  let pagesScanned = 0;
+  let reason: FetchResult["reason"] = "all_fetched";
 
   while (keepGoing && offset < block.targetTotal) {
     const res = await fetch(API_URL, {
@@ -72,13 +80,18 @@ async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
 
     const data = await res.json();
     const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
+    pagesScanned++;
 
     for (const e of batch) {
       const key = dedupeKey(e);
       if (!seen.has(key)) seen.set(key, e);
     }
 
-    if (batch.length < PAGE_SIZE || seen.size >= block.targetTotal) {
+    if (batch.length < PAGE_SIZE) {
+      reason = "no_more_pages";
+      keepGoing = false;
+    } else if (seen.size >= block.targetTotal) {
+      reason = "all_fetched";
       keepGoing = false;
     } else {
       offset += PAGE_SIZE;
@@ -86,7 +99,11 @@ async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
     }
   }
 
-  return Array.from(seen.values());
+  if (seen.size < block.targetTotal && reason === "all_fetched") {
+    reason = "api_limit";
+  }
+
+  return { leads: Array.from(seen.values()), reason, pagesScanned };
 }
 
 export default function LeadsAutomacao() {
@@ -242,20 +259,23 @@ export default function LeadsAutomacao() {
     const results = await Promise.allSettled(
       valid.map(async (block, idx) => {
         try {
-          const empresas = await fetchBlock(block);
+          const result = await fetchBlock(block);
           statuses[block.id] = "done";
           setBlockStatuses({ ...statuses });
-          const found = empresas.length;
+          const found = result.leads.length;
           const requested = block.targetTotal;
           let message: string | undefined;
           if (found === 0) {
             message = "Nenhum resultado encontrado para este nicho/local.";
           } else if (found < requested) {
-            message = `Região/nicho com poucas empresas cadastradas. Tente ampliar a busca ou mudar o bairro.`;
+            const reasonText = result.reason === "no_more_pages"
+              ? `A API retornou apenas ${found} empresas — não existem mais resultados para "${block.query}" em ${block.cidade}${block.bairro ? ` (${block.bairro})` : ""}. Tente remover o bairro ou ampliar o nicho.`
+              : `Foram encontradas ${found} de ${requested} empresas solicitadas. A região/nicho tem poucas empresas cadastradas.`;
+            message = reasonText;
           }
           blockResultsMap[block.id] = { found, requested, message };
           setBlockResults({ ...blockResultsMap });
-          return { empresas, index: idx, label: `Busca ${idx + 1}: ${block.query}` };
+          return { empresas: result.leads, index: idx, label: `Busca ${idx + 1}: ${block.query}` };
         } catch (err: any) {
           statuses[block.id] = "error";
           setBlockStatuses({ ...statuses });
