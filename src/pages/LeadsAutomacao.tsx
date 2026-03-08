@@ -313,7 +313,6 @@ export default function LeadsAutomacao() {
     if (onlyHotLeads) {
       unique = unique.filter((l) => (l.temperatura_lead || "").toLowerCase().includes("quente"));
     }
-    }
     // Sort by score descending for better results
     unique.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     setLeads(unique);
