@@ -461,7 +461,7 @@ const niches = [
 
 interface ResearchFluxProps {
   onSelectNiche?: (niche: string, subnicho: string) => void;
-  onConfirmSubnichos?: () => void;
+  onConfirmSubnichos?: (limit?: number) => void;
 }
 
 export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFluxProps = {}) {
