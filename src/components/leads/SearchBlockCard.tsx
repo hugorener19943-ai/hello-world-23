@@ -15,6 +15,7 @@ interface Props {
   status?: "idle" | "loading" | "done" | "error";
   onChange: (id: string, field: keyof SearchBlock, value: string | number) => void;
   onRemove: (id: string) => void;
+  onDropData?: (id: string, data: Record<string, string>) => void;
 }
 
 export function SearchBlockCard({ block, index, canRemove, status = "idle", onChange, onRemove }: Props) {
