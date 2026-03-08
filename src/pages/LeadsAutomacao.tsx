@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare, MapPin, CheckCircle2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
+import { TemplateSelector } from "@/components/leads/TemplateSelector";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
 import { LeadCard } from "@/components/leads/LeadCard";
@@ -531,6 +532,7 @@ export default function LeadsAutomacao() {
                     <Plus className="h-4 w-4 mr-1" /> Adicionar busca
                   </Button>
                 )}
+                <TemplateSelector onApplyTemplate={applyTemplate} />
                 
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
                   <Checkbox
