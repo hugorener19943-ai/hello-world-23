@@ -131,21 +131,43 @@ export default function LeadsAutomacao() {
       updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairro: bairro || updated[targetIndex].bairro };
       return updated;
     });
-    toast({ title: `Local → Busca ${targetIndex + 1}`, description: `${cidade}/${estado}${bairro ? ` - ${bairro}` : ""}` });
-    // Location done → advance cursor to next block and go back to Research
-    const nextIndex = targetIndex + 1;
+    // Show confirmation dialog
+    const currentBlock = blocks[targetIndex];
+    setConfirmDialog({
+      blockIndex: targetIndex,
+      query: currentBlock?.query || "",
+      cidade,
+      estado,
+      bairro: bairro || currentBlock?.bairro || "",
+      targetTotal: currentBlock?.targetTotal || 20,
+    });
+  }, [blocks, activeBlockIndex]);
+
+  const handleConfirmBlock = useCallback(() => {
+    if (!confirmDialog) return;
+    const { blockIndex, targetTotal } = confirmDialog;
+    // Apply final targetTotal
+    setBlocks((prev) => {
+      const updated = [...prev];
+      updated[blockIndex] = { ...updated[blockIndex], targetTotal };
+      return updated;
+    });
+    setConfirmDialog(null);
+    // Advance to next block
+    const nextIndex = blockIndex + 1;
     if (nextIndex < blocks.length) {
       setActiveBlockIndex(nextIndex);
       setSidebarTab("research");
-      toast({ title: `Agora preenchendo Busca ${nextIndex + 1}`, variant: "default" });
+      toast({ title: `Agora preenchendo Busca ${nextIndex + 1}` });
     } else if (nextIndex < MAX_BLOCKS) {
-      // Auto-create next block
       setBlocks((prev) => [...prev, newBlock()]);
       setActiveBlockIndex(nextIndex);
       setSidebarTab("research");
-      toast({ title: `Busca ${nextIndex + 1} criada automaticamente`, variant: "default" });
+      toast({ title: `Busca ${nextIndex + 1} criada automaticamente` });
+    } else {
+      toast({ title: "Todas as buscas preenchidas! 🚀" });
     }
-  }, [blocks.length, activeBlockIndex, toast]);
+  }, [confirmDialog, blocks.length, toast]);
 
   const removeBlock = useCallback((id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
