@@ -776,9 +776,9 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
   const [openState, setOpenState] = useState<string | null>(null);
   const [openSubCity, setOpenSubCity] = useState<string | null>(null);
   const [filterAlta, setFilterAlta] = useState(false);
-  const [multiSelectMode, setMultiSelectMode] = useState(false);
   const [selectedBairros, setSelectedBairros] = useState<string[]>([]);
   const [multiSelectCity, setMultiSelectCity] = useState<{ cidade: string; estado: string } | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
   const toggleBairroSelection = (bairro: string, cidade: string, estado: string) => {
