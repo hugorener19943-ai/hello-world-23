@@ -71,6 +71,7 @@ export default function LeadsAutomacao() {
   const [leads, setLeads] = useState<LeadWithOrigin[]>([]);
   const [loading, setLoading] = useState(false);
   const [blockStatuses, setBlockStatuses] = useState<Record<string, "idle" | "loading" | "done" | "error">>({});
+  const [blockResults, setBlockResults] = useState<Record<string, { found: number; requested: number; message?: string }>>({}); 
   const [tempFilter, setTempFilter] = useState("Todos");
   const [searchName, setSearchName] = useState("");
   const [showResearch, setShowResearch] = useState(true);
