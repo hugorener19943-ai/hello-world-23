@@ -3,6 +3,7 @@ import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
 export interface SearchBlock {
   id: string;
   query: string;
+  subnichos: string[];
   cidade: string;
   estado: string;
   bairros: string[];

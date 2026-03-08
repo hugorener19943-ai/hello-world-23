@@ -469,7 +469,12 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   const { toast } = useToast();
 
   const handleNicheClick = (name: string) => {
-    setOpenNiche(openNiche === name ? null : name);
+    if (openNiche === name) {
+      setOpenNiche(null);
+    } else {
+      setOpenNiche(name);
+      setSelectedTerms([]);
+    }
   };
 
   const handleTermClick = (term: string) => {
@@ -484,8 +489,8 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
     setSelectedTerms((prev) => [...prev, term]);
     navigator.clipboard.writeText(term);
     toast({ title: `Subnicho ${selectedTerms.length + 1} preenchido!`, description: term });
-    if (onSelectNiche) {
-      onSelectNiche(term);
+    if (onSelectNiche && openNiche) {
+      onSelectNiche(openNiche, term);
     }
   };
 
