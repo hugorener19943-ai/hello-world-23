@@ -915,16 +915,20 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectMu
           </div>
         )}
 
-        {/* Confirmation dialog */}
+        {/* Confirmation dialog - rendered via portal */}
         {showConfirmDialog && selectedBairros.length > 0 && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
-            <div className="bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-lg">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
+            <div className="absolute inset-0 bg-black/70" onClick={() => setShowConfirmDialog(false)} />
+            <div className="relative z-10 bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-2xl">
               <h3 className="text-lg font-bold text-foreground">Confirmar bairros selecionados</h3>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-60 overflow-y-auto">
                 {uniqueCities.map((c) => (
-                  <div key={`${c.cidade}-${c.estado}`} className="space-y-1">
-                    <p className="text-sm font-semibold text-foreground">📍 {c.cidade}/{c.estado}</p>
-                    <div className="flex flex-wrap gap-1.5">
+                  <div key={`${c.cidade}-${c.estado}`} className="space-y-1.5">
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-primary" />
+                      {c.cidade}/{c.estado}
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 pl-5">
                       {c.bairros.map(b => (
                         <span key={b} className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded-md">{b}</span>
                       ))}
@@ -932,6 +936,9 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectMu
                   </div>
                 ))}
               </div>
+              <p className="text-xs text-muted-foreground">
+                Total: {selectedBairros.length} bairro{selectedBairros.length > 1 ? "s" : ""} em {uniqueCities.length} cidade{uniqueCities.length > 1 ? "s" : ""}
+              </p>
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setShowConfirmDialog(false)} className="flex-1 text-sm font-semibold py-2.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
                   Voltar
