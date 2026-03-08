@@ -773,7 +773,7 @@ interface FluxMapsProps {
 
 const MAX_BAIRROS = 8;
 
-export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNiche }: FluxMapsProps) {
+export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectCity, selectedNiche }: FluxMapsProps) {
   const [openState, setOpenState] = useState<string | null>(null);
   const [openSubCity, setOpenSubCity] = useState<string | null>(null);
   const [filterAlta, setFilterAlta] = useState(false);
