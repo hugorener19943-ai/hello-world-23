@@ -873,51 +873,53 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
           </div>
         )}
 
-        {/* Multi-select controls */}
-        {multiSelectMode && selectedBairros.length > 0 && (
-          <div className="px-3 py-3 rounded-lg bg-primary/20 border border-primary/50 space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-white">
-                {selectedBairros.length}/{MAX_BAIRROS} bairros selecionados
-              </p>
-              <p className="text-xs text-muted-foreground">{multiSelectCity?.cidade}/{multiSelectCity?.estado}</p>
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {selectedBairros.map(b => (
-                <span key={b} className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">{b}</span>
-              ))}
-            </div>
-            <div className="flex gap-2 pt-1">
-              <button onClick={confirmMultiSelect} className="flex-1 text-xs font-bold py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                ✓ Confirmar seleção
+        {/* Confirm button - only shows when bairros are selected */}
+        {selectedBairros.length > 0 && multiSelectCity && (
+          <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
+            <p className="text-xs font-semibold text-foreground">
+              {selectedBairros.length}/{MAX_BAIRROS} bairros • {multiSelectCity.cidade}/{multiSelectCity.estado}
+            </p>
+            <div className="flex gap-2">
+              <button onClick={cancelMultiSelect} className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground transition-colors">
+                Limpar
               </button>
-              <button onClick={cancelMultiSelect} className="px-3 text-xs font-semibold py-2 rounded border border-border text-muted-foreground hover:text-foreground transition-colors">
-                Cancelar
+              <button onClick={() => setShowConfirmDialog(true)} className="text-xs font-bold px-3 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                ✓ Confirmar
               </button>
             </div>
           </div>
         )}
 
+        {/* Confirmation dialog */}
+        {showConfirmDialog && multiSelectCity && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
+            <div className="bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-lg">
+              <h3 className="text-lg font-bold text-foreground">Confirmar bairros selecionados</h3>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">{multiSelectCity.cidade}/{multiSelectCity.estado}</span>
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedBairros.map(b => (
+                    <span key={b} className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded-md">{b}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setShowConfirmDialog(false)} className="flex-1 text-sm font-semibold py-2.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
+                  Voltar
+                </button>
+                <button onClick={confirmMultiSelect} className="flex-1 text-sm font-bold py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  ✅ Confirmar e avançar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <p className="text-sm text-white">Clique para preencher cidade e bairro</p>
+          <p className="text-sm text-white">Clique nos bairros para selecionar (até {MAX_BAIRROS})</p>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setMultiSelectMode(!multiSelectMode);
-                if (multiSelectMode) {
-                  setSelectedBairros([]);
-                  setMultiSelectCity(null);
-                }
-              }}
-              className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all ${
-                multiSelectMode
-                  ? "bg-primary/20 text-white border border-primary/50"
-                  : "bg-muted/50 text-white border border-border/30 hover:border-primary/50"
-              }`}
-            >
-              <MapPin className="h-3 w-3" />
-              {multiSelectMode ? "Multi-seleção ON" : `Selecionar ${MAX_BAIRROS}`}
-            </button>
             <button
               onClick={() => setFilterAlta(!filterAlta)}
               className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all ${
