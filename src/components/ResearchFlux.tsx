@@ -533,21 +533,21 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
                   </div>
 
                   {/* O que oferecer */}
-                  <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">💰 O que oferecer</p>
-                    <div className="space-y-1.5 px-2">
-                      {niche.offers.map((offer) => (
-                        <button
-                          key={offer}
-                          onClick={() => copyTerm(offer)}
-                          className="w-full text-left flex items-start gap-2.5 text-sm font-medium px-3 py-2.5 rounded-lg bg-muted/30 text-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200 border border-border/20"
-                          title="Clique para copiar"
-                        >
-                          <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-destructive/70" />
-                          <span>{offer}</span>
-                          <Copy className="h-3 w-3 opacity-40 ml-auto shrink-0 mt-0.5" />
-                        </button>
-                      ))}
+                   <div>
+                     <p className="text-xs font-bold text-red-400 uppercase tracking-wider px-2 mb-2">💰 O que oferecer</p>
+                     <div className="space-y-1.5 px-2">
+                       {niche.offers.map((offer) => (
+                         <button
+                           key={offer}
+                           onClick={() => copyTerm(offer)}
+                           className="w-full text-left flex items-start gap-2.5 text-sm font-medium px-3 py-2.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 hover:text-red-300 transition-all duration-200 border border-red-500/30"
+                           title="Clique para copiar"
+                         >
+                           <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-red-400" />
+                           <span>{offer}</span>
+                           <Copy className="h-3 w-3 opacity-40 ml-auto shrink-0 mt-0.5" />
+                         </button>
+                       ))}
                     </div>
                   </div>
                 </div>
