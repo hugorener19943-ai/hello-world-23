@@ -688,37 +688,79 @@ const estados: StateData[] = [
     capital: "São Luís", estado: "MA", potencial: "medio",
     bairros: [
       { nome: "Renascença", conversao: "alta" }, { nome: "Calhau", conversao: "alta" },
-      { nome: "Ponta D'Areia", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-      { nome: "São Francisco", conversao: "media" },
+      { nome: "Ponta D'Areia", conversao: "alta" }, { nome: "Cohama", conversao: "alta" },
+      { nome: "Jardim Renascença", conversao: "alta" }, { nome: "Turu", conversao: "alta" },
+      { nome: "São Francisco", conversao: "media" }, { nome: "Centro", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Imperatriz", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Nova Imperatriz", conversao: "alta" },
+          { nome: "Maranhão Novo", conversao: "alta" }, { nome: "Santa Inês", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Timon", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Parque Piauí", conversao: "alta" },
+        ],
+      },
+    ],
   },
   {
     capital: "Teresina", estado: "PI", potencial: "medio",
     bairros: [
       { nome: "Centro", conversao: "alta" }, { nome: "Jóquei", conversao: "alta" },
-      { nome: "Fátima", conversao: "alta" }, { nome: "Ilhotas", conversao: "media" },
-      { nome: "Noivos", conversao: "media" },
+      { nome: "Fátima", conversao: "alta" }, { nome: "Horto", conversao: "alta" },
+      { nome: "Ilhotas", conversao: "alta" }, { nome: "Noivos", conversao: "alta" },
+      { nome: "Ininga", conversao: "alta" }, { nome: "São Cristóvão", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Parnaíba", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "São Francisco", conversao: "alta" },
+          { nome: "Piauí", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
     capital: "Maceió", estado: "AL", potencial: "medio",
     bairros: [
       { nome: "Pajuçara", conversao: "alta" }, { nome: "Ponta Verde", conversao: "alta" },
-      { nome: "Jatiúca", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-      { nome: "Farol", conversao: "media" },
+      { nome: "Jatiúca", conversao: "alta" }, { nome: "Stella Maris", conversao: "alta" },
+      { nome: "Mangabeiras", conversao: "alta" }, { nome: "Farol", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Gruta de Lourdes", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Arapiraca", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Primavera", conversao: "alta" },
+          { nome: "Brasília", conversao: "alta" }, { nome: "Jardim Tropical", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
     capital: "Aracaju", estado: "SE", potencial: "medio",
     bairros: [
       { nome: "Jardins", conversao: "alta" }, { nome: "13 de Julho", conversao: "alta" },
-      { nome: "Grageru", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-      { nome: "Atalaia", conversao: "media" },
+      { nome: "Grageru", conversao: "alta" }, { nome: "Luzia", conversao: "alta" },
+      { nome: "Atalaia", conversao: "alta" }, { nome: "Salgado Filho", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Farolândia", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Nossa Senhora do Socorro", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Marcos Freire", conversao: "alta" },
+          { nome: "Conjunto João Alves", conversao: "media" },
+        ],
+      },
+    ],
   },
 ];
 
