@@ -788,6 +788,7 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectCi
     if (multiSelectCity && (multiSelectCity.cidade !== cidade || multiSelectCity.estado !== estado)) {
       setSelectedBairros([bairro]);
       setMultiSelectCity({ cidade, estado });
+      onToggleBairro?.(cidade, estado, bairro, true);
       return;
     }
     if (!multiSelectCity) {
@@ -797,8 +798,10 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectCi
       const next = selectedBairros.filter(b => b !== bairro);
       setSelectedBairros(next);
       if (next.length === 0) setMultiSelectCity(null);
+      onToggleBairro?.(cidade, estado, bairro, false);
     } else if (selectedBairros.length < MAX_BAIRROS) {
       setSelectedBairros([...selectedBairros, bairro]);
+      onToggleBairro?.(cidade, estado, bairro, true);
     } else {
       toast({ title: `Máximo de ${MAX_BAIRROS} bairros por cidade`, variant: "destructive" });
     }
