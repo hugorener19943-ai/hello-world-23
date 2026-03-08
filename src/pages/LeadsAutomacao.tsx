@@ -569,7 +569,7 @@ export default function LeadsAutomacao() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="research" className="flex-1 overflow-hidden mt-0">
-              <ResearchFlux onSelectNiche={handleSelectNiche} />
+              <ResearchFlux onSelectNiche={handleSelectNiche} onConfirmSubnichos={() => setSidebarTab("maps")} />
             </TabsContent>
             <TabsContent value="maps" className="flex-1 overflow-hidden mt-0">
               <FluxMaps onSelectLocation={handleSelectLocation} onSelectMultipleBairros={handleSelectMultipleBairros} selectedNiche={selectedNiche} />
