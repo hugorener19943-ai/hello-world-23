@@ -203,6 +203,7 @@ export default function LeadsAutomacao() {
     }
     setLoading(true);
     setLeads([]);
+    setBlockResults({});
     setTempFilter("Todos");
     setSearchName("");
 
