@@ -388,9 +388,17 @@ export default function LeadsAutomacao() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filtered.map((lead, i) => (
-                <LeadCard key={lead.fsq_id || `${i}`} lead={lead} />
-              ))}
+              {filtered.map((lead, i) => {
+                const id = lead.fsq_id || `${lead.nome}|${lead.endereco}`;
+                return (
+                  <LeadCard
+                    key={id}
+                    lead={lead}
+                    selected={selectedLeads.has(id)}
+                    onToggleSelect={() => toggleLeadSelection(id)}
+                  />
+                );
+              })}
             </div>
 
             {filtered.length === 0 && (
