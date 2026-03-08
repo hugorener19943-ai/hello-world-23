@@ -490,13 +490,16 @@ export default function LeadsAutomacao() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Bairro <span className="text-[10px] font-normal">(opcional)</span></span>
-                  <Input
-                    value={confirmDialog.bairro}
-                    onChange={(e) => setConfirmDialog((prev) => prev ? { ...prev, bairro: e.target.value } : null)}
-                    className="h-9 bg-secondary border-border"
-                    placeholder="ex: Pinheiros"
-                  />
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Bairros <span className="text-[10px] font-normal">(até 4, opcional)</span></span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {confirmDialog.bairros.map((b) => (
+                      <Badge key={b} className="bg-primary text-primary-foreground gap-1 pr-1 text-xs">
+                        {b}
+                        <button onClick={() => setConfirmDialog((prev) => prev ? { ...prev, bairros: prev.bairros.filter(x => x !== b) } : null)} className="ml-0.5 hover:bg-primary-foreground/20 rounded-full p-0.5">×</button>
+                      </Badge>
+                    ))}
+                    {confirmDialog.bairros.length === 0 && <span className="text-xs text-muted-foreground">Nenhum selecionado</span>}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
                   <span className="text-xs font-bold text-muted-foreground uppercase">Quantidade de Leads</span>
