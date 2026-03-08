@@ -766,44 +766,108 @@ const estados: StateData[] = [
 
 interface FluxMapsProps {
   onSelectLocation?: (cidade: string, estado: string, bairro?: string) => void;
+  onSelectMultipleBairros?: (cidade: string, estado: string, bairros: string[]) => void;
   selectedNiche?: string;
 }
 
-export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
+const MAX_BAIRROS = 4;
+
+export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNiche }: FluxMapsProps) {
   const [openState, setOpenState] = useState<string | null>(null);
   const [openSubCity, setOpenSubCity] = useState<string | null>(null);
   const [filterAlta, setFilterAlta] = useState(false);
+  const [multiSelectMode, setMultiSelectMode] = useState(false);
+  const [selectedBairros, setSelectedBairros] = useState<string[]>([]);
+  const [multiSelectCity, setMultiSelectCity] = useState<{ cidade: string; estado: string } | null>(null);
   const { toast } = useToast();
+
+  const toggleBairroSelection = (bairro: string, cidade: string, estado: string) => {
+    // If selecting from a different city, reset
+    if (multiSelectCity && (multiSelectCity.cidade !== cidade || multiSelectCity.estado !== estado)) {
+      setSelectedBairros([bairro]);
+      setMultiSelectCity({ cidade, estado });
+      return;
+    }
+
+    if (!multiSelectCity) {
+      setMultiSelectCity({ cidade, estado });
+    }
+
+    if (selectedBairros.includes(bairro)) {
+      setSelectedBairros(selectedBairros.filter(b => b !== bairro));
+    } else if (selectedBairros.length < MAX_BAIRROS) {
+      setSelectedBairros([...selectedBairros, bairro]);
+    } else {
+      toast({ title: `Máximo de ${MAX_BAIRROS} bairros`, variant: "destructive" });
+    }
+  };
+
+  const confirmMultiSelect = () => {
+    if (multiSelectCity && selectedBairros.length > 0) {
+      if (onSelectMultipleBairros) {
+        onSelectMultipleBairros(multiSelectCity.cidade, multiSelectCity.estado, selectedBairros);
+      } else {
+        // Fallback: send each bairro individually
+        selectedBairros.forEach(b => onSelectLocation?.(multiSelectCity.cidade, multiSelectCity.estado, b));
+      }
+      toast({ title: "Bairros selecionados!", description: `${selectedBairros.join(", ")} - ${multiSelectCity.cidade}/${multiSelectCity.estado}` });
+      setSelectedBairros([]);
+      setMultiSelectCity(null);
+      setMultiSelectMode(false);
+    }
+  };
+
+  const cancelMultiSelect = () => {
+    setSelectedBairros([]);
+    setMultiSelectCity(null);
+    setMultiSelectMode(false);
+  };
 
   const renderBairros = (bairros: { nome: string; conversao: "alta" | "media" }[], cidade: string, estado: string) => {
     const filtered = filterAlta ? bairros.filter((b) => b.conversao === "alta") : bairros;
     if (filtered.length === 0) return null;
+    
+    const isThisCity = multiSelectCity?.cidade === cidade && multiSelectCity?.estado === estado;
+    
     return (
       <div className="flex flex-wrap gap-2 px-2">
-        {filtered.map((b) => (
-          <button
-            key={b.nome}
-            draggable
-            onDragStart={(e) => {
-              e.dataTransfer.setData("application/flux-location", JSON.stringify({ cidade, estado, bairro: b.nome }));
-              e.dataTransfer.effectAllowed = "copy";
-            }}
-            onClick={() => {
-              onSelectLocation?.(cidade, estado, b.nome);
-              toast({ title: "Local selecionado!", description: `${b.nome} - ${cidade}/${estado}` });
-            }}
-            className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border cursor-grab active:cursor-grabbing ${
-              b.conversao === "alta"
-                ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
-                : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
-            }`}
-            title="Clique para selecionar ou arraste para um bloco de busca"
-          >
-            {b.conversao === "alta" && <Flame className="h-3.5 w-3.5" />}
-            <MapPin className="h-3 w-3 opacity-60" />
-            {b.nome}
-          </button>
-        ))}
+        {filtered.map((b) => {
+          const isSelected = isThisCity && selectedBairros.includes(b.nome);
+          return (
+            <button
+              key={b.nome}
+              draggable={!multiSelectMode}
+              onDragStart={(e) => {
+                if (multiSelectMode) return;
+                e.dataTransfer.setData("application/flux-location", JSON.stringify({ cidade, estado, bairro: b.nome }));
+                e.dataTransfer.effectAllowed = "copy";
+              }}
+              onClick={() => {
+                if (multiSelectMode) {
+                  toggleBairroSelection(b.nome, cidade, estado);
+                } else {
+                  onSelectLocation?.(cidade, estado, b.nome);
+                  toast({ title: "Local selecionado!", description: `${b.nome} - ${cidade}/${estado}` });
+                }
+              }}
+              className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border ${
+                multiSelectMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+              } ${
+                isSelected
+                  ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/50"
+                  : b.conversao === "alta"
+                  ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
+                  : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
+              }`}
+              title={multiSelectMode ? "Clique para selecionar/deselecionar" : "Clique para selecionar ou arraste"}
+            >
+              {isSelected && <span className="text-xs">✓</span>}
+              {b.conversao === "alta" && !isSelected && <Flame className="h-3.5 w-3.5" />}
+              <MapPin className="h-3 w-3 opacity-60" />
+              {b.nome}
+            </button>
+          );
+        })}
       </div>
     );
   };
@@ -818,19 +882,63 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
+        {/* Multi-select controls */}
+        {multiSelectMode && selectedBairros.length > 0 && (
+          <div className="px-3 py-3 rounded-lg bg-primary/20 border border-primary/50 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-bold text-white">
+                {selectedBairros.length}/{MAX_BAIRROS} bairros selecionados
+              </p>
+              <p className="text-xs text-muted-foreground">{multiSelectCity?.cidade}/{multiSelectCity?.estado}</p>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {selectedBairros.map(b => (
+                <span key={b} className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">{b}</span>
+              ))}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button onClick={confirmMultiSelect} className="flex-1 text-xs font-bold py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                ✓ Confirmar seleção
+              </button>
+              <button onClick={cancelMultiSelect} className="px-3 text-xs font-semibold py-2 rounded border border-border text-muted-foreground hover:text-foreground transition-colors">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="text-sm text-white">Clique para preencher cidade e bairro</p>
-          <button
-            onClick={() => setFilterAlta(!filterAlta)}
-            className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all ${
-              filterAlta
-                ? "bg-destructive/20 text-white border border-destructive/40"
-                : "bg-muted/50 text-white border border-border/30 hover:border-primary/50"
-            }`}
-          >
-            <Flame className="h-3 w-3" />
-            {filterAlta ? "Alta conversão ✓" : "Filtrar alta conversão"}
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setMultiSelectMode(!multiSelectMode);
+                if (multiSelectMode) {
+                  setSelectedBairros([]);
+                  setMultiSelectCity(null);
+                }
+              }}
+              className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all ${
+                multiSelectMode
+                  ? "bg-primary/20 text-white border border-primary/50"
+                  : "bg-muted/50 text-white border border-border/30 hover:border-primary/50"
+              }`}
+            >
+              <MapPin className="h-3 w-3" />
+              {multiSelectMode ? "Multi-seleção ON" : `Selecionar ${MAX_BAIRROS}`}
+            </button>
+            <button
+              onClick={() => setFilterAlta(!filterAlta)}
+              className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all ${
+                filterAlta
+                  ? "bg-destructive/20 text-white border border-destructive/40"
+                  : "bg-muted/50 text-white border border-border/30 hover:border-primary/50"
+              }`}
+            >
+              <Flame className="h-3 w-3" />
+              {filterAlta ? "Alta ✓" : "Alta"}
+            </button>
+          </div>
         </div>
 
         {estados.map((st) => {
