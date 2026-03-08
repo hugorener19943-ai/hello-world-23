@@ -215,7 +215,7 @@ export default function LeadsAutomacao() {
       query: currentBlock?.query || "",
       cidade,
       estado,
-      bairros: bairros.slice(0, 4),
+      bairros: bairros.slice(0, 8),
       targetTotal: currentBlock?.targetTotal || 100,
     });
   }, [blocks, activeBlockIndex]);
