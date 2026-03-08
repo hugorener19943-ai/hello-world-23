@@ -590,7 +590,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
                 <button
                   onClick={() => {
                     setShowConfirm(false);
-                    if (onConfirmSubnichos) onConfirmSubnichos();
+                    if (onConfirmSubnichos) onConfirmSubnichos(confirmLimit);
                   }}
                   className="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
                 >
