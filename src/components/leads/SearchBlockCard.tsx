@@ -15,16 +15,58 @@ interface Props {
   status?: "idle" | "loading" | "done" | "error";
   onChange: (id: string, field: keyof SearchBlock, value: string | number) => void;
   onRemove: (id: string) => void;
+  onDropData?: (id: string, data: Record<string, string>) => void;
 }
 
-export function SearchBlockCard({ block, index, canRemove, status = "idle", onChange, onRemove }: Props) {
+export function SearchBlockCard({ block, index, canRemove, status = "idle", onChange, onRemove, onDropData }: Props) {
   const [showBairros, setShowBairros] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const bairrosSugeridos = useMemo(() => getBairrosPorCidade(block.cidade), [block.cidade]);
   const hasSuggestions = bairrosSugeridos.length > 0;
 
+  const handleDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer.types.includes("application/flux-niche") || e.dataTransfer.types.includes("application/flux-location")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+      setIsDragOver(true);
+    }
+  };
+
+  const handleDragLeave = () => setIsDragOver(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const nicheData = e.dataTransfer.getData("application/flux-niche");
+    const locationData = e.dataTransfer.getData("application/flux-location");
+    if (nicheData) {
+      try {
+        const { query } = JSON.parse(nicheData);
+        onChange(block.id, "query", query);
+      } catch {}
+    }
+    if (locationData) {
+      try {
+        const { cidade, estado, bairro } = JSON.parse(locationData);
+        if (cidade) onChange(block.id, "cidade", cidade);
+        if (estado) onChange(block.id, "estado", estado);
+        if (bairro) onChange(block.id, "bairro", bairro);
+      } catch {}
+    }
+  };
+
   return (
-    <div className="border border-primary/30 rounded-lg p-4 space-y-3 bg-primary/10 relative glow-neon">
+    <div
+      className={`border rounded-lg p-4 space-y-3 relative glow-neon transition-all duration-200 ${
+        isDragOver
+          ? "border-primary bg-primary/20 ring-2 ring-primary/50"
+          : "border-primary/30 bg-primary/10"
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <div className="flex items-center justify-between">
         <span className="text-lg font-bold text-white flex items-center gap-2">
           Busca {index + 1}

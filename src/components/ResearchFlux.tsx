@@ -221,13 +221,18 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
                       {niche.terms.map(({ term, hot }) => (
                         <button
                           key={term}
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("application/flux-niche", JSON.stringify({ query: term }));
+                            e.dataTransfer.effectAllowed = "copy";
+                          }}
                           onClick={() => copyTerm(term, true)}
-                          className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border ${
+                          className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border cursor-grab active:cursor-grabbing ${
                             hot
                               ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
                               : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
                           }`}
-                          title="Clique para copiar"
+                          title="Clique para copiar ou arraste para um bloco de busca"
                         >
                           {hot && <Flame className="h-3.5 w-3.5" />}
                           {term}
