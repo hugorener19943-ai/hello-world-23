@@ -484,8 +484,8 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
       setSelectedTerms((prev) => prev.filter((t) => t !== term));
       return;
     }
-    if (selectedTerms.length >= 5) {
-      toast({ title: "Limite atingido", description: "Máximo de 5 subnichos" });
+    if (selectedTerms.length >= 10) {
+      toast({ title: "Limite atingido", description: "Máximo de 10 subnichos" });
       return;
     }
     setSelectedTerms((prev) => [...prev, term]);
