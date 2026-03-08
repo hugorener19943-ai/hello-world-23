@@ -207,7 +207,7 @@ export default function LeadsAutomacao() {
     const currentBlock = blocks[targetIndex];
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: bairros.slice(0, 4) };
+      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: bairros.slice(0, 8) };
       return updated;
     });
     setConfirmDialog({
