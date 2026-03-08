@@ -149,7 +149,7 @@ export default function LeadsAutomacao() {
         updated[blockIndex] = { ...updated[blockIndex], query: action.term };
       } else {
         const newBairros = action.bairro && !updated[blockIndex].bairros.includes(action.bairro)
-          ? [...updated[blockIndex].bairros, action.bairro].slice(0, 4)
+          ? [...updated[blockIndex].bairros, action.bairro].slice(0, 8)
           : updated[blockIndex].bairros;
         updated[blockIndex] = {
           ...updated[blockIndex],
@@ -186,7 +186,7 @@ export default function LeadsAutomacao() {
     const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
     const currentBlock = blocks[targetIndex];
     const existing = currentBlock?.bairros || [];
-    const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 4) : existing;
+    const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 8) : existing;
     setBlocks((prev) => {
       const updated = [...prev];
       updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: newBairros };
@@ -207,7 +207,7 @@ export default function LeadsAutomacao() {
     const currentBlock = blocks[targetIndex];
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: bairros.slice(0, 4) };
+      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: bairros.slice(0, 8) };
       return updated;
     });
     setConfirmDialog({
@@ -215,7 +215,7 @@ export default function LeadsAutomacao() {
       query: currentBlock?.query || "",
       cidade,
       estado,
-      bairros: bairros.slice(0, 4),
+      bairros: bairros.slice(0, 8),
       targetTotal: currentBlock?.targetTotal || 100,
     });
   }, [blocks, activeBlockIndex]);
