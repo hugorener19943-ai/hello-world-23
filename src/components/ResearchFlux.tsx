@@ -477,13 +477,13 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
       setSelectedTerms((prev) => prev.filter((t) => t !== term));
       return;
     }
-    if (selectedTerms.length >= 4) {
-      toast({ title: "Limite atingido", description: "Máximo de 4 buscas" });
+    if (selectedTerms.length >= 5) {
+      toast({ title: "Limite atingido", description: "Máximo de 5 subnichos" });
       return;
     }
     setSelectedTerms((prev) => [...prev, term]);
     navigator.clipboard.writeText(term);
-    toast({ title: `Busca ${selectedTerms.length + 1} preenchida!`, description: term });
+    toast({ title: `Subnicho ${selectedTerms.length + 1} preenchido!`, description: term });
     if (onSelectNiche) {
       onSelectNiche(term);
     }
@@ -504,24 +504,24 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
     <ScrollArea className="h-full">
       <div className="p-5 space-y-2">
         <p className="text-sm text-white px-2 mb-3">
-          Clique em um nicho, depois selecione os termos de busca
+          Clique em um nicho, depois selecione os subnichos
         </p>
 
-        {/* Selection panel showing Busca slots */}
+        {/* Selection panel showing Subnicho slots */}
         {selectedTerms.length > 0 && (
           <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
             <p className="text-sm font-semibold text-white">
-              Suas Buscas ({selectedTerms.length}/4)
+              📋 SUBNICHOS SELECIONADOS ({selectedTerms.length}/5)
             </p>
             <div className="space-y-1">
-              {[0, 1, 2, 3].map((i) => {
+              {[0, 1, 2, 3, 4].map((i) => {
                 const term = selectedTerms[i];
                 return (
                   <div key={i} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-md ${
                     term ? "bg-primary/15 text-primary font-semibold" : "bg-muted/20 text-muted-foreground"
                   }`}>
-                    <span className="font-bold min-w-[55px]">Busca {i + 1}:</span>
-                    <span className="flex-1">{term || "— clique em um termo abaixo"}</span>
+                    <span className="font-bold min-w-[75px]">Subnicho {i + 1}:</span>
+                    <span className="flex-1">{term || "— clique em um subnicho abaixo"}</span>
                     {term && (
                       <button
                         onClick={() => setSelectedTerms((prev) => prev.filter((_, idx) => idx !== i))}
@@ -571,9 +571,8 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
                     💡 {niche.tip}
                   </p>
 
-                  {/* Search terms - clicking fills Busca slots */}
                   <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">🔍 Termos de busca — clique para preencher as buscas</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">🔍 SUBNICHOS — clique para selecionar até 5</p>
                     <div className="flex flex-wrap gap-2 px-2">
                       {niche.terms.map(({ term, hot }) => {
                         const isSelected = selectedTerms.includes(term);
