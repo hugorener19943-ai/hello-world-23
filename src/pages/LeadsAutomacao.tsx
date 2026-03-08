@@ -546,6 +546,7 @@ export default function LeadsAutomacao() {
                   index={i}
                   canRemove={blocks.length > 1}
                   status={blockStatuses[block.id] || "idle"}
+                  result={blockResults[block.id]}
                   onChange={updateBlock}
                   onRemove={removeBlock}
                 />

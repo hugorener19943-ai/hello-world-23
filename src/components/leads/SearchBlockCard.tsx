@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Loader2, CheckCircle2, XCircle, MapPin } from "lucide-react";
+import { Trash2, Loader2, CheckCircle2, XCircle, MapPin, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getBairrosPorCidade } from "@/lib/bairrosPorCidade";
 import type { SearchBlock } from "./types";
@@ -13,12 +13,13 @@ interface Props {
   index: number;
   canRemove: boolean;
   status?: "idle" | "loading" | "done" | "error";
+  result?: { found: number; requested: number; message?: string };
   onChange: (id: string, field: keyof SearchBlock, value: string | number) => void;
   onRemove: (id: string) => void;
   onDropData?: (id: string, data: Record<string, string>) => void;
 }
 
-export function SearchBlockCard({ block, index, canRemove, status = "idle", onChange, onRemove, onDropData }: Props) {
+export function SearchBlockCard({ block, index, canRemove, status = "idle", result, onChange, onRemove, onDropData }: Props) {
   const [showBairros, setShowBairros] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -56,11 +57,18 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", onCh
     }
   };
 
+  const hasShortfall = result && result.found < result.requested;
+  const hasError = status === "error";
+
   return (
     <div
       className={`border rounded-lg p-4 space-y-3 relative glow-neon transition-all duration-200 ${
         isDragOver
           ? "border-primary bg-primary/20 ring-2 ring-primary/50"
+          : hasError
+          ? "border-destructive/50 bg-destructive/10"
+          : hasShortfall
+          ? "border-yellow-500/50 bg-yellow-500/5"
           : "border-primary/30 bg-primary/10"
       }`}
       onDragOver={handleDragOver}
@@ -73,6 +81,20 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", onCh
           {status === "loading" && <Loader2 className="h-4 w-4 animate-spin text-neon" />}
           {status === "done" && <CheckCircle2 className="h-4 w-4 text-neon" />}
           {status === "error" && <XCircle className="h-4 w-4 text-destructive" />}
+          {result && (
+            <Badge
+              variant="outline"
+              className={`text-xs ml-1 ${
+                result.found >= result.requested
+                  ? "border-primary/50 text-neon"
+                  : result.found === 0
+                  ? "border-destructive/50 text-destructive"
+                  : "border-yellow-500/50 text-yellow-500"
+              }`}
+            >
+              {result.found}/{result.requested} leads
+            </Badge>
+          )}
         </span>
         {canRemove && (
           <Button variant="ghost" size="sm" className="h-7 px-2 text-muted-foreground hover:text-destructive" onClick={() => onRemove(block.id)}>
@@ -80,6 +102,19 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", onCh
           </Button>
         )}
       </div>
+
+      {/* Result feedback */}
+      {result && result.message && (
+        <div className={`flex items-start gap-2 text-xs rounded-md px-3 py-2 ${
+          result.found === 0
+            ? "bg-destructive/10 text-destructive border border-destructive/20"
+            : "bg-yellow-500/10 text-yellow-500 border border-yellow-500/20"
+        }`}>
+          <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+          <span>{result.message}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="space-y-1">
           <Label className="text-base font-bold text-white">Nicho</Label>
