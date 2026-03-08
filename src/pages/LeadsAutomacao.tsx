@@ -36,10 +36,18 @@ function dedupeKey(e: LeadAutomacao): string {
   return `${(e.nome || "").toLowerCase()}|${(e.endereco || "").toLowerCase()}`;
 }
 
-async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
+interface FetchResult {
+  leads: LeadAutomacao[];
+  reason?: "api_limit" | "no_more_pages" | "all_fetched";
+  pagesScanned: number;
+}
+
+async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   const seen = new Map<string, LeadAutomacao>();
   let offset = 0;
   let keepGoing = true;
+  let pagesScanned = 0;
+  let reason: FetchResult["reason"] = "all_fetched";
 
   while (keepGoing && offset < block.targetTotal) {
     const res = await fetch(API_URL, {
@@ -72,13 +80,18 @@ async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
 
     const data = await res.json();
     const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
+    pagesScanned++;
 
     for (const e of batch) {
       const key = dedupeKey(e);
       if (!seen.has(key)) seen.set(key, e);
     }
 
-    if (batch.length < PAGE_SIZE || seen.size >= block.targetTotal) {
+    if (batch.length < PAGE_SIZE) {
+      reason = "no_more_pages";
+      keepGoing = false;
+    } else if (seen.size >= block.targetTotal) {
+      reason = "all_fetched";
       keepGoing = false;
     } else {
       offset += PAGE_SIZE;
@@ -86,7 +99,11 @@ async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
     }
   }
 
-  return Array.from(seen.values());
+  if (seen.size < block.targetTotal && reason === "all_fetched") {
+    reason = "api_limit";
+  }
+
+  return { leads: Array.from(seen.values()), reason, pagesScanned };
 }
 
 export default function LeadsAutomacao() {
