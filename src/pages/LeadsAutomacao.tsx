@@ -145,11 +145,10 @@ export default function LeadsAutomacao() {
 
   const handleConfirmBlock = useCallback(() => {
     if (!confirmDialog) return;
-    const { blockIndex, targetTotal } = confirmDialog;
-    // Apply final targetTotal
+    const { blockIndex, targetTotal, cidade, estado, bairro, query } = confirmDialog;
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[blockIndex] = { ...updated[blockIndex], targetTotal };
+      updated[blockIndex] = { ...updated[blockIndex], query, cidade, estado, bairro, targetTotal };
       return updated;
     });
     setConfirmDialog(null);
@@ -390,16 +389,33 @@ export default function LeadsAutomacao() {
                   <span className="text-xs font-bold text-muted-foreground uppercase">Nicho</span>
                   <span className="text-sm font-semibold text-foreground">{confirmDialog.query || "—"}</span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="space-y-1">
                   <span className="text-xs font-bold text-muted-foreground uppercase">Cidade</span>
-                  <span className="text-sm font-semibold text-foreground">{confirmDialog.cidade}/{confirmDialog.estado}</span>
+                  <Input
+                    value={confirmDialog.cidade}
+                    onChange={(e) => setConfirmDialog((prev) => prev ? { ...prev, cidade: e.target.value } : null)}
+                    className="h-9 bg-secondary border-border"
+                    placeholder="ex: São Paulo"
+                  />
                 </div>
-                {confirmDialog.bairro && (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-muted-foreground uppercase">Bairro</span>
-                    <span className="text-sm font-semibold text-foreground">{confirmDialog.bairro}</span>
-                  </div>
-                )}
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Estado</span>
+                  <Input
+                    value={confirmDialog.estado}
+                    onChange={(e) => setConfirmDialog((prev) => prev ? { ...prev, estado: e.target.value } : null)}
+                    className="h-9 bg-secondary border-border w-24"
+                    placeholder="ex: SP"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Bairro <span className="text-[10px] font-normal">(opcional)</span></span>
+                  <Input
+                    value={confirmDialog.bairro}
+                    onChange={(e) => setConfirmDialog((prev) => prev ? { ...prev, bairro: e.target.value } : null)}
+                    className="h-9 bg-secondary border-border"
+                    placeholder="ex: Pinheiros"
+                  />
+                </div>
                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
                   <span className="text-xs font-bold text-muted-foreground uppercase">Quantidade de Leads</span>
                   <Select
