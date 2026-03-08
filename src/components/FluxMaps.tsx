@@ -770,7 +770,7 @@ interface FluxMapsProps {
   selectedNiche?: string;
 }
 
-const MAX_BAIRROS = 4;
+const MAX_BAIRROS = 8;
 
 export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNiche }: FluxMapsProps) {
   const [openState, setOpenState] = useState<string | null>(null);

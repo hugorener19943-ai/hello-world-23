@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { getBairrosPorCidade } from "@/lib/bairrosPorCidade";
 import type { SearchBlock } from "./types";
 
-const MAX_BAIRROS = 4;
+const MAX_BAIRROS = 8;
 
 interface Props {
   block: SearchBlock;
