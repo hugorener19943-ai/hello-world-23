@@ -174,7 +174,7 @@ export default function LeadsAutomacao() {
       const updated = [...prev];
       const block = updated[targetIndex];
       const currentSubnichos = block.subnichos || [];
-      if (currentSubnichos.length < 5 && !currentSubnichos.includes(subnicho)) {
+      if (currentSubnichos.length < 10 && !currentSubnichos.includes(subnicho)) {
         updated[targetIndex] = { ...block, query: niche, subnichos: [...currentSubnichos, subnicho] };
       }
       return updated;

@@ -484,8 +484,8 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
       setSelectedTerms((prev) => prev.filter((t) => t !== term));
       return;
     }
-    if (selectedTerms.length >= 5) {
-      toast({ title: "Limite atingido", description: "Máximo de 5 subnichos" });
+    if (selectedTerms.length >= 10) {
+      toast({ title: "Limite atingido", description: "Máximo de 10 subnichos" });
       return;
     }
     setSelectedTerms((prev) => [...prev, term]);
@@ -518,7 +518,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
         {selectedTerms.length > 0 && (
           <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
             <p className="text-sm font-semibold text-white">
-              📋 SUBNICHOS SELECIONADOS ({selectedTerms.length}/5)
+              📋 SUBNICHOS SELECIONADOS ({selectedTerms.length}/10)
             </p>
             <div className="space-y-1">
               {[0, 1, 2, 3, 4].map((i) => {
@@ -616,7 +616,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
                   </p>
 
                   <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">🔍 SUBNICHOS — escolha até 5</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">🔍 SUBNICHOS — escolha até 10</p>
                     <p className="text-xs text-muted-foreground px-2 mb-2">Termos de busca — clique para preencher as buscas</p>
                     <div className="flex flex-wrap gap-2 px-2">
                       {niche.terms.map(({ term, hot }) => {
