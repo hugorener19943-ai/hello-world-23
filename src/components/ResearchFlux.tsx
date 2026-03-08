@@ -518,7 +518,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
         {selectedTerms.length > 0 && (
           <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
             <p className="text-sm font-semibold text-white">
-              📋 SUBNICHOS SELECIONADOS ({selectedTerms.length}/5)
+              📋 SUBNICHOS SELECIONADOS ({selectedTerms.length}/10)
             </p>
             <div className="space-y-1">
               {[0, 1, 2, 3, 4].map((i) => {
