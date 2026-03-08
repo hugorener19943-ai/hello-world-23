@@ -373,6 +373,64 @@ export default function LeadsAutomacao() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={!!confirmDialog} onOpenChange={(open) => { if (!open) setConfirmDialog(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              Confirmar Busca {confirmDialog ? confirmDialog.blockIndex + 1 : ""}
+            </DialogTitle>
+          </DialogHeader>
+          {confirmDialog && (
+            <div className="space-y-4 pt-2">
+              <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Nicho</span>
+                  <span className="text-sm font-semibold text-foreground">{confirmDialog.query || "—"}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Cidade</span>
+                  <span className="text-sm font-semibold text-foreground">{confirmDialog.cidade}/{confirmDialog.estado}</span>
+                </div>
+                {confirmDialog.bairro && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Bairro</span>
+                    <span className="text-sm font-semibold text-foreground">{confirmDialog.bairro}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Quantidade de Leads</span>
+                  <Select
+                    value={String(confirmDialog.targetTotal)}
+                    onValueChange={(v) => setConfirmDialog((prev) => prev ? { ...prev, targetTotal: Number(v) } : null)}
+                  >
+                    <SelectTrigger className="w-[130px] h-9 bg-secondary border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 20, 50, 100, 200, 300, 400].map((n) => (
+                        <SelectItem key={n} value={String(n)}>{n} leads</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setConfirmDialog(null)}>
+                  Editar
+                </Button>
+                <Button className="flex-1 glow-neon" onClick={handleConfirmBlock}>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Confirmar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Research Flux - Toggleable Panel */}
       {showResearch && (
         <aside className="flex flex-col w-[320px] lg:w-[400px] border-2 border-primary bg-[hsl(0_0%_3%)] shrink-0 h-screen sticky top-0 glow-neon-strong">
