@@ -345,12 +345,25 @@ export default function LeadsAutomacao() {
                   <Badge variant="outline" className="text-muted-foreground">❄️ {tempCounts.frio}</Badge>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={exportCSV} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
-                <Download className="h-4 w-4 mr-2" /> Exportar CSV ({leads.length})
-              </Button>
+              <div className="flex gap-2">
+                {selectedLeads.size > 0 && (
+                  <Button variant="default" size="sm" onClick={() => exportCSV(true)} className="bg-destructive hover:bg-destructive/90">
+                    <Download className="h-4 w-4 mr-2" /> Exportar Selecionados ({selectedLeads.size})
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => exportCSV(false)} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
+                  <Download className="h-4 w-4 mr-2" /> Exportar Todos ({leads.length})
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 mr-2">
+                <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>Selecionar Todos</Button>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={deselectAll}>Limpar</Button>
+                {selectedLeads.size > 0 && <span className="text-xs text-neon font-semibold">{selectedLeads.size} selecionados</span>}
+              </div>
               <Filter className="h-4 w-4 text-muted-foreground" />
               {TEMP_FILTERS.map((f) => (
                 <Button
