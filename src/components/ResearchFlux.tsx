@@ -569,53 +569,6 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
           </div>
         )}
 
-        {/* Confirmation overlay dialog */}
-        {showConfirm && selectedTerms.length > 0 && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-fade-in">
-            <div className="bg-card border border-primary/50 rounded-xl p-6 mx-4 max-w-md w-full shadow-2xl space-y-4">
-              <p className="text-lg font-bold text-white">
-                ✅ Confirmar {selectedTerms.length} subnicho{selectedTerms.length > 1 ? "s" : ""}
-              </p>
-              <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                {selectedTerms.map((term, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm px-3 py-2 rounded-md bg-primary/10 text-primary font-medium border border-primary/20">
-                    <span className="font-bold text-xs text-muted-foreground w-5">{i + 1}.</span>
-                    {term}
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-white">📊 Limite máximo de leads por busca</label>
-                <select
-                  value={confirmLimit}
-                  onChange={(e) => setConfirmLimit(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-foreground text-sm"
-                >
-                  {[20, 50, 100, 200, 300, 400].map((n) => (
-                    <option key={n} value={n}>{n} leads</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  onClick={() => {
-                    setShowConfirm(false);
-                    if (onConfirmSubnichos) onConfirmSubnichos(confirmLimit);
-                  }}
-                  className="flex-1 px-4 py-3 text-sm font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
-                >
-                  ✅ Confirmar e avançar
-                </button>
-                <button
-                  onClick={() => setShowConfirm(false)}
-                  className="px-4 py-3 text-sm rounded-lg bg-muted/30 text-foreground border border-border/30 hover:bg-muted/50 transition-all"
-                >
-                  Voltar
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {niches.map((niche) => {
           const isOpen = openNiche === niche.name;
