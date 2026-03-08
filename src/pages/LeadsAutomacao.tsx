@@ -293,6 +293,17 @@ export default function LeadsAutomacao() {
                   </Button>
                 )}
                 <TemplateSelector onApplyTemplate={applyTemplate} />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
+                  <Checkbox
+                    id="onlyHot"
+                    checked={onlyHotLeads}
+                    onCheckedChange={(checked) => setOnlyHotLeads(!!checked)}
+                    className="border-destructive data-[state=checked]:bg-destructive"
+                  />
+                  <label htmlFor="onlyHot" className="text-sm font-medium text-destructive cursor-pointer flex items-center gap-1">
+                    <Flame className="h-4 w-4" /> Apenas Quentes
+                  </label>
+                </div>
                 <Button onClick={buscar} disabled={loading} className="glow-neon">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
                   Buscar Empresas
