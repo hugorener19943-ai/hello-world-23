@@ -145,11 +145,10 @@ export default function LeadsAutomacao() {
 
   const handleConfirmBlock = useCallback(() => {
     if (!confirmDialog) return;
-    const { blockIndex, targetTotal } = confirmDialog;
-    // Apply final targetTotal
+    const { blockIndex, targetTotal, cidade, estado, bairro, query } = confirmDialog;
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[blockIndex] = { ...updated[blockIndex], targetTotal };
+      updated[blockIndex] = { ...updated[blockIndex], query, cidade, estado, bairro, targetTotal };
       return updated;
     });
     setConfirmDialog(null);
