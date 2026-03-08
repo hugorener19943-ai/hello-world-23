@@ -479,20 +479,31 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
     <ScrollArea className="h-full">
       <div className="p-5 space-y-2">
         <p className="text-sm text-white px-2 mb-3">
-          Clique em um nicho para ver termos e o que oferecer
+          Selecione até 4 nichos por busca ({openNiches.length}/4)
         </p>
         {niches.map((niche) => {
-          const isOpen = openNiche === niche.name;
+          const isOpen = openNiches.includes(niche.name);
           const hotCount = niche.terms.filter((t) => t.hot).length;
+          const toggleNiche = () => {
+            setOpenNiches((prev) => {
+              if (prev.includes(niche.name)) return prev.filter((n) => n !== niche.name);
+              if (prev.length >= 4) {
+                toast({ title: "Limite atingido", description: "Máximo de 4 nichos por busca" });
+                return prev;
+              }
+              return [...prev, niche.name];
+            });
+          };
           return (
             <div key={niche.name}>
               <button
-                onClick={() => setOpenNiche(isOpen ? null : niche.name)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold bg-muted/30 hover:bg-muted/50 rounded-lg transition-all"
+                onClick={toggleNiche}
+                className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg transition-all ${isOpen ? "bg-primary/20 border border-primary/40" : "bg-muted/30 hover:bg-muted/50"}`}
               >
                 {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-primary" /> : <ChevronRight className="h-4 w-4 shrink-0 text-primary" />}
                 <span className="text-lg">{niche.emoji}</span>
                 <span className="text-white text-base">{niche.name}</span>
+                {isOpen && <span className="text-xs text-primary font-semibold">✓</span>}
                 <span className="ml-auto flex items-center gap-1 text-xs text-destructive font-semibold">
                   <Flame className="h-3.5 w-3.5" />
                   {hotCount} quentes
