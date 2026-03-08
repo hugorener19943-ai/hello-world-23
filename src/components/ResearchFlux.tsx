@@ -464,7 +464,7 @@ interface ResearchFluxProps {
 }
 
 export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
-  const [openNiche, setOpenNiche] = useState<string | null>(null);
+  const [openNiches, setOpenNiches] = useState<string[]>([]);
   const { toast } = useToast();
 
   const copyTerm = (text: string, isSearchTerm: boolean = false) => {
