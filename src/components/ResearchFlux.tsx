@@ -468,6 +468,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
   const [openNiche, setOpenNiche] = useState<string | null>(null);
   const [selectedTerms, setSelectedTerms] = useState<string[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [confirmLimit, setConfirmLimit] = useState(100);
   const { toast } = useToast();
 
   const handleNicheClick = (name: string) => {
