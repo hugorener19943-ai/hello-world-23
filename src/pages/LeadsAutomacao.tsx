@@ -47,9 +47,11 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   let pagesScanned = 0;
   let reason: FetchResult["reason"] = "all_fetched";
 
-  // If bairros specified, search each one; otherwise search without bairro
+  // Use subnichos as search queries if available, otherwise fall back to query
+  const queries = block.subnichos && block.subnichos.length > 0 ? block.subnichos : [block.query];
   const bairroList = block.bairros.length > 0 ? block.bairros : [undefined];
 
+  for (const searchQuery of queries) {
   for (const bairro of bairroList) {
     let offset = 0;
     let keepGoing = true;
