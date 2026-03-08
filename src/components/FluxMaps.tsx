@@ -225,15 +225,21 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
         {filtered.map((b) => (
           <button
             key={b.nome}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData("application/flux-location", JSON.stringify({ cidade, estado, bairro: b.nome }));
+              e.dataTransfer.effectAllowed = "copy";
+            }}
             onClick={() => {
               onSelectLocation?.(cidade, estado, b.nome);
               toast({ title: "Local selecionado!", description: `${b.nome} - ${cidade}/${estado}` });
             }}
-            className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border ${
+            className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border cursor-grab active:cursor-grabbing ${
               b.conversao === "alta"
                 ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
                 : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
             }`}
+            title="Clique para selecionar ou arraste para um bloco de busca"
           >
             {b.conversao === "alta" && <Flame className="h-3.5 w-3.5" />}
             <MapPin className="h-3 w-3 opacity-60" />
