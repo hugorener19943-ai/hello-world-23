@@ -195,22 +195,28 @@ export default function LeadsAutomacao() {
     setSelectedLeads(new Set());
   }, []);
 
-  const exportCSV = () => {
-    if (!leads.length) return;
+  const exportCSV = (onlySelected: boolean = false) => {
+    const toExport = onlySelected
+      ? filtered.filter((l) => selectedLeads.has(l.fsq_id || `${l.nome}|${l.endereco}`))
+      : leads;
+    if (!toExport.length) {
+      toast({ title: "Nenhum lead para exportar", variant: "destructive" });
+      return;
+    }
     const headers = ["nome", "telefone_raw", "email", "website", "score", "temperatura_lead", "prioridade_comercial", "canal_sugerido", "tipo_automacao_indicada", "abordagem_sugerida", "originLabel"];
     const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const rows = leads.map((l) => headers.map((h) => esc((l as any)[h])));
+    const rows = toExport.map((l) => headers.map((h) => esc((l as any)[h])));
     const csv = [headers.map(esc).join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `leads_multi_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `leads_${onlySelected ? "selecionados" : "todos"}_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast({ title: "CSV exportado!", description: `${leads.length} leads` });
+    toast({ title: "CSV exportado!", description: `${toExport.length} leads` });
   };
 
   return (
