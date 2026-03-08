@@ -81,6 +81,29 @@ export default function LeadsAutomacao() {
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, [field]: value } : b)));
   }, []);
 
+  const handleSelectNiche = useCallback((term: string) => {
+    setSelectedNiche(term);
+    // Auto-fill first block's query
+    setBlocks((prev) => {
+      const updated = [...prev];
+      if (updated.length > 0) {
+        updated[0] = { ...updated[0], query: term };
+      }
+      return updated;
+    });
+    setSidebarTab("maps");
+  }, []);
+
+  const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
+    setBlocks((prev) => {
+      const updated = [...prev];
+      if (updated.length > 0) {
+        updated[0] = { ...updated[0], cidade, estado, bairro: bairro || updated[0].bairro };
+      }
+      return updated;
+    });
+  }, []);
+
   const removeBlock = useCallback((id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
   }, []);
