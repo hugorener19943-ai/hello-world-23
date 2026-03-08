@@ -144,13 +144,17 @@ export default function LeadsAutomacao() {
       }
     });
 
-    const unique = deduplicateLeads(allLeads);
+    let unique = deduplicateLeads(allLeads);
+    if (onlyHotLeads) {
+      unique = unique.filter((l) => (l.temperatura_lead || "").toLowerCase().includes("quente"));
+    }
     setLeads(unique);
+    setSelectedLeads(new Set());
     setLoading(false);
 
     if (errors.length) toast({ title: "Algumas buscas falharam", description: errors.join("; "), variant: "destructive" });
-    else if (unique.length === 0) toast({ title: "Nenhuma empresa encontrada." });
-    else toast({ title: `${unique.length} empresas encontradas com potencial de automação` });
+    else if (unique.length === 0) toast({ title: onlyHotLeads ? "Nenhum lead quente encontrado." : "Nenhuma empresa encontrada." });
+    else toast({ title: `${unique.length} empresas encontradas${onlyHotLeads ? " (apenas quentes)" : ""}` });
   };
 
   const filtered = useMemo(() => {
