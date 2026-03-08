@@ -497,10 +497,6 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
     if (onSelectNiche && openNiche) {
       onSelectNiche(openNiche, term);
     }
-    // Auto-scroll to selection panel after each selection
-    setTimeout(() => {
-      selectionPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
   };
 
   const copyOffer = (text: string) => {
