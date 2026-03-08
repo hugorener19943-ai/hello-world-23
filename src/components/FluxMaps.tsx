@@ -184,29 +184,51 @@ const estados: StateData[] = [
         cidade: "Niterói", potencial: "alto",
         bairros: [
           { nome: "Icaraí", conversao: "alta" }, { nome: "Santa Rosa", conversao: "alta" },
-          { nome: "Centro", conversao: "media" }, { nome: "Ingá", conversao: "alta" },
-          { nome: "São Francisco", conversao: "media" },
+          { nome: "Ingá", conversao: "alta" }, { nome: "São Francisco", conversao: "alta" },
+          { nome: "Charitas", conversao: "alta" }, { nome: "Centro", conversao: "media" },
         ],
       },
       {
-        cidade: "Petrópolis", potencial: "medio",
+        cidade: "Petrópolis", potencial: "alto",
         bairros: [
           { nome: "Centro", conversao: "alta" }, { nome: "Quitandinha", conversao: "alta" },
-          { nome: "Itaipava", conversao: "media" }, { nome: "Valparaíso", conversao: "media" },
+          { nome: "Itaipava", conversao: "alta" }, { nome: "Valparaíso", conversao: "alta" },
+          { nome: "Retiro", conversao: "media" },
         ],
       },
       {
         cidade: "Volta Redonda", potencial: "medio",
         bairros: [
           { nome: "Centro", conversao: "alta" }, { nome: "Aterrado", conversao: "alta" },
-          { nome: "Vila Santa Cecília", conversao: "media" },
+          { nome: "Vila Santa Cecília", conversao: "alta" }, { nome: "Laranjal", conversao: "media" },
         ],
       },
       {
         cidade: "Campos dos Goytacazes", potencial: "medio",
         bairros: [
           { nome: "Centro", conversao: "alta" }, { nome: "Pelinca", conversao: "alta" },
-          { nome: "Parque Tamandaré", conversao: "media" },
+          { nome: "Parque Tamandaré", conversao: "alta" }, { nome: "Flamboyant", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Nova Friburgo", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Cônego", conversao: "alta" },
+          { nome: "Olaria", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Macaé", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Cavaleiros", conversao: "alta" },
+          { nome: "Glória", conversao: "alta" }, { nome: "Granja dos Cavaleiros", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "São Gonçalo", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Alcântara", conversao: "alta" },
+          { nome: "Neves", conversao: "media" },
         ],
       },
     ],
