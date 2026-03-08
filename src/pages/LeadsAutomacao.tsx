@@ -44,59 +44,67 @@ interface FetchResult {
 
 async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   const seen = new Map<string, LeadAutomacao>();
-  let offset = 0;
-  let keepGoing = true;
   let pagesScanned = 0;
   let reason: FetchResult["reason"] = "all_fetched";
 
-  while (keepGoing && offset < block.targetTotal) {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { Authorization: AUTH, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: block.query,
-        local: { cidade: block.cidade, estado: block.estado, bairro: block.bairro || undefined },
-        target_total: block.targetTotal,
-        format: "json",
-        pageSize: PAGE_SIZE,
-        offset,
-      }),
-    });
+  // If bairros specified, search each one; otherwise search without bairro
+  const bairroList = block.bairros.length > 0 ? block.bairros : [undefined];
 
-    const contentType = res.headers.get("content-type");
+  for (const bairro of bairroList) {
+    let offset = 0;
+    let keepGoing = true;
 
-    if (!contentType?.includes("application/json")) {
-      const text = await res.text();
-      if (text.trim().startsWith("<!") || text.includes("<html")) {
-        throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}.`);
+    while (keepGoing && seen.size < block.targetTotal) {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: block.query,
+          local: { cidade: block.cidade, estado: block.estado, bairro: bairro || undefined },
+          target_total: block.targetTotal,
+          format: "json",
+          pageSize: PAGE_SIZE,
+          offset,
+        }),
+      });
+
+      const contentType = res.headers.get("content-type");
+
+      if (!contentType?.includes("application/json")) {
+        const text = await res.text();
+        if (text.trim().startsWith("<!") || text.includes("<html")) {
+          throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}.`);
+        }
+        throw new Error(`Formato inesperado da resposta: ${contentType}`);
       }
-      throw new Error(`Formato inesperado da resposta: ${contentType}`);
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
+      }
+
+      const data = await res.json();
+      const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
+      pagesScanned++;
+
+      for (const e of batch) {
+        const key = dedupeKey(e);
+        if (!seen.has(key)) seen.set(key, e);
+      }
+
+      if (batch.length < PAGE_SIZE) {
+        reason = "no_more_pages";
+        keepGoing = false;
+      } else if (seen.size >= block.targetTotal) {
+        reason = "all_fetched";
+        keepGoing = false;
+      } else {
+        offset += PAGE_SIZE;
+        await new Promise(r => setTimeout(r, 150));
+      }
     }
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
-    }
-
-    const data = await res.json();
-    const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
-    pagesScanned++;
-
-    for (const e of batch) {
-      const key = dedupeKey(e);
-      if (!seen.has(key)) seen.set(key, e);
-    }
-
-    if (batch.length < PAGE_SIZE) {
-      reason = "no_more_pages";
-      keepGoing = false;
-    } else if (seen.size >= block.targetTotal) {
-      reason = "all_fetched";
-      keepGoing = false;
-    } else {
-      offset += PAGE_SIZE;
-      await new Promise(r => setTimeout(r, 150));
-    }
+    if (seen.size >= block.targetTotal) break;
   }
 
   if (seen.size < block.targetTotal && reason === "all_fetched") {
