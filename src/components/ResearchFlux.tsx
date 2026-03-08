@@ -541,12 +541,49 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
                 );
               })}
             </div>
-            <button
-              onClick={clearSelections}
-              className="px-4 py-2 text-sm font-bold rounded-lg bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-all"
-            >
-              🗑️ Limpar seleções
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowConfirm(true)}
+                className="px-4 py-2 text-sm font-bold rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-all"
+              >
+                ✅ Confirmar subnichos
+              </button>
+              <button
+                onClick={clearSelections}
+                className="px-4 py-2 text-sm font-bold rounded-lg bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-all"
+              >
+                🗑️ Limpar
+              </button>
+            </div>
+
+            {/* Confirmation dialog */}
+            {showConfirm && (
+              <div className="p-3 rounded-lg border border-primary/50 bg-primary/15 animate-fade-in space-y-2">
+                <p className="text-sm font-semibold text-white">
+                  Confirmar {selectedTerms.length} subnicho{selectedTerms.length > 1 ? "s" : ""} selecionado{selectedTerms.length > 1 ? "s" : ""}?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {selectedTerms.join(", ")}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setShowConfirm(false);
+                      if (onConfirmSubnichos) onConfirmSubnichos();
+                    }}
+                    className="px-4 py-2 text-sm font-bold rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all"
+                  >
+                    ✅ Confirmar e ir para Localizações
+                  </button>
+                  <button
+                    onClick={() => setShowConfirm(false)}
+                    className="px-3 py-2 text-sm rounded-lg bg-muted/30 text-foreground border border-border/30 hover:bg-muted/50 transition-all"
+                  >
+                    Voltar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
