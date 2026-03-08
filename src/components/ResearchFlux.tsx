@@ -532,46 +532,35 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
           Clique em um nicho para selecionar ({openNiches.length}/4)
         </p>
 
-        {/* Dialog asking if user wants more niches */}
-        {showDialog && pendingNiche && (
+        {/* Selection panel showing slots */}
+        {selectingMore && openNiches.length > 0 && (
           <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
             <p className="text-sm font-semibold text-white">
-              ✅ Nicho {openNiches.length + 1}: <span className="text-primary">{pendingNiche}</span>
+              Selecione seus nichos ({openNiches.length}/4)
             </p>
-            {/* Show current slots */}
             <div className="space-y-1">
               {[0, 1, 2, 3].map((i) => {
                 const existing = openNiches[i];
-                const isPending = i === openNiches.length;
-                const nicheData = existing ? niches.find((n) => n.name === existing) : isPending ? niches.find((n) => n.name === pendingNiche) : null;
+                const nicheData = existing ? niches.find((n) => n.name === existing) : null;
                 return (
                   <div key={i} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-md ${
                     nicheData ? "bg-primary/15 text-primary font-semibold" : "bg-muted/20 text-muted-foreground"
                   }`}>
                     <span className="font-bold min-w-[55px]">Nicho {i + 1}:</span>
-                    <span>{nicheData ? `${nicheData.emoji} ${nicheData.name}` : "—"}</span>
+                    <span>{nicheData ? `${nicheData.emoji} ${nicheData.name}` : "— clique abaixo para escolher"}</span>
                   </div>
                 );
               })}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Deseja escolher mais nichos? ({4 - openNiches.length - 1} restantes)
+            <p className="text-xs text-muted-foreground">
+              Clique nos nichos abaixo para adicionar. {4 - openNiches.length} restantes.
             </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => confirmAddNiche(true)}
-                disabled={openNiches.length + 1 >= 4}
-                className="px-4 py-2 text-sm font-bold rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Sim, quero mais
-              </button>
-              <button
-                onClick={() => confirmAddNiche(false)}
-                className="px-4 py-2 text-sm font-bold rounded-lg bg-muted/30 text-foreground border border-border/30 hover:bg-muted/50 transition-all"
-              >
-                Confirmar
-              </button>
-            </div>
+            <button
+              onClick={finishSelection}
+              className="px-4 py-2 text-sm font-bold rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-all"
+            >
+              ✅ Confirmar seleção
+            </button>
           </div>
         )}
 
