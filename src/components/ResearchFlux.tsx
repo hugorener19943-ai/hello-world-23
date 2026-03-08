@@ -146,7 +146,7 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   return (
     <ScrollArea className="h-full">
       <div className="p-5 space-y-2">
-        <p className="text-sm text-muted-foreground px-2 mb-3">
+        <p className="text-sm text-white px-2 mb-3">
           Clique em um nicho para ver termos e o que oferecer
         </p>
         {niches.map((niche) => {
