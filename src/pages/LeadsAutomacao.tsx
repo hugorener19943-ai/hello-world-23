@@ -250,8 +250,8 @@ export default function LeadsAutomacao() {
     <div className="min-h-screen bg-background flex">
       {/* Research Flux - Toggleable Panel */}
       {showResearch && (
-        <aside className="flex flex-col w-[320px] lg:w-[400px] border-r border-border bg-card shrink-0 h-screen sticky top-0">
-          <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
+        <aside className="flex flex-col w-[320px] lg:w-[400px] border-2 border-primary bg-[hsl(0_0%_3%)] shrink-0 h-screen sticky top-0 glow-neon-strong">
+          <div className="px-5 py-4 border-b border-primary/40 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-destructive text-xl">⚡</span>
               <span className="text-destructive font-extrabold text-lg">Flux Painel</span>
