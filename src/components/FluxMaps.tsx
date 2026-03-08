@@ -30,15 +30,19 @@ const estados: StateData[] = [
       { nome: "Pinheiros", conversao: "alta" }, { nome: "Vila Mariana", conversao: "alta" },
       { nome: "Moema", conversao: "alta" }, { nome: "Itaim Bibi", conversao: "alta" },
       { nome: "Jardins", conversao: "alta" }, { nome: "Vila Olímpia", conversao: "alta" },
-      { nome: "Brooklin", conversao: "media" }, { nome: "Perdizes", conversao: "media" },
+      { nome: "Brooklin", conversao: "alta" }, { nome: "Perdizes", conversao: "alta" },
       { nome: "Santana", conversao: "media" }, { nome: "Tatuapé", conversao: "media" },
+      { nome: "Lapa", conversao: "media" }, { nome: "Consolação", conversao: "alta" },
+      { nome: "Campo Belo", conversao: "alta" }, { nome: "Morumbi", conversao: "media" },
+      { nome: "Santo Amaro", conversao: "media" }, { nome: "Liberdade", conversao: "media" },
     ],
     cidades: [
       {
         cidade: "Campinas", potencial: "alto",
         bairros: [
           { nome: "Cambuí", conversao: "alta" }, { nome: "Nova Campinas", conversao: "alta" },
-          { nome: "Barão Geraldo", conversao: "media" }, { nome: "Taquaral", conversao: "media" },
+          { nome: "Barão Geraldo", conversao: "alta" }, { nome: "Taquaral", conversao: "media" },
+          { nome: "Guanabara", conversao: "media" }, { nome: "Jardim Chapadão", conversao: "media" },
         ],
       },
       {
@@ -46,7 +50,7 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Redentora", conversao: "alta" }, { nome: "Boa Vista", conversao: "alta" },
           { nome: "Jardim Walkíria", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-          { nome: "Higienópolis", conversao: "media" },
+          { nome: "Higienópolis", conversao: "media" }, { nome: "Jardim Redentor", conversao: "alta" },
         ],
       },
       {
@@ -54,6 +58,7 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Jardim Sumaré", conversao: "alta" }, { nome: "Alto da Boa Vista", conversao: "alta" },
           { nome: "Jardim Irajá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+          { nome: "Jardim Califórnia", conversao: "alta" }, { nome: "Jardim São Luiz", conversao: "media" },
         ],
       },
       {
@@ -61,6 +66,7 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Campolim", conversao: "alta" }, { nome: "Parque Campolim", conversao: "alta" },
           { nome: "Centro", conversao: "media" }, { nome: "Jardim Faculdade", conversao: "media" },
+          { nome: "Jardim Europa", conversao: "alta" },
         ],
       },
       {
@@ -68,13 +74,36 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Gonzaga", conversao: "alta" }, { nome: "Boqueirão", conversao: "alta" },
           { nome: "Ponta da Praia", conversao: "media" }, { nome: "Embaré", conversao: "media" },
+          { nome: "Aparecida", conversao: "media" },
         ],
       },
       {
         cidade: "Bauru", potencial: "medio",
         bairros: [
           { nome: "Centro", conversao: "alta" }, { nome: "Jardim Estoril", conversao: "alta" },
-          { nome: "Vila Universitária", conversao: "media" },
+          { nome: "Vila Universitária", conversao: "media" }, { nome: "Jardim América", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "São José dos Campos", potencial: "alto",
+        bairros: [
+          { nome: "Jardim Aquarius", conversao: "alta" }, { nome: "Vila Adyana", conversao: "alta" },
+          { nome: "Urbanova", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+          { nome: "Jardim Esplanada", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Piracicaba", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "São Dimas", conversao: "alta" },
+          { nome: "Nova Piracicaba", conversao: "media" }, { nome: "Paulista", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Jundiaí", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Anhangabaú", conversao: "alta" },
+          { nome: "Chácara Urbana", conversao: "media" }, { nome: "Vila Arens", conversao: "media" },
         ],
       },
     ],
@@ -85,16 +114,50 @@ const estados: StateData[] = [
       { nome: "Copacabana", conversao: "alta" }, { nome: "Ipanema", conversao: "alta" },
       { nome: "Leblon", conversao: "alta" }, { nome: "Botafogo", conversao: "alta" },
       { nome: "Barra da Tijuca", conversao: "alta" }, { nome: "Tijuca", conversao: "media" },
-      { nome: "Flamengo", conversao: "media" }, { nome: "Centro", conversao: "media" },
+      { nome: "Flamengo", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "Recreio", conversao: "media" }, { nome: "Méier", conversao: "media" },
+      { nome: "Jardim Botânico", conversao: "alta" }, { nome: "Gávea", conversao: "alta" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Niterói", potencial: "alto",
+        bairros: [
+          { nome: "Icaraí", conversao: "alta" }, { nome: "Santa Rosa", conversao: "alta" },
+          { nome: "Centro", conversao: "media" }, { nome: "Ingá", conversao: "alta" },
+          { nome: "São Francisco", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Petrópolis", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Quitandinha", conversao: "alta" },
+          { nome: "Itaipava", conversao: "media" }, { nome: "Valparaíso", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Volta Redonda", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Aterrado", conversao: "alta" },
+          { nome: "Vila Santa Cecília", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Campos dos Goytacazes", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Pelinca", conversao: "alta" },
+          { nome: "Parque Tamandaré", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
     capital: "Belo Horizonte", estado: "MG", potencial: "alto",
     bairros: [
       { nome: "Savassi", conversao: "alta" }, { nome: "Lourdes", conversao: "alta" },
       { nome: "Funcionários", conversao: "alta" }, { nome: "Pampulha", conversao: "media" },
-      { nome: "Buritis", conversao: "media" }, { nome: "Mangabeiras", conversao: "media" },
+      { nome: "Buritis", conversao: "alta" }, { nome: "Mangabeiras", conversao: "media" },
+      { nome: "Serra", conversao: "alta" }, { nome: "Santo Agostinho", conversao: "alta" },
+      { nome: "Gutierrez", conversao: "media" }, { nome: "Sion", conversao: "alta" },
     ],
     cidades: [
       {
@@ -102,6 +165,28 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Centro", conversao: "alta" }, { nome: "Santa Mônica", conversao: "alta" },
           { nome: "Saraiva", conversao: "media" }, { nome: "Altamira", conversao: "media" },
+          { nome: "Jardim Karaíba", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "Juiz de Fora", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "São Mateus", conversao: "alta" },
+          { nome: "Cascatinha", conversao: "media" }, { nome: "Bom Pastor", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Contagem", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Eldorado", conversao: "alta" },
+          { nome: "Industrial", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Montes Claros", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Ibituruna", conversao: "alta" },
+          { nome: "Major Prates", conversao: "media" },
         ],
       },
     ],
@@ -110,8 +195,10 @@ const estados: StateData[] = [
     capital: "Curitiba", estado: "PR", potencial: "alto",
     bairros: [
       { nome: "Batel", conversao: "alta" }, { nome: "Água Verde", conversao: "alta" },
-      { nome: "Bigorrilho", conversao: "alta" }, { nome: "Ecoville", conversao: "media" },
+      { nome: "Bigorrilho", conversao: "alta" }, { nome: "Ecoville", conversao: "alta" },
       { nome: "Centro", conversao: "media" }, { nome: "Juvevê", conversao: "media" },
+      { nome: "Cabral", conversao: "alta" }, { nome: "Alto da XV", conversao: "media" },
+      { nome: "Champagnat", conversao: "alta" }, { nome: "Rebouças", conversao: "media" },
     ],
     cidades: [
       {
@@ -119,6 +206,7 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Gleba Palhano", conversao: "alta" }, { nome: "Centro", conversao: "alta" },
           { nome: "Bela Suíça", conversao: "media" }, { nome: "Jardim Higienópolis", conversao: "media" },
+          { nome: "Petrópolis", conversao: "alta" },
         ],
       },
       {
@@ -126,24 +214,64 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Zona 7", conversao: "alta" }, { nome: "Zona 3", conversao: "alta" },
           { nome: "Centro", conversao: "media" }, { nome: "Novo Centro", conversao: "alta" },
+          { nome: "Zona 1", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "Cascavel", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Parque São Paulo", conversao: "alta" },
+          { nome: "Country", conversao: "media" }, { nome: "Neva", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Ponta Grossa", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Estrela", conversao: "alta" },
+          { nome: "Nova Rússia", conversao: "media" },
         ],
       },
     ],
   },
   {
-    capital: "Porto Alegre", estado: "RS", potencial: "medio",
+    capital: "Porto Alegre", estado: "RS", potencial: "alto",
     bairros: [
       { nome: "Moinhos de Vento", conversao: "alta" }, { nome: "Petrópolis", conversao: "alta" },
-      { nome: "Bom Fim", conversao: "media" }, { nome: "Cidade Baixa", conversao: "media" },
-      { nome: "Menino Deus", conversao: "media" },
+      { nome: "Bom Fim", conversao: "alta" }, { nome: "Cidade Baixa", conversao: "media" },
+      { nome: "Menino Deus", conversao: "alta" }, { nome: "Mont'Serrat", conversao: "alta" },
+      { nome: "Rio Branco", conversao: "media" }, { nome: "Independência", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Caxias do Sul", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Lourdes", conversao: "alta" },
+          { nome: "São Pelegrino", conversao: "media" }, { nome: "Exposição", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Canoas", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Niterói", conversao: "alta" },
+          { nome: "Marechal Rondon", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Novo Hamburgo", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Hamburgo Velho", conversao: "alta" },
+          { nome: "Rio Branco", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
-    capital: "Florianópolis", estado: "SC", potencial: "medio",
+    capital: "Florianópolis", estado: "SC", potencial: "alto",
     bairros: [
       { nome: "Centro", conversao: "alta" }, { nome: "Trindade", conversao: "media" },
-      { nome: "Jurerê", conversao: "alta" }, { nome: "Lagoa da Conceição", conversao: "media" },
+      { nome: "Jurerê", conversao: "alta" }, { nome: "Lagoa da Conceição", conversao: "alta" },
+      { nome: "Ingleses", conversao: "media" }, { nome: "Campeche", conversao: "media" },
+      { nome: "Coqueiros", conversao: "alta" }, { nome: "Itacorubi", conversao: "media" },
     ],
     cidades: [
       {
@@ -151,6 +279,28 @@ const estados: StateData[] = [
         bairros: [
           { nome: "Centro", conversao: "alta" }, { nome: "América", conversao: "alta" },
           { nome: "Atiradores", conversao: "media" }, { nome: "Glória", conversao: "media" },
+          { nome: "Anita Garibaldi", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "Blumenau", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Victor Konder", conversao: "alta" },
+          { nome: "Vila Nova", conversao: "media" }, { nome: "Ponta Aguda", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Balneário Camboriú", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Barra Sul", conversao: "alta" },
+          { nome: "Pioneiros", conversao: "alta" }, { nome: "Nações", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Chapecó", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Presidente Médici", conversao: "alta" },
+          { nome: "Maria Goretti", conversao: "media" },
         ],
       },
     ],
@@ -159,48 +309,301 @@ const estados: StateData[] = [
     capital: "Brasília", estado: "DF", potencial: "alto",
     bairros: [
       { nome: "Asa Sul", conversao: "alta" }, { nome: "Asa Norte", conversao: "alta" },
-      { nome: "Lago Sul", conversao: "alta" }, { nome: "Sudoeste", conversao: "media" },
-      { nome: "Águas Claras", conversao: "media" },
+      { nome: "Lago Sul", conversao: "alta" }, { nome: "Sudoeste", conversao: "alta" },
+      { nome: "Águas Claras", conversao: "alta" }, { nome: "Noroeste", conversao: "alta" },
+      { nome: "Lago Norte", conversao: "media" }, { nome: "Guará", conversao: "media" },
+      { nome: "Taguatinga", conversao: "media" },
     ],
     cidades: [],
   },
   {
-    capital: "Goiânia", estado: "GO", potencial: "medio",
+    capital: "Goiânia", estado: "GO", potencial: "alto",
     bairros: [
       { nome: "Setor Bueno", conversao: "alta" }, { nome: "Setor Marista", conversao: "alta" },
-      { nome: "Jardim Goiás", conversao: "media" }, { nome: "Setor Oeste", conversao: "media" },
+      { nome: "Jardim Goiás", conversao: "alta" }, { nome: "Setor Oeste", conversao: "alta" },
+      { nome: "Setor Sul", conversao: "media" }, { nome: "Setor Central", conversao: "media" },
+      { nome: "Alphaville Flamboyant", conversao: "alta" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Anápolis", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jundiaí", conversao: "alta" },
+          { nome: "Vila Jaiara", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Aparecida de Goiânia", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Cidade Vera Cruz", conversao: "alta" },
+          { nome: "Jardim Luz", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
-    capital: "Salvador", estado: "BA", potencial: "medio",
+    capital: "Salvador", estado: "BA", potencial: "alto",
     bairros: [
       { nome: "Barra", conversao: "alta" }, { nome: "Pituba", conversao: "alta" },
-      { nome: "Itaigara", conversao: "media" }, { nome: "Rio Vermelho", conversao: "media" },
+      { nome: "Itaigara", conversao: "alta" }, { nome: "Rio Vermelho", conversao: "alta" },
+      { nome: "Caminho das Árvores", conversao: "alta" }, { nome: "Graça", conversao: "alta" },
+      { nome: "Ondina", conversao: "media" }, { nome: "Stella Maris", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Feira de Santana", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Kalilândia", conversao: "alta" },
+          { nome: "Santa Mônica", conversao: "media" }, { nome: "Ponto Central", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Vitória da Conquista", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Candeias", conversao: "alta" },
+          { nome: "Recreio", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Camaçari", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Vila de Abrantes", conversao: "alta" },
+          { nome: "Arembepe", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
-    capital: "Vitória", estado: "ES", potencial: "medio",
+    capital: "Vitória", estado: "ES", potencial: "alto",
     bairros: [
       { nome: "Praia do Canto", conversao: "alta" }, { nome: "Jardim da Penha", conversao: "alta" },
       { nome: "Enseada do Suá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "Jardim Camburi", conversao: "alta" }, { nome: "Mata da Praia", conversao: "alta" },
+      { nome: "Bento Ferreira", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Vila Velha", potencial: "alto",
+        bairros: [
+          { nome: "Praia da Costa", conversao: "alta" }, { nome: "Itapuã", conversao: "alta" },
+          { nome: "Centro", conversao: "media" }, { nome: "Glória", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Serra", potencial: "medio",
+        bairros: [
+          { nome: "Laranjeiras", conversao: "alta" }, { nome: "Carapina", conversao: "alta" },
+          { nome: "Serra Sede", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Cachoeiro de Itapemirim", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Gilberto Machado", conversao: "alta" },
+          { nome: "Guandu", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
-    capital: "Recife", estado: "PE", potencial: "medio",
+    capital: "Recife", estado: "PE", potencial: "alto",
     bairros: [
       { nome: "Boa Viagem", conversao: "alta" }, { nome: "Espinheiro", conversao: "alta" },
-      { nome: "Graças", conversao: "alta" }, { nome: "Casa Forte", conversao: "media" },
+      { nome: "Graças", conversao: "alta" }, { nome: "Casa Forte", conversao: "alta" },
+      { nome: "Derby", conversao: "alta" }, { nome: "Madalena", conversao: "media" },
+      { nome: "Aflitos", conversao: "alta" }, { nome: "Torre", conversao: "media" },
+      { nome: "Pina", conversao: "media" },
+    ],
+    cidades: [
+      {
+        cidade: "Jaboatão dos Guararapes", potencial: "medio",
+        bairros: [
+          { nome: "Piedade", conversao: "alta" }, { nome: "Candeias", conversao: "alta" },
+          { nome: "Centro", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Caruaru", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Maurício de Nassau", conversao: "alta" },
+          { nome: "Universitário", conversao: "media" }, { nome: "Boa Vista", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Olinda", potencial: "medio",
+        bairros: [
+          { nome: "Casa Caiada", conversao: "alta" }, { nome: "Bairro Novo", conversao: "alta" },
+          { nome: "Centro", conversao: "media" },
+        ],
+      },
+    ],
+  },
+  {
+    capital: "Fortaleza", estado: "CE", potencial: "alto",
+    bairros: [
+      { nome: "Aldeota", conversao: "alta" }, { nome: "Meireles", conversao: "alta" },
+      { nome: "Cocó", conversao: "alta" }, { nome: "Varjota", conversao: "alta" },
+      { nome: "Dionísio Torres", conversao: "alta" }, { nome: "Fátima", conversao: "media" },
+      { nome: "Papicu", conversao: "media" }, { nome: "Edson Queiroz", conversao: "media" },
+    ],
+    cidades: [
+      {
+        cidade: "Juazeiro do Norte", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Lagoa Seca", conversao: "alta" },
+          { nome: "Triângulo", conversao: "media" }, { nome: "São Miguel", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Sobral", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Junco", conversao: "alta" },
+          { nome: "Derby", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Maracanaú", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Pajuçara", conversao: "alta" },
+          { nome: "Jereissati", conversao: "media" },
+        ],
+      },
+    ],
+  },
+  {
+    capital: "Manaus", estado: "AM", potencial: "medio",
+    bairros: [
+      { nome: "Adrianópolis", conversao: "alta" }, { nome: "Vieiralves", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Ponta Negra", conversao: "alta" },
+      { nome: "Flores", conversao: "media" }, { nome: "Parque 10", conversao: "media" },
     ],
     cidades: [],
   },
   {
-    capital: "Fortaleza", estado: "CE", potencial: "medio",
+    capital: "Belém", estado: "PA", potencial: "medio",
     bairros: [
-      { nome: "Aldeota", conversao: "alta" }, { nome: "Meireles", conversao: "alta" },
-      { nome: "Cocó", conversao: "alta" }, { nome: "Varjota", conversao: "media" },
+      { nome: "Umarizal", conversao: "alta" }, { nome: "Nazaré", conversao: "alta" },
+      { nome: "Batista Campos", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "Marco", conversao: "media" }, { nome: "Reduto", conversao: "media" },
+    ],
+    cidades: [
+      {
+        cidade: "Ananindeua", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Coqueiro", conversao: "alta" },
+          { nome: "Cidade Nova", conversao: "media" },
+        ],
+      },
+    ],
+  },
+  {
+    capital: "Cuiabá", estado: "MT", potencial: "medio",
+    bairros: [
+      { nome: "Centro", conversao: "alta" }, { nome: "Goiabeiras", conversao: "alta" },
+      { nome: "Quilombo", conversao: "alta" }, { nome: "Jardim Aclimação", conversao: "media" },
+      { nome: "Bosque da Saúde", conversao: "media" },
+    ],
+    cidades: [
+      {
+        cidade: "Rondonópolis", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Vila Aurora", conversao: "alta" },
+          { nome: "Jardim Europa", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Sinop", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim Botânico", conversao: "alta" },
+          { nome: "Jardim Paraíso", conversao: "media" },
+        ],
+      },
+    ],
+  },
+  {
+    capital: "Campo Grande", estado: "MS", potencial: "medio",
+    bairros: [
+      { nome: "Centro", conversao: "alta" }, { nome: "Jardim dos Estados", conversao: "alta" },
+      { nome: "Chácara Cachoeira", conversao: "alta" }, { nome: "Carandá Bosque", conversao: "alta" },
+      { nome: "Rita Vieira", conversao: "media" }, { nome: "Vilas Boas", conversao: "media" },
+    ],
+    cidades: [
+      {
+        cidade: "Dourados", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim América", conversao: "alta" },
+          { nome: "Vila Industrial", conversao: "media" },
+        ],
+      },
+    ],
+  },
+  {
+    capital: "Natal", estado: "RN", potencial: "medio",
+    bairros: [
+      { nome: "Petrópolis", conversao: "alta" }, { nome: "Tirol", conversao: "alta" },
+      { nome: "Ponta Negra", conversao: "alta" }, { nome: "Capim Macio", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Lagoa Nova", conversao: "media" },
+    ],
+    cidades: [
+      {
+        cidade: "Mossoró", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Nova Betânia", conversao: "alta" },
+          { nome: "Alto de São Manoel", conversao: "media" },
+        ],
+      },
+    ],
+  },
+  {
+    capital: "João Pessoa", estado: "PB", potencial: "medio",
+    bairros: [
+      { nome: "Manaíra", conversao: "alta" }, { nome: "Tambaú", conversao: "alta" },
+      { nome: "Cabo Branco", conversao: "alta" }, { nome: "Bessa", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Bancários", conversao: "media" },
+    ],
+    cidades: [
+      {
+        cidade: "Campina Grande", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Alto Branco", conversao: "alta" },
+          { nome: "Prata", conversao: "media" }, { nome: "Mirante", conversao: "media" },
+        ],
+      },
+    ],
+  },
+  {
+    capital: "São Luís", estado: "MA", potencial: "medio",
+    bairros: [
+      { nome: "Renascença", conversao: "alta" }, { nome: "Calhau", conversao: "alta" },
+      { nome: "Ponta D'Areia", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "São Francisco", conversao: "media" },
+    ],
+    cidades: [],
+  },
+  {
+    capital: "Teresina", estado: "PI", potencial: "medio",
+    bairros: [
+      { nome: "Centro", conversao: "alta" }, { nome: "Jóquei", conversao: "alta" },
+      { nome: "Fátima", conversao: "alta" }, { nome: "Ilhotas", conversao: "media" },
+      { nome: "Noivos", conversao: "media" },
+    ],
+    cidades: [],
+  },
+  {
+    capital: "Maceió", estado: "AL", potencial: "medio",
+    bairros: [
+      { nome: "Pajuçara", conversao: "alta" }, { nome: "Ponta Verde", conversao: "alta" },
+      { nome: "Jatiúca", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "Farol", conversao: "media" },
+    ],
+    cidades: [],
+  },
+  {
+    capital: "Aracaju", estado: "SE", potencial: "medio",
+    bairros: [
+      { nome: "Jardins", conversao: "alta" }, { nome: "13 de Julho", conversao: "alta" },
+      { nome: "Grageru", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "Atalaia", conversao: "media" },
     ],
     cidades: [],
   },
