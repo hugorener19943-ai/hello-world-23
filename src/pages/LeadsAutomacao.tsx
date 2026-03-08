@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare, MapPin } from "lucide-react";
+import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare, MapPin, CheckCircle2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
@@ -78,6 +79,9 @@ export default function LeadsAutomacao() {
   const [sidebarTab, setSidebarTab] = useState<string>("research");
   const [pendingAction, setPendingAction] = useState<{ type: "niche"; term: string } | { type: "location"; cidade: string; estado: string; bairro?: string } | null>(null);
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    blockIndex: number; query: string; cidade: string; estado: string; bairro: string; targetTotal: number;
+  } | null>(null);
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
@@ -127,21 +131,43 @@ export default function LeadsAutomacao() {
       updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairro: bairro || updated[targetIndex].bairro };
       return updated;
     });
-    toast({ title: `Local → Busca ${targetIndex + 1}`, description: `${cidade}/${estado}${bairro ? ` - ${bairro}` : ""}` });
-    // Location done → advance cursor to next block and go back to Research
-    const nextIndex = targetIndex + 1;
+    // Show confirmation dialog
+    const currentBlock = blocks[targetIndex];
+    setConfirmDialog({
+      blockIndex: targetIndex,
+      query: currentBlock?.query || "",
+      cidade,
+      estado,
+      bairro: bairro || currentBlock?.bairro || "",
+      targetTotal: currentBlock?.targetTotal || 20,
+    });
+  }, [blocks, activeBlockIndex]);
+
+  const handleConfirmBlock = useCallback(() => {
+    if (!confirmDialog) return;
+    const { blockIndex, targetTotal } = confirmDialog;
+    // Apply final targetTotal
+    setBlocks((prev) => {
+      const updated = [...prev];
+      updated[blockIndex] = { ...updated[blockIndex], targetTotal };
+      return updated;
+    });
+    setConfirmDialog(null);
+    // Advance to next block
+    const nextIndex = blockIndex + 1;
     if (nextIndex < blocks.length) {
       setActiveBlockIndex(nextIndex);
       setSidebarTab("research");
-      toast({ title: `Agora preenchendo Busca ${nextIndex + 1}`, variant: "default" });
+      toast({ title: `Agora preenchendo Busca ${nextIndex + 1}` });
     } else if (nextIndex < MAX_BLOCKS) {
-      // Auto-create next block
       setBlocks((prev) => [...prev, newBlock()]);
       setActiveBlockIndex(nextIndex);
       setSidebarTab("research");
-      toast({ title: `Busca ${nextIndex + 1} criada automaticamente`, variant: "default" });
+      toast({ title: `Busca ${nextIndex + 1} criada automaticamente` });
+    } else {
+      toast({ title: "Todas as buscas preenchidas! 🚀" });
     }
-  }, [blocks.length, activeBlockIndex, toast]);
+  }, [confirmDialog, blocks.length, toast]);
 
   const removeBlock = useCallback((id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
@@ -347,6 +373,64 @@ export default function LeadsAutomacao() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={!!confirmDialog} onOpenChange={(open) => { if (!open) setConfirmDialog(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <CheckCircle2 className="h-5 w-5 text-primary" />
+              Confirmar Busca {confirmDialog ? confirmDialog.blockIndex + 1 : ""}
+            </DialogTitle>
+          </DialogHeader>
+          {confirmDialog && (
+            <div className="space-y-4 pt-2">
+              <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Nicho</span>
+                  <span className="text-sm font-semibold text-foreground">{confirmDialog.query || "—"}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Cidade</span>
+                  <span className="text-sm font-semibold text-foreground">{confirmDialog.cidade}/{confirmDialog.estado}</span>
+                </div>
+                {confirmDialog.bairro && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Bairro</span>
+                    <span className="text-sm font-semibold text-foreground">{confirmDialog.bairro}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Quantidade de Leads</span>
+                  <Select
+                    value={String(confirmDialog.targetTotal)}
+                    onValueChange={(v) => setConfirmDialog((prev) => prev ? { ...prev, targetTotal: Number(v) } : null)}
+                  >
+                    <SelectTrigger className="w-[130px] h-9 bg-secondary border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[10, 20, 50, 100, 200, 300, 400].map((n) => (
+                        <SelectItem key={n} value={String(n)}>{n} leads</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setConfirmDialog(null)}>
+                  Editar
+                </Button>
+                <Button className="flex-1 glow-neon" onClick={handleConfirmBlock}>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Confirmar
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Research Flux - Toggleable Panel */}
       {showResearch && (
         <aside className="flex flex-col w-[320px] lg:w-[400px] border-2 border-primary bg-[hsl(0_0%_3%)] shrink-0 h-screen sticky top-0 glow-neon-strong">
