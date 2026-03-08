@@ -135,9 +135,12 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   const [openNiche, setOpenNiche] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const copyTerm = (text: string) => {
+  const copyTerm = (text: string, isSearchTerm: boolean = false) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copiado!", description: text });
+    if (isSearchTerm && onSelectNiche) {
+      onSelectNiche(text);
+    }
   };
 
   return (
