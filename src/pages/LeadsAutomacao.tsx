@@ -268,6 +268,66 @@ export default function LeadsAutomacao() {
 
   return (
     <div className="min-h-screen bg-background flex">
+      {/* Block Picker Dialog */}
+      <Dialog open={!!pendingAction} onOpenChange={(open) => { if (!open) setPendingAction(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              {pendingAction?.type === "niche" ? (
+                <>
+                  <Zap className="h-5 w-5 text-primary" />
+                  Aplicar nicho em qual busca?
+                </>
+              ) : (
+                <>
+                  <MapPin className="h-5 w-5 text-primary" />
+                  Aplicar local em qual busca?
+                </>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 pt-2">
+            {pendingAction && blocks.map((block, i) => (
+              <button
+                key={block.id}
+                onClick={() => applyToBlock(i, pendingAction)}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-muted/30 hover:bg-primary/15 hover:border-primary/50 transition-all text-left"
+              >
+                <span className="text-sm font-bold text-primary">Busca {i + 1}</span>
+                <span className="text-xs text-muted-foreground truncate flex-1">
+                  {block.query && `${block.query}`}
+                  {block.query && block.cidade && " — "}
+                  {block.cidade && `${block.cidade}/${block.estado}`}
+                  {block.bairro && ` (${block.bairro})`}
+                  {!block.query && !block.cidade && "Vazio"}
+                </span>
+                {pendingAction.type === "niche" && (
+                  <Badge variant="outline" className="text-[10px] shrink-0">
+                    {block.query ? "Substituir" : "Preencher"}
+                  </Badge>
+                )}
+                {pendingAction.type === "location" && (
+                  <Badge variant="outline" className="text-[10px] shrink-0">
+                    {block.cidade ? "Substituir" : "Preencher"}
+                  </Badge>
+                )}
+              </button>
+            ))}
+            {blocks.length < MAX_BLOCKS && pendingAction && (
+              <button
+                onClick={() => {
+                  const nb = newBlock();
+                  setBlocks((prev) => [...prev, nb]);
+                  setTimeout(() => applyToBlock(blocks.length, pendingAction), 0);
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-primary/40 text-primary hover:bg-primary/10 transition-all text-sm font-semibold"
+              >
+                <Plus className="h-4 w-4" /> Nova busca
+              </button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Research Flux - Toggleable Panel */}
       {showResearch && (
         <aside className="flex flex-col w-[320px] lg:w-[400px] border-2 border-primary bg-[hsl(0_0%_3%)] shrink-0 h-screen sticky top-0 glow-neon-strong">
