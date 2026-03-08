@@ -178,6 +178,23 @@ export default function LeadsAutomacao() {
     return c;
   }, [leads]);
 
+  const toggleLeadSelection = useCallback((id: string) => {
+    setSelectedLeads((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedLeads(new Set(filtered.map((l) => l.fsq_id || `${l.nome}|${l.endereco}`)));
+  }, [filtered]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedLeads(new Set());
+  }, []);
+
   const exportCSV = () => {
     if (!leads.length) return;
     const headers = ["nome", "telefone_raw", "email", "website", "score", "temperatura_lead", "prioridade_comercial", "canal_sugerido", "tipo_automacao_indicada", "abordagem_sugerida", "originLabel"];
