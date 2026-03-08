@@ -585,7 +585,14 @@ export default function LeadsAutomacao() {
               }} />
             </TabsContent>
             <TabsContent value="maps" className="flex-1 overflow-hidden mt-0">
-              <FluxMaps onSelectLocation={handleSelectLocation} onSelectMultipleBairros={handleSelectMultipleBairros} selectedNiche={selectedNiche} />
+              <FluxMaps onSelectLocation={handleSelectLocation} onSelectMultipleBairros={handleSelectMultipleBairros} onSelectCity={(cidade, estado) => {
+                const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
+                setBlocks((prev) => {
+                  const updated = [...prev];
+                  updated[targetIndex] = { ...updated[targetIndex], cidade, estado };
+                  return updated;
+                });
+              }} selectedNiche={selectedNiche} />
             </TabsContent>
           </Tabs>
         </aside>
