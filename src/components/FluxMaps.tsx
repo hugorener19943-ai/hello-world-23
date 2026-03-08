@@ -764,79 +764,60 @@ const estados: StateData[] = [
   },
 ];
 
-interface SelectedBairro {
-  bairro: string;
-  cidade: string;
-  estado: string;
-}
-
 interface FluxMapsProps {
   onSelectLocation?: (cidade: string, estado: string, bairro?: string) => void;
   onSelectMultipleBairros?: (cidade: string, estado: string, bairros: string[]) => void;
-  onSelectMultiCityBairros?: (selections: SelectedBairro[]) => void;
   selectedNiche?: string;
 }
 
-const MAX_BAIRROS = 8;
+const MAX_BAIRROS = 4;
 
-export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectMultiCityBairros, selectedNiche }: FluxMapsProps) {
+export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNiche }: FluxMapsProps) {
   const [openState, setOpenState] = useState<string | null>(null);
   const [openSubCity, setOpenSubCity] = useState<string | null>(null);
   const [filterAlta, setFilterAlta] = useState(false);
-  const [selectedBairros, setSelectedBairros] = useState<SelectedBairro[]>([]);
+  const [selectedBairros, setSelectedBairros] = useState<string[]>([]);
+  const [multiSelectCity, setMultiSelectCity] = useState<{ cidade: string; estado: string } | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
-  const isBairroSelected = (bairro: string, cidade: string, estado: string) =>
-    selectedBairros.some(s => s.bairro === bairro && s.cidade === cidade && s.estado === estado);
-
   const toggleBairroSelection = (bairro: string, cidade: string, estado: string) => {
-    if (isBairroSelected(bairro, cidade, estado)) {
-      setSelectedBairros(prev => prev.filter(s => !(s.bairro === bairro && s.cidade === cidade && s.estado === estado)));
+    // If selecting from a different city, reset
+    if (multiSelectCity && (multiSelectCity.cidade !== cidade || multiSelectCity.estado !== estado)) {
+      setSelectedBairros([bairro]);
+      setMultiSelectCity({ cidade, estado });
+      return;
+    }
+    if (!multiSelectCity) {
+      setMultiSelectCity({ cidade, estado });
+    }
+    if (selectedBairros.includes(bairro)) {
+      const next = selectedBairros.filter(b => b !== bairro);
+      setSelectedBairros(next);
+      if (next.length === 0) setMultiSelectCity(null);
     } else if (selectedBairros.length < MAX_BAIRROS) {
-      setSelectedBairros(prev => [...prev, { bairro, cidade, estado }]);
+      setSelectedBairros([...selectedBairros, bairro]);
     } else {
-      toast({ title: `Máximo de ${MAX_BAIRROS} bairros`, variant: "destructive" });
+      toast({ title: `Máximo de ${MAX_BAIRROS} bairros por cidade`, variant: "destructive" });
     }
   };
 
-  // Group selections by city
-  const groupedSelections = selectedBairros.reduce<Record<string, { cidade: string; estado: string; bairros: string[] }>>((acc, s) => {
-    const key = `${s.cidade}|${s.estado}`;
-    if (!acc[key]) acc[key] = { cidade: s.cidade, estado: s.estado, bairros: [] };
-    acc[key].bairros.push(s.bairro);
-    return acc;
-  }, {});
-
-  const uniqueCities = Object.values(groupedSelections);
-
   const confirmMultiSelect = () => {
-    if (selectedBairros.length === 0) return;
-
-    if (onSelectMultiCityBairros) {
-      onSelectMultiCityBairros(selectedBairros);
-    } else if (uniqueCities.length === 1 && onSelectMultipleBairros) {
-      const c = uniqueCities[0];
-      onSelectMultipleBairros(c.cidade, c.estado, c.bairros);
+    if (!multiSelectCity || selectedBairros.length === 0) return;
+    if (onSelectMultipleBairros) {
+      onSelectMultipleBairros(multiSelectCity.cidade, multiSelectCity.estado, selectedBairros);
     } else {
-      // Fallback: call per-city
-      uniqueCities.forEach(c => {
-        if (onSelectMultipleBairros) {
-          onSelectMultipleBairros(c.cidade, c.estado, c.bairros);
-        } else {
-          c.bairros.forEach(b => onSelectLocation?.(c.cidade, c.estado, b));
-        }
-      });
+      selectedBairros.forEach(b => onSelectLocation?.(multiSelectCity.cidade, multiSelectCity.estado, b));
     }
-
-    const desc = uniqueCities.map(c => `${c.bairros.join(", ")} (${c.cidade})`).join(" • ");
-    toast({ title: "Bairros selecionados!", description: desc });
+    toast({ title: "Bairros selecionados!", description: `${selectedBairros.join(", ")} — ${multiSelectCity.cidade}/${multiSelectCity.estado}` });
     setSelectedBairros([]);
+    setMultiSelectCity(null);
     setShowConfirmDialog(false);
   };
 
   const cancelMultiSelect = () => {
     setSelectedBairros([]);
+    setMultiSelectCity(null);
     setShowConfirmDialog(false);
   };
 
