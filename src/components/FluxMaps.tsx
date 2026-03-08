@@ -153,7 +153,7 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
                 )}
                 <MapPin className="h-4 w-4 text-primary" />
                 <span className="text-white text-base">{city.cidade}</span>
-                <Badge variant="outline" className="ml-1 text-[10px] border-muted-foreground/30">
+                <Badge variant="outline" className="ml-1 text-[10px] text-white border-muted-foreground/30">
                   {city.estado}
                 </Badge>
                 <span className="ml-auto flex items-center gap-2">
