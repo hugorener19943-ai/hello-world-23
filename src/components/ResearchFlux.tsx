@@ -465,6 +465,8 @@ interface ResearchFluxProps {
 
 export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   const [openNiches, setOpenNiches] = useState<string[]>([]);
+  const [pendingNiche, setPendingNiche] = useState<string | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
   const { toast } = useToast();
 
   const copyTerm = (text: string, isSearchTerm: boolean = false) => {
@@ -475,29 +477,162 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
     }
   };
 
+  // When user clicks a niche, if already open just close it, otherwise ask
+  const handleNicheClick = (name: string) => {
+    if (openNiches.includes(name)) {
+      setOpenNiches((prev) => prev.filter((n) => n !== name));
+      return;
+    }
+    if (openNiches.length >= 4) {
+      toast({ title: "Limite atingido", description: "Máximo de 4 nichos" });
+      return;
+    }
+    setPendingNiche(name);
+    setShowDialog(true);
+  };
+
+  const confirmAddNiche = (addMore: boolean) => {
+    if (pendingNiche) {
+      setOpenNiches((prev) => [...prev, pendingNiche]);
+    }
+    setPendingNiche(null);
+    setShowDialog(false);
+    if (!addMore) {
+      // user chose "Não" — just open that single one
+    }
+    // if addMore, dialog closes and user can keep clicking more
+  };
+
+  // Gather combined terms/offers from all open niches
+  const combinedTerms = openNiches.length > 1
+    ? niches
+        .filter((n) => openNiches.includes(n.name))
+        .flatMap((n) => n.terms)
+    : null;
+
+  const combinedOffers = openNiches.length > 1
+    ? niches
+        .filter((n) => openNiches.includes(n.name))
+        .flatMap((n) => n.offers)
+    : null;
+
+  const combinedTips = openNiches.length > 1
+    ? niches
+        .filter((n) => openNiches.includes(n.name))
+        .map((n) => `${n.emoji} ${n.name}: ${n.tip}`)
+    : null;
+
   return (
     <ScrollArea className="h-full">
       <div className="p-5 space-y-2">
         <p className="text-sm text-white px-2 mb-3">
-          Selecione até 4 nichos por busca ({openNiches.length}/4)
+          Clique em um nicho para selecionar ({openNiches.length}/4)
         </p>
+
+        {/* Dialog asking if user wants more niches */}
+        {showDialog && pendingNiche && (
+          <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
+            <p className="text-sm font-semibold text-white">
+              ✅ Nicho: <span className="text-primary">{pendingNiche}</span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Deseja escolher mais nichos? (máx. {4 - openNiches.length} restantes)
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => confirmAddNiche(true)}
+                className="px-4 py-2 text-sm font-bold rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-all"
+              >
+                Sim, quero mais
+              </button>
+              <button
+                onClick={() => confirmAddNiche(false)}
+                className="px-4 py-2 text-sm font-bold rounded-lg bg-muted/30 text-foreground border border-border/30 hover:bg-muted/50 transition-all"
+              >
+                Não, só esse
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Combined niche tab when multiple selected */}
+        {openNiches.length > 1 && combinedTerms && combinedOffers && combinedTips && (
+          <div className="mx-2 mb-4 p-4 rounded-lg border border-primary/40 bg-primary/5 animate-fade-in space-y-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-primary uppercase tracking-wider">🔗 Nichos combinados:</span>
+              {openNiches.map((name) => {
+                const n = niches.find((x) => x.name === name);
+                return (
+                  <span key={name} className="text-xs px-2 py-1 rounded-md bg-primary/20 text-primary font-semibold">
+                    {n?.emoji} {name}
+                  </span>
+                );
+              })}
+            </div>
+
+            {/* Combined tips */}
+            <div className="space-y-1">
+              {combinedTips.map((tip) => (
+                <p key={tip} className="text-xs font-semibold text-primary px-3 py-1.5 bg-primary/10 rounded-md">
+                  💡 {tip}
+                </p>
+              ))}
+            </div>
+
+            {/* Combined terms */}
+            <div>
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">🔍 Todos os termos</p>
+              <div className="flex flex-wrap gap-2 px-2">
+                {combinedTerms.map(({ term, hot }) => (
+                  <button
+                    key={term}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("application/flux-niche", JSON.stringify({ query: term }));
+                      e.dataTransfer.effectAllowed = "copy";
+                    }}
+                    onClick={() => copyTerm(term, true)}
+                    className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-lg transition-all duration-200 border cursor-grab active:cursor-grabbing ${
+                      hot
+                        ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
+                        : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
+                    }`}
+                    title="Clique para copiar ou arraste"
+                  >
+                    {hot && <Flame className="h-3 w-3" />}
+                    {term}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Combined offers */}
+            <div>
+              <p className="text-xs font-bold text-red-400 uppercase tracking-wider px-2 mb-2">💰 O que oferecer (combinado)</p>
+              <div className="space-y-1.5 px-2">
+                {combinedOffers.map((offer) => (
+                  <button
+                    key={offer}
+                    onClick={() => copyTerm(offer)}
+                    className="w-full text-left flex items-start gap-2.5 text-xs font-medium px-3 py-2 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 hover:text-red-300 transition-all duration-200 border border-red-500/30"
+                    title="Clique para copiar"
+                  >
+                    <Lightbulb className="h-3.5 w-3.5 shrink-0 mt-0.5 text-red-400" />
+                    <span>{offer}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {niches.map((niche) => {
           const isOpen = openNiches.includes(niche.name);
           const hotCount = niche.terms.filter((t) => t.hot).length;
-          const toggleNiche = () => {
-            setOpenNiches((prev) => {
-              if (prev.includes(niche.name)) return prev.filter((n) => n !== niche.name);
-              if (prev.length >= 4) {
-                toast({ title: "Limite atingido", description: "Máximo de 4 nichos por busca" });
-                return prev;
-              }
-              return [...prev, niche.name];
-            });
-          };
           return (
             <div key={niche.name}>
               <button
-                onClick={toggleNiche}
+                onClick={() => handleNicheClick(niche.name)}
                 className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-lg transition-all ${isOpen ? "bg-primary/20 border border-primary/40" : "bg-muted/30 hover:bg-muted/50"}`}
               >
                 {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-primary" /> : <ChevronRight className="h-4 w-4 shrink-0 text-primary" />}
@@ -509,13 +644,13 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
                   {hotCount} quentes
                 </span>
               </button>
-              {isOpen && (
+              {/* Individual niche details only if single selection */}
+              {isOpen && openNiches.length === 1 && (
                 <div className="ml-3 mt-3 mb-4 space-y-4 animate-fade-in">
                   <p className="text-sm font-semibold text-primary px-3 py-2 bg-primary/10 rounded-md inline-block">
                     💡 {niche.tip}
                   </p>
 
-                  {/* Termos de busca */}
                   <div>
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">🔍 Termos de busca</p>
                     <div className="flex flex-wrap gap-2 px-2">
@@ -543,22 +678,21 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
                     </div>
                   </div>
 
-                  {/* O que oferecer */}
-                   <div>
-                     <p className="text-xs font-bold text-red-400 uppercase tracking-wider px-2 mb-2">💰 O que oferecer</p>
-                     <div className="space-y-1.5 px-2">
-                       {niche.offers.map((offer) => (
-                         <button
-                           key={offer}
-                           onClick={() => copyTerm(offer)}
-                           className="w-full text-left flex items-start gap-2.5 text-sm font-medium px-3 py-2.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 hover:text-red-300 transition-all duration-200 border border-red-500/30"
-                           title="Clique para copiar"
-                         >
-                           <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-red-400" />
-                           <span>{offer}</span>
-                           <Copy className="h-3 w-3 opacity-40 ml-auto shrink-0 mt-0.5" />
-                         </button>
-                       ))}
+                  <div>
+                    <p className="text-xs font-bold text-red-400 uppercase tracking-wider px-2 mb-2">💰 O que oferecer</p>
+                    <div className="space-y-1.5 px-2">
+                      {niche.offers.map((offer) => (
+                        <button
+                          key={offer}
+                          onClick={() => copyTerm(offer)}
+                          className="w-full text-left flex items-start gap-2.5 text-sm font-medium px-3 py-2.5 rounded-lg bg-red-500/15 text-red-400 hover:bg-red-500/25 hover:text-red-300 transition-all duration-200 border border-red-500/30"
+                          title="Clique para copiar"
+                        >
+                          <Lightbulb className="h-4 w-4 shrink-0 mt-0.5 text-red-400" />
+                          <span>{offer}</span>
+                          <Copy className="h-3 w-3 opacity-40 ml-auto shrink-0 mt-0.5" />
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
