@@ -394,10 +394,32 @@ const estados: StateData[] = [
       { nome: "Asa Sul", conversao: "alta" }, { nome: "Asa Norte", conversao: "alta" },
       { nome: "Lago Sul", conversao: "alta" }, { nome: "Sudoeste", conversao: "alta" },
       { nome: "Águas Claras", conversao: "alta" }, { nome: "Noroeste", conversao: "alta" },
-      { nome: "Lago Norte", conversao: "media" }, { nome: "Guará", conversao: "media" },
-      { nome: "Taguatinga", conversao: "media" },
+      { nome: "Lago Norte", conversao: "alta" }, { nome: "Guará", conversao: "alta" },
+      { nome: "Taguatinga", conversao: "alta" }, { nome: "Park Sul", conversao: "alta" },
+      { nome: "Cruzeiro", conversao: "media" }, { nome: "Octogonal", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Águas Claras", potencial: "alto",
+        bairros: [
+          { nome: "Norte", conversao: "alta" }, { nome: "Sul", conversao: "alta" },
+          { nome: "Vertical", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "Taguatinga", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Taguatinga Norte", conversao: "alta" },
+          { nome: "Taguatinga Sul", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Vicente Pires", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Colônia Agrícola Samambaia", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
     capital: "Goiânia", estado: "GO", potencial: "alto",
