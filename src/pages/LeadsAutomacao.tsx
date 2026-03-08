@@ -181,18 +181,21 @@ export default function LeadsAutomacao() {
     const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairro: bairro || updated[targetIndex].bairro };
+      const existing = updated[targetIndex].bairros;
+      const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 4) : existing;
+      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: newBairros };
       return updated;
     });
-    // Show confirmation dialog
     const currentBlock = blocks[targetIndex];
     setConfirmDialog({
       blockIndex: targetIndex,
       query: currentBlock?.query || "",
       cidade,
       estado,
-      bairro: bairro || currentBlock?.bairro || "",
-      targetTotal: currentBlock?.targetTotal || 20,
+      bairros: bairro && !currentBlock?.bairros.includes(bairro)
+        ? [...(currentBlock?.bairros || []), bairro].slice(0, 4)
+        : currentBlock?.bairros || [],
+      targetTotal: currentBlock?.targetTotal || 100,
     });
   }, [blocks, activeBlockIndex]);
 
