@@ -827,8 +827,9 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
     
     return (
       <div className="flex flex-wrap gap-2 px-2">
-        {filtered.map((b) => {
-          const isSelected = isBairroSelected(b.nome, cidade, estado);
+      {filtered.map((b) => {
+          const isThisCity = multiSelectCity?.cidade === cidade && multiSelectCity?.estado === estado;
+          const isSelected = isThisCity && selectedBairros.includes(b.nome);
           return (
             <button
               key={b.nome}
@@ -871,11 +872,11 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
         )}
 
         {/* Confirm button - only shows when bairros are selected */}
-        {selectedBairros.length > 0 && (
+        {selectedBairros.length > 0 && multiSelectCity && (
           <div className="space-y-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-foreground">
-                {selectedBairros.length}/{MAX_BAIRROS} bairros • {uniqueCities.length} cidade{uniqueCities.length > 1 ? "s" : ""}
+                {selectedBairros.length}/{MAX_BAIRROS} bairros • {multiSelectCity.cidade}/{multiSelectCity.estado}
               </p>
               <div className="flex gap-2">
                 <button onClick={cancelMultiSelect} className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground transition-colors">
@@ -887,38 +888,34 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
               </div>
             </div>
             <div className="flex flex-wrap gap-1">
-              {selectedBairros.map((s, i) => (
-                <span key={`${s.cidade}-${s.bairro}-${i}`} className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded">
-                  {s.bairro} ({s.cidade})
+              {selectedBairros.map((b, i) => (
+                <span key={`${b}-${i}`} className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded">
+                  {b}
                 </span>
               ))}
             </div>
           </div>
         )}
 
-        {/* Confirmation dialog - rendered via portal */}
-        {showConfirmDialog && selectedBairros.length > 0 && (
+        {/* Confirmation dialog */}
+        {showConfirmDialog && multiSelectCity && selectedBairros.length > 0 && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ pointerEvents: "auto" }}>
             <div className="absolute inset-0 bg-black/70" onClick={() => setShowConfirmDialog(false)} />
             <div className="relative z-10 bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-2xl">
               <h3 className="text-lg font-bold text-foreground">Confirmar bairros selecionados</h3>
-              <div className="space-y-3 max-h-60 overflow-y-auto">
-                {uniqueCities.map((c) => (
-                  <div key={`${c.cidade}-${c.estado}`} className="space-y-1.5">
-                    <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                      <MapPin className="h-3.5 w-3.5 text-primary" />
-                      {c.cidade}/{c.estado}
-                    </p>
-                    <div className="flex flex-wrap gap-1.5 pl-5">
-                      {c.bairros.map(b => (
-                        <span key={b} className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded-md">{b}</span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+              <div className="space-y-2">
+                <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-primary" />
+                  {multiSelectCity.cidade}/{multiSelectCity.estado}
+                </p>
+                <div className="flex flex-wrap gap-1.5 pl-5">
+                  {selectedBairros.map(b => (
+                    <span key={b} className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded-md">{b}</span>
+                  ))}
+                </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Total: {selectedBairros.length} bairro{selectedBairros.length > 1 ? "s" : ""} em {uniqueCities.length} cidade{uniqueCities.length > 1 ? "s" : ""}
+                Total: {selectedBairros.length} bairro{selectedBairros.length > 1 ? "s" : ""}
               </p>
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setShowConfirmDialog(false)} className="flex-1 text-sm font-semibold py-2.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
