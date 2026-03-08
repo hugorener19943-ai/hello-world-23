@@ -214,16 +214,30 @@ export default function LeadsAutomacao() {
     const allLeads: LeadWithOrigin[] = [];
     const errors: string[] = [];
 
+    const blockResultsMap: Record<string, { found: number; requested: number; message?: string }> = {};
+
     const results = await Promise.allSettled(
       valid.map(async (block, idx) => {
         try {
           const empresas = await fetchBlock(block);
           statuses[block.id] = "done";
           setBlockStatuses({ ...statuses });
+          const found = empresas.length;
+          const requested = block.targetTotal;
+          let message: string | undefined;
+          if (found === 0) {
+            message = "Nenhum resultado encontrado para este nicho/local.";
+          } else if (found < requested) {
+            message = `Região/nicho com poucas empresas cadastradas. Tente ampliar a busca ou mudar o bairro.`;
+          }
+          blockResultsMap[block.id] = { found, requested, message };
+          setBlockResults({ ...blockResultsMap });
           return { empresas, index: idx, label: `Busca ${idx + 1}: ${block.query}` };
         } catch (err: any) {
           statuses[block.id] = "error";
           setBlockStatuses({ ...statuses });
+          blockResultsMap[block.id] = { found: 0, requested: block.targetTotal, message: err.message || "Erro desconhecido" };
+          setBlockResults({ ...blockResultsMap });
           throw err;
         }
       })
