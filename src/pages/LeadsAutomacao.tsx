@@ -435,7 +435,7 @@ export default function LeadsAutomacao() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {[10, 20, 50, 100, 200, 300, 400].map((n) => (
+                      {[20, 50, 100, 200, 300, 400].map((n) => (
                         <SelectItem key={n} value={String(n)}>{n} leads</SelectItem>
                       ))}
                     </SelectContent>
