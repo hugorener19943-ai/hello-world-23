@@ -283,7 +283,7 @@ export default function LeadsAutomacao() {
             message = "Nenhum resultado encontrado para este nicho/local.";
           } else if (found < requested) {
             const reasonText = result.reason === "no_more_pages"
-              ? `A API retornou apenas ${found} empresas — não existem mais resultados para "${block.query}" em ${block.cidade}${block.bairro ? ` (${block.bairro})` : ""}. Tente remover o bairro ou ampliar o nicho.`
+              ? `A API retornou apenas ${found} empresas — não existem mais resultados para "${block.query}" em ${block.cidade}${block.bairros.length ? ` (${block.bairros.join(", ")})` : ""}. Tente remover bairros ou ampliar o nicho.`
               : `Foram encontradas ${found} de ${requested} empresas solicitadas. A região/nicho tem poucas empresas cadastradas.`;
             message = reasonText;
           }
