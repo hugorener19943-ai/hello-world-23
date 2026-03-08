@@ -212,9 +212,37 @@ interface FluxMapsProps {
 }
 
 export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
-  const [openCity, setOpenCity] = useState<string | null>(null);
+  const [openState, setOpenState] = useState<string | null>(null);
+  const [openSubCity, setOpenSubCity] = useState<string | null>(null);
   const [filterAlta, setFilterAlta] = useState(false);
   const { toast } = useToast();
+
+  const renderBairros = (bairros: { nome: string; conversao: "alta" | "media" }[], cidade: string, estado: string) => {
+    const filtered = filterAlta ? bairros.filter((b) => b.conversao === "alta") : bairros;
+    if (filtered.length === 0) return null;
+    return (
+      <div className="flex flex-wrap gap-2 px-2">
+        {filtered.map((b) => (
+          <button
+            key={b.nome}
+            onClick={() => {
+              onSelectLocation?.(cidade, estado, b.nome);
+              toast({ title: "Local selecionado!", description: `${b.nome} - ${cidade}/${estado}` });
+            }}
+            className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border ${
+              b.conversao === "alta"
+                ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
+                : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
+            }`}
+          >
+            {b.conversao === "alta" && <Flame className="h-3.5 w-3.5" />}
+            <MapPin className="h-3 w-3 opacity-60" />
+            {b.nome}
+          </button>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <ScrollArea className="h-full">
@@ -241,21 +269,18 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
           </button>
         </div>
 
-        {cidadesRecomendadas.map((city) => {
-          const isOpen = openCity === city.cidade;
-          const bairrosToShow = filterAlta
-            ? city.bairros.filter((b) => b.conversao === "alta")
-            : city.bairros;
-          const altaCount = city.bairros.filter((b) => b.conversao === "alta").length;
-
-          if (filterAlta && bairrosToShow.length === 0) return null;
+        {estados.map((st) => {
+          const isOpen = openState === st.capital;
+          const altaCount = st.bairros.filter((b) => b.conversao === "alta").length;
+          const totalCidades = st.cidades.length;
 
           return (
-            <div key={city.cidade}>
+            <div key={st.capital}>
               <button
                 onClick={() => {
-                  setOpenCity(isOpen ? null : city.cidade);
-                  onSelectLocation?.(city.cidade, city.estado);
+                  setOpenState(isOpen ? null : st.capital);
+                  setOpenSubCity(null);
+                  onSelectLocation?.(st.capital, st.estado);
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold bg-muted/30 hover:bg-muted/50 rounded-lg transition-all"
               >
@@ -265,14 +290,19 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
                   <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
                 )}
                 <MapPin className="h-4 w-4 text-primary" />
-                <span className="text-white text-base">{city.cidade}</span>
+                <span className="text-white text-base">{st.capital}</span>
                 <Badge variant="outline" className="ml-1 text-[10px] text-white border-muted-foreground/30">
-                  {city.estado}
+                  {st.estado}
                 </Badge>
                 <span className="ml-auto flex items-center gap-2">
-                  {city.potencial === "alto" && (
+                  {totalCidades > 0 && (
+                    <Badge variant="outline" className="text-[10px] border-primary/40 text-primary">
+                      +{totalCidades} cidades
+                    </Badge>
+                  )}
+                  {st.potencial === "alto" && (
                     <Badge variant="outline" className="text-[10px] border-destructive/40 text-destructive">
-                      <TrendingUp className="h-3 w-3 mr-0.5" /> Alto potencial
+                      <TrendingUp className="h-3 w-3 mr-0.5" /> Alto
                     </Badge>
                   )}
                   <span className="text-xs text-destructive font-semibold flex items-center gap-0.5">
@@ -282,30 +312,52 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
               </button>
 
               {isOpen && (
-                <div className="ml-4 mt-2 mb-3 space-y-1.5 animate-fade-in">
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">
-                    📍 Bairros — clique para selecionar
-                  </p>
-                  <div className="flex flex-wrap gap-2 px-2">
-                    {bairrosToShow.map((b) => (
-                      <button
-                        key={b.nome}
-                        onClick={() => {
-                          onSelectLocation?.(city.cidade, city.estado, b.nome);
-                          toast({ title: "Local selecionado!", description: `${b.nome} - ${city.cidade}/${city.estado}` });
-                        }}
-                        className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border ${
-                          b.conversao === "alta"
-                            ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
-                            : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
-                        }`}
-                      >
-                        {b.conversao === "alta" && <Flame className="h-3.5 w-3.5" />}
-                        <MapPin className="h-3 w-3 opacity-60" />
-                        {b.nome}
-                      </button>
-                    ))}
+                <div className="ml-4 mt-2 mb-3 space-y-3 animate-fade-in">
+                  <div>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+                      📍 {st.capital} — Bairros
+                    </p>
+                    {renderBairros(st.bairros, st.capital, st.estado)}
                   </div>
+
+                  {st.cidades.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2">
+                        🏙️ Interior de {st.estado}
+                      </p>
+                      {st.cidades.map((sub) => {
+                        const subOpen = openSubCity === sub.cidade;
+                        const subAlta = sub.bairros.filter((b) => b.conversao === "alta").length;
+                        return (
+                          <div key={sub.cidade} className="ml-2">
+                            <button
+                              onClick={() => {
+                                setOpenSubCity(subOpen ? null : sub.cidade);
+                                onSelectLocation?.(sub.cidade, st.estado);
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-muted/20 hover:bg-muted/40 rounded-md transition-all"
+                            >
+                              {subOpen ? (
+                                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-primary" />
+                              ) : (
+                                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-primary" />
+                              )}
+                              <MapPin className="h-3.5 w-3.5 text-primary/70" />
+                              <span className="text-white text-sm">{sub.cidade}</span>
+                              <span className="ml-auto text-xs text-destructive font-semibold flex items-center gap-0.5">
+                                <Flame className="h-3 w-3" /> {subAlta}
+                              </span>
+                            </button>
+                            {subOpen && (
+                              <div className="ml-4 mt-1.5 mb-2 animate-fade-in">
+                                {renderBairros(sub.bairros, sub.cidade, st.estado)}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
