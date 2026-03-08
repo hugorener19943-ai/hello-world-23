@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Copy, ExternalLink, Flame, Thermometer, Snowflake, Phone, Mail, Globe, MessageCircle } from "lucide-react";
 import type { LeadWithOrigin } from "./types";
 import { useToast } from "@/hooks/use-toast";
+
+interface LeadCardProps {
+  lead: LeadWithOrigin;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}
 
 function tempCardClass(temp?: string) {
   const t = (temp || "").toLowerCase();
