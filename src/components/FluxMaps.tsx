@@ -85,10 +85,96 @@ const cidadesRecomendadas: CityData[] = [
     ],
   },
   {
-    cidade: "Campinas", estado: "SP", potencial: "medio",
+    cidade: "Campinas", estado: "SP", potencial: "alto",
     bairros: [
-      { nome: "Cambuí", conversao: "alta" }, { nome: "Barão Geraldo", conversao: "media" },
-      { nome: "Taquaral", conversao: "media" }, { nome: "Nova Campinas", conversao: "alta" },
+      { nome: "Cambuí", conversao: "alta" }, { nome: "Nova Campinas", conversao: "alta" },
+      { nome: "Barão Geraldo", conversao: "media" }, { nome: "Taquaral", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "São José do Rio Preto", estado: "SP", potencial: "alto",
+    bairros: [
+      { nome: "Redentora", conversao: "alta" }, { nome: "Boa Vista", conversao: "alta" },
+      { nome: "Jardim Walkíria", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "Higienópolis", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Ribeirão Preto", estado: "SP", potencial: "alto",
+    bairros: [
+      { nome: "Jardim Sumaré", conversao: "alta" }, { nome: "Alto da Boa Vista", conversao: "alta" },
+      { nome: "Jardim Irajá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+      { nome: "Jardim Califórnia", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Sorocaba", estado: "SP", potencial: "alto",
+    bairros: [
+      { nome: "Campolim", conversao: "alta" }, { nome: "Parque Campolim", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Jardim Faculdade", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Santos", estado: "SP", potencial: "alto",
+    bairros: [
+      { nome: "Gonzaga", conversao: "alta" }, { nome: "Boqueirão", conversao: "alta" },
+      { nome: "Ponta da Praia", conversao: "media" }, { nome: "Embaré", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Joinville", estado: "SC", potencial: "alto",
+    bairros: [
+      { nome: "Centro", conversao: "alta" }, { nome: "América", conversao: "alta" },
+      { nome: "Atiradores", conversao: "media" }, { nome: "Glória", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Londrina", estado: "PR", potencial: "alto",
+    bairros: [
+      { nome: "Gleba Palhano", conversao: "alta" }, { nome: "Centro", conversao: "alta" },
+      { nome: "Bela Suíça", conversao: "media" }, { nome: "Jardim Higienópolis", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Maringá", estado: "PR", potencial: "alto",
+    bairros: [
+      { nome: "Zona 7", conversao: "alta" }, { nome: "Zona 3", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Novo Centro", conversao: "alta" },
+    ],
+  },
+  {
+    cidade: "Vitória", estado: "ES", potencial: "medio",
+    bairros: [
+      { nome: "Praia do Canto", conversao: "alta" }, { nome: "Jardim da Penha", conversao: "alta" },
+      { nome: "Enseada do Suá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Recife", estado: "PE", potencial: "medio",
+    bairros: [
+      { nome: "Boa Viagem", conversao: "alta" }, { nome: "Espinheiro", conversao: "alta" },
+      { nome: "Graças", conversao: "alta" }, { nome: "Casa Forte", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Fortaleza", estado: "CE", potencial: "medio",
+    bairros: [
+      { nome: "Aldeota", conversao: "alta" }, { nome: "Meireles", conversao: "alta" },
+      { nome: "Cocó", conversao: "alta" }, { nome: "Varjota", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Uberlândia", estado: "MG", potencial: "alto",
+    bairros: [
+      { nome: "Centro", conversao: "alta" }, { nome: "Santa Mônica", conversao: "alta" },
+      { nome: "Saraiva", conversao: "media" }, { nome: "Altamira", conversao: "media" },
+    ],
+  },
+  {
+    cidade: "Bauru", estado: "SP", potencial: "medio",
+    bairros: [
+      { nome: "Centro", conversao: "alta" }, { nome: "Jardim Estoril", conversao: "alta" },
+      { nome: "Vila Universitária", conversao: "media" },
     ],
   },
 ];
