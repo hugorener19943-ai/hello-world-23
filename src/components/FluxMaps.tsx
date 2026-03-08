@@ -41,69 +41,130 @@ const estados: StateData[] = [
         cidade: "Campinas", potencial: "alto",
         bairros: [
           { nome: "Cambuí", conversao: "alta" }, { nome: "Nova Campinas", conversao: "alta" },
-          { nome: "Barão Geraldo", conversao: "alta" }, { nome: "Taquaral", conversao: "media" },
-          { nome: "Guanabara", conversao: "media" }, { nome: "Jardim Chapadão", conversao: "media" },
+          { nome: "Barão Geraldo", conversao: "alta" }, { nome: "Taquaral", conversao: "alta" },
+          { nome: "Guanabara", conversao: "alta" }, { nome: "Jardim Chapadão", conversao: "alta" },
+          { nome: "Mansões Santo Antônio", conversao: "alta" }, { nome: "Parque Prado", conversao: "media" },
         ],
       },
       {
         cidade: "São José do Rio Preto", potencial: "alto",
         bairros: [
           { nome: "Redentora", conversao: "alta" }, { nome: "Boa Vista", conversao: "alta" },
-          { nome: "Jardim Walkíria", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-          { nome: "Higienópolis", conversao: "media" }, { nome: "Jardim Redentor", conversao: "alta" },
+          { nome: "Jardim Walkíria", conversao: "alta" }, { nome: "Higienópolis", conversao: "alta" },
+          { nome: "Jardim Redentor", conversao: "alta" }, { nome: "Jardim Vivendas", conversao: "alta" },
+          { nome: "Centro", conversao: "media" },
         ],
       },
       {
         cidade: "Ribeirão Preto", potencial: "alto",
         bairros: [
           { nome: "Jardim Sumaré", conversao: "alta" }, { nome: "Alto da Boa Vista", conversao: "alta" },
-          { nome: "Jardim Irajá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-          { nome: "Jardim Califórnia", conversao: "alta" }, { nome: "Jardim São Luiz", conversao: "media" },
+          { nome: "Jardim Irajá", conversao: "alta" }, { nome: "Jardim Califórnia", conversao: "alta" },
+          { nome: "Jardim Santa Ângela", conversao: "alta" }, { nome: "Nova Aliança", conversao: "alta" },
+          { nome: "Jardim São Luiz", conversao: "media" }, { nome: "Centro", conversao: "media" },
         ],
       },
       {
         cidade: "Sorocaba", potencial: "alto",
         bairros: [
           { nome: "Campolim", conversao: "alta" }, { nome: "Parque Campolim", conversao: "alta" },
-          { nome: "Centro", conversao: "media" }, { nome: "Jardim Faculdade", conversao: "media" },
-          { nome: "Jardim Europa", conversao: "alta" },
+          { nome: "Jardim Europa", conversao: "alta" }, { nome: "Jardim Gonçalves", conversao: "alta" },
+          { nome: "Wanel Ville", conversao: "media" }, { nome: "Centro", conversao: "media" },
         ],
       },
       {
         cidade: "Santos", potencial: "alto",
         bairros: [
           { nome: "Gonzaga", conversao: "alta" }, { nome: "Boqueirão", conversao: "alta" },
-          { nome: "Ponta da Praia", conversao: "media" }, { nome: "Embaré", conversao: "media" },
-          { nome: "Aparecida", conversao: "media" },
-        ],
-      },
-      {
-        cidade: "Bauru", potencial: "medio",
-        bairros: [
-          { nome: "Centro", conversao: "alta" }, { nome: "Jardim Estoril", conversao: "alta" },
-          { nome: "Vila Universitária", conversao: "media" }, { nome: "Jardim América", conversao: "media" },
+          { nome: "Ponta da Praia", conversao: "alta" }, { nome: "José Menino", conversao: "alta" },
+          { nome: "Embaré", conversao: "media" }, { nome: "Aparecida", conversao: "media" },
         ],
       },
       {
         cidade: "São José dos Campos", potencial: "alto",
         bairros: [
           { nome: "Jardim Aquarius", conversao: "alta" }, { nome: "Vila Adyana", conversao: "alta" },
-          { nome: "Urbanova", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-          { nome: "Jardim Esplanada", conversao: "media" },
-        ],
-      },
-      {
-        cidade: "Piracicaba", potencial: "medio",
-        bairros: [
-          { nome: "Centro", conversao: "alta" }, { nome: "São Dimas", conversao: "alta" },
-          { nome: "Nova Piracicaba", conversao: "media" }, { nome: "Paulista", conversao: "media" },
+          { nome: "Urbanova", conversao: "alta" }, { nome: "Jardim Esplanada", conversao: "alta" },
+          { nome: "Jardim das Colinas", conversao: "alta" }, { nome: "Centro", conversao: "media" },
         ],
       },
       {
         cidade: "Jundiaí", potencial: "alto",
         bairros: [
           { nome: "Centro", conversao: "alta" }, { nome: "Anhangabaú", conversao: "alta" },
-          { nome: "Chácara Urbana", conversao: "media" }, { nome: "Vila Arens", conversao: "media" },
+          { nome: "Chácara Urbana", conversao: "alta" }, { nome: "Vila Arens", conversao: "alta" },
+          { nome: "Eloy Chaves", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Bauru", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim Estoril", conversao: "alta" },
+          { nome: "Vila Universitária", conversao: "alta" }, { nome: "Jardim América", conversao: "alta" },
+          { nome: "Altos da Cidade", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "Piracicaba", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "São Dimas", conversao: "alta" },
+          { nome: "Nova Piracicaba", conversao: "alta" }, { nome: "Paulista", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "Guarulhos", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Gopouva", conversao: "alta" },
+          { nome: "Vila Augusta", conversao: "alta" }, { nome: "Macedo", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Osasco", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Presidente Altino", conversao: "alta" },
+          { nome: "Continental", conversao: "alta" }, { nome: "Vila Yara", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "Santo André", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim", conversao: "alta" },
+          { nome: "Campestre", conversao: "alta" }, { nome: "Vila Assunção", conversao: "alta" },
+        ],
+      },
+      {
+        cidade: "São Bernardo do Campo", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Rudge Ramos", conversao: "alta" },
+          { nome: "Nova Petrópolis", conversao: "alta" }, { nome: "Baeta Neves", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Presidente Prudente", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim Paulista", conversao: "alta" },
+          { nome: "Vila Marcondes", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Marília", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim Cavalari", conversao: "alta" },
+          { nome: "Somenzari", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Araraquara", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim São Paulo", conversao: "alta" },
+          { nome: "Carmo", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Franca", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim Petraglia", conversao: "alta" },
+          { nome: "City Petrópolis", conversao: "alta" },
         ],
       },
     ],
