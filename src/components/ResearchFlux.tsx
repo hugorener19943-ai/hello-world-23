@@ -571,9 +571,8 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
                     💡 {niche.tip}
                   </p>
 
-                  {/* Search terms - clicking fills Busca slots */}
                   <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">🔍 Termos de busca — clique para preencher as buscas</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-2">🔍 SUBNICHOS — clique para selecionar até 5</p>
                     <div className="flex flex-wrap gap-2 px-2">
                       {niche.terms.map(({ term, hot }) => {
                         const isSelected = selectedTerms.includes(term);
