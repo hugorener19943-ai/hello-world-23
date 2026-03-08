@@ -259,20 +259,23 @@ export default function LeadsAutomacao() {
     const results = await Promise.allSettled(
       valid.map(async (block, idx) => {
         try {
-          const empresas = await fetchBlock(block);
+          const result = await fetchBlock(block);
           statuses[block.id] = "done";
           setBlockStatuses({ ...statuses });
-          const found = empresas.length;
+          const found = result.leads.length;
           const requested = block.targetTotal;
           let message: string | undefined;
           if (found === 0) {
             message = "Nenhum resultado encontrado para este nicho/local.";
           } else if (found < requested) {
-            message = `Região/nicho com poucas empresas cadastradas. Tente ampliar a busca ou mudar o bairro.`;
+            const reasonText = result.reason === "no_more_pages"
+              ? `A API retornou apenas ${found} empresas — não existem mais resultados para "${block.query}" em ${block.cidade}${block.bairro ? ` (${block.bairro})` : ""}. Tente remover o bairro ou ampliar o nicho.`
+              : `Foram encontradas ${found} de ${requested} empresas solicitadas. A região/nicho tem poucas empresas cadastradas.`;
+            message = reasonText;
           }
           blockResultsMap[block.id] = { found, requested, message };
           setBlockResults({ ...blockResultsMap });
-          return { empresas, index: idx, label: `Busca ${idx + 1}: ${block.query}` };
+          return { empresas: result.leads, index: idx, label: `Busca ${idx + 1}: ${block.query}` };
         } catch (err: any) {
           statuses[block.id] = "error";
           setBlockStatuses({ ...statuses });
