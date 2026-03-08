@@ -69,6 +69,8 @@ export default function LeadsAutomacao() {
   const [tempFilter, setTempFilter] = useState("Todos");
   const [searchName, setSearchName] = useState("");
   const [showResearch, setShowResearch] = useState(true);
+  const [onlyHotLeads, setOnlyHotLeads] = useState(false);
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
