@@ -108,6 +108,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
 
     if (seen.size >= block.targetTotal) break;
   }
+  }
 
   if (seen.size < block.targetTotal && reason === "all_fetched") {
     reason = "api_limit";
