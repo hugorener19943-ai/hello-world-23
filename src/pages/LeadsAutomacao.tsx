@@ -130,7 +130,7 @@ export default function LeadsAutomacao() {
   const [pendingAction, setPendingAction] = useState<{ type: "niche"; term: string } | { type: "location"; cidade: string; estado: string; bairro?: string } | null>(null);
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
   const [confirmDialog, setConfirmDialog] = useState<{
-    blockIndex: number; query: string; cidade: string; estado: string; bairro: string; targetTotal: number;
+    blockIndex: number; query: string; cidade: string; estado: string; bairros: string[]; targetTotal: number;
   } | null>(null);
   const { toast } = useToast();
 
