@@ -145,11 +145,14 @@ export default function LeadsAutomacao() {
       if (action.type === "niche") {
         updated[blockIndex] = { ...updated[blockIndex], query: action.term };
       } else {
+        const newBairros = action.bairro && !updated[blockIndex].bairros.includes(action.bairro)
+          ? [...updated[blockIndex].bairros, action.bairro].slice(0, 4)
+          : updated[blockIndex].bairros;
         updated[blockIndex] = {
           ...updated[blockIndex],
           cidade: action.cidade,
           estado: action.estado,
-          bairro: action.bairro || updated[blockIndex].bairro,
+          bairros: newBairros,
         };
       }
       return updated;
