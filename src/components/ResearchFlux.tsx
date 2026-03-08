@@ -460,7 +460,7 @@ const niches = [
 ];
 
 interface ResearchFluxProps {
-  onSelectNiche?: (term: string) => void;
+  onSelectNiche?: (niche: string, subnicho: string) => void;
 }
 
 export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
