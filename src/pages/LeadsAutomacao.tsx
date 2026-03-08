@@ -73,6 +73,8 @@ export default function LeadsAutomacao() {
   const [showResearch, setShowResearch] = useState(true);
   const [onlyHotLeads, setOnlyHotLeads] = useState(false);
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+  const [selectedNiche, setSelectedNiche] = useState<string>("");
+  const [sidebarTab, setSidebarTab] = useState<string>("research");
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
