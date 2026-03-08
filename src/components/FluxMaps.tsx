@@ -114,13 +114,13 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
         )}
 
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">Clique para preencher cidade e bairro</p>
+          <p className="text-sm text-white">Clique para preencher cidade e bairro</p>
           <button
             onClick={() => setFilterAlta(!filterAlta)}
             className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1.5 rounded-md transition-all ${
               filterAlta
-                ? "bg-destructive/20 text-destructive border border-destructive/40"
-                : "bg-muted/50 text-muted-foreground border border-border/30 hover:border-primary/50"
+                ? "bg-destructive/20 text-white border border-destructive/40"
+                : "bg-muted/50 text-white border border-border/30 hover:border-primary/50"
             }`}
           >
             <Flame className="h-3 w-3" />
