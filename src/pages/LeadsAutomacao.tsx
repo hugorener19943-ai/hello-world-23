@@ -11,7 +11,7 @@ import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
 import { LeadCard } from "@/components/leads/LeadCard";
-import { TemplateSelector } from "@/components/leads/TemplateSelector";
+
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
 import type { FluxTemplate } from "@/lib/fluxTemplates";
 import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
