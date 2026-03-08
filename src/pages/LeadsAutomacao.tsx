@@ -592,6 +592,21 @@ export default function LeadsAutomacao() {
                   updated[targetIndex] = { ...updated[targetIndex], cidade, estado };
                   return updated;
                 });
+              }} onToggleBairro={(cidade, estado, bairro, selected) => {
+                const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
+                setBlocks((prev) => {
+                  const updated = [...prev];
+                  const block = updated[targetIndex];
+                  const currentBairros = block.bairros || [];
+                  if (selected) {
+                    if (!currentBairros.includes(bairro) && currentBairros.length < 8) {
+                      updated[targetIndex] = { ...block, cidade, estado, bairros: [...currentBairros, bairro] };
+                    }
+                  } else {
+                    updated[targetIndex] = { ...block, bairros: currentBairros.filter(b => b !== bairro) };
+                  }
+                  return updated;
+                });
               }} selectedNiche={selectedNiche} />
             </TabsContent>
           </Tabs>
