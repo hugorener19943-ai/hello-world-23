@@ -164,17 +164,19 @@ export default function LeadsAutomacao() {
     }
   }, []);
 
-  const handleSelectNiche = useCallback((term: string) => {
-    setSelectedNiche(term);
+  const handleSelectNiche = useCallback((niche: string, subnicho: string) => {
+    setSelectedNiche(niche);
     const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[targetIndex] = { ...updated[targetIndex], query: term };
+      const block = updated[targetIndex];
+      const currentSubnichos = block.subnichos || [];
+      if (currentSubnichos.length < 5 && !currentSubnichos.includes(subnicho)) {
+        updated[targetIndex] = { ...block, query: niche, subnichos: [...currentSubnichos, subnicho] };
+      }
       return updated;
     });
-    toast({ title: `Nicho → Busca ${targetIndex + 1}`, description: term });
-    // Go to maps to pick location for the same block
-    setSidebarTab("maps");
+    toast({ title: `${niche} → Subnicho: ${subnicho}`, description: `Busca ${targetIndex + 1}` });
   }, [blocks.length, activeBlockIndex, toast]);
 
   const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
