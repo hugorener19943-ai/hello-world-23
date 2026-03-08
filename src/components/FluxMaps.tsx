@@ -835,30 +835,22 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
           return (
             <button
               key={b.nome}
-              draggable={!multiSelectMode}
+              draggable
               onDragStart={(e) => {
-                if (multiSelectMode) return;
                 e.dataTransfer.setData("application/flux-location", JSON.stringify({ cidade, estado, bairro: b.nome }));
                 e.dataTransfer.effectAllowed = "copy";
               }}
               onClick={() => {
-                if (multiSelectMode) {
-                  toggleBairroSelection(b.nome, cidade, estado);
-                } else {
-                  onSelectLocation?.(cidade, estado, b.nome);
-                  toast({ title: "Local selecionado!", description: `${b.nome} - ${cidade}/${estado}` });
-                }
+                toggleBairroSelection(b.nome, cidade, estado);
               }}
-              className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border ${
-                multiSelectMode ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-              } ${
+              className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border cursor-pointer ${
                 isSelected
                   ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary/50"
                   : b.conversao === "alta"
                   ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"
                   : "bg-muted/50 text-foreground border-border/30 hover:bg-primary/15 hover:text-primary"
               }`}
-              title={multiSelectMode ? "Clique para selecionar/deselecionar" : "Clique para selecionar ou arraste"}
+              title="Clique para selecionar/deselecionar"
             >
               {isSelected && <span className="text-xs">✓</span>}
               {b.conversao === "alta" && !isSelected && <Flame className="h-3.5 w-3.5" />}
