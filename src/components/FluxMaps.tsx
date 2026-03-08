@@ -579,10 +579,18 @@ const estados: StateData[] = [
     capital: "Manaus", estado: "AM", potencial: "medio",
     bairros: [
       { nome: "Adrianópolis", conversao: "alta" }, { nome: "Vieiralves", conversao: "alta" },
-      { nome: "Centro", conversao: "media" }, { nome: "Ponta Negra", conversao: "alta" },
-      { nome: "Flores", conversao: "media" }, { nome: "Parque 10", conversao: "media" },
+      { nome: "Ponta Negra", conversao: "alta" }, { nome: "Parque 10", conversao: "alta" },
+      { nome: "Flores", conversao: "alta" }, { nome: "Nossa Sra. das Graças", conversao: "alta" },
+      { nome: "Centro", conversao: "media" }, { nome: "Dom Pedro", conversao: "media" },
     ],
-    cidades: [],
+    cidades: [
+      {
+        cidade: "Parintins", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "São José", conversao: "alta" },
+        ],
+      },
+    ],
   },
   {
     capital: "Belém", estado: "PA", potencial: "medio",
