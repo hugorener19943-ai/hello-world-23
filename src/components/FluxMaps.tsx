@@ -764,61 +764,79 @@ const estados: StateData[] = [
   },
 ];
 
+interface SelectedBairro {
+  bairro: string;
+  cidade: string;
+  estado: string;
+}
+
 interface FluxMapsProps {
   onSelectLocation?: (cidade: string, estado: string, bairro?: string) => void;
   onSelectMultipleBairros?: (cidade: string, estado: string, bairros: string[]) => void;
+  onSelectMultiCityBairros?: (selections: SelectedBairro[]) => void;
   selectedNiche?: string;
 }
 
-const MAX_BAIRROS = 4;
+const MAX_BAIRROS = 8;
 
-export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNiche }: FluxMapsProps) {
+export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectMultiCityBairros, selectedNiche }: FluxMapsProps) {
   const [openState, setOpenState] = useState<string | null>(null);
   const [openSubCity, setOpenSubCity] = useState<string | null>(null);
   const [filterAlta, setFilterAlta] = useState(false);
-  const [selectedBairros, setSelectedBairros] = useState<string[]>([]);
-  const [multiSelectCity, setMultiSelectCity] = useState<{ cidade: string; estado: string } | null>(null);
+  const [selectedBairros, setSelectedBairros] = useState<SelectedBairro[]>([]);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
 
+  const isBairroSelected = (bairro: string, cidade: string, estado: string) =>
+    selectedBairros.some(s => s.bairro === bairro && s.cidade === cidade && s.estado === estado);
+
   const toggleBairroSelection = (bairro: string, cidade: string, estado: string) => {
-    // If selecting from a different city, reset
-    if (multiSelectCity && (multiSelectCity.cidade !== cidade || multiSelectCity.estado !== estado)) {
-      setSelectedBairros([bairro]);
-      setMultiSelectCity({ cidade, estado });
-      return;
-    }
-
-    if (!multiSelectCity) {
-      setMultiSelectCity({ cidade, estado });
-    }
-
-    if (selectedBairros.includes(bairro)) {
-      setSelectedBairros(selectedBairros.filter(b => b !== bairro));
+    if (isBairroSelected(bairro, cidade, estado)) {
+      setSelectedBairros(prev => prev.filter(s => !(s.bairro === bairro && s.cidade === cidade && s.estado === estado)));
     } else if (selectedBairros.length < MAX_BAIRROS) {
-      setSelectedBairros([...selectedBairros, bairro]);
+      setSelectedBairros(prev => [...prev, { bairro, cidade, estado }]);
     } else {
       toast({ title: `Máximo de ${MAX_BAIRROS} bairros`, variant: "destructive" });
     }
   };
 
+  // Group selections by city
+  const groupedSelections = selectedBairros.reduce<Record<string, { cidade: string; estado: string; bairros: string[] }>>((acc, s) => {
+    const key = `${s.cidade}|${s.estado}`;
+    if (!acc[key]) acc[key] = { cidade: s.cidade, estado: s.estado, bairros: [] };
+    acc[key].bairros.push(s.bairro);
+    return acc;
+  }, {});
+
+  const uniqueCities = Object.values(groupedSelections);
+
   const confirmMultiSelect = () => {
-    if (multiSelectCity && selectedBairros.length > 0) {
-      if (onSelectMultipleBairros) {
-        onSelectMultipleBairros(multiSelectCity.cidade, multiSelectCity.estado, selectedBairros);
-      } else {
-        selectedBairros.forEach(b => onSelectLocation?.(multiSelectCity.cidade, multiSelectCity.estado, b));
-      }
-      toast({ title: "Bairros selecionados!", description: `${selectedBairros.join(", ")} - ${multiSelectCity.cidade}/${multiSelectCity.estado}` });
-      setSelectedBairros([]);
-      setMultiSelectCity(null);
-      setShowConfirmDialog(false);
+    if (selectedBairros.length === 0) return;
+
+    if (onSelectMultiCityBairros) {
+      onSelectMultiCityBairros(selectedBairros);
+    } else if (uniqueCities.length === 1 && onSelectMultipleBairros) {
+      const c = uniqueCities[0];
+      onSelectMultipleBairros(c.cidade, c.estado, c.bairros);
+    } else {
+      // Fallback: call per-city
+      uniqueCities.forEach(c => {
+        if (onSelectMultipleBairros) {
+          onSelectMultipleBairros(c.cidade, c.estado, c.bairros);
+        } else {
+          c.bairros.forEach(b => onSelectLocation?.(c.cidade, c.estado, b));
+        }
+      });
     }
+
+    const desc = uniqueCities.map(c => `${c.bairros.join(", ")} (${c.cidade})`).join(" • ");
+    toast({ title: "Bairros selecionados!", description: desc });
+    setSelectedBairros([]);
+    setShowConfirmDialog(false);
   };
 
   const cancelMultiSelect = () => {
     setSelectedBairros([]);
-    setMultiSelectCity(null);
     setShowConfirmDialog(false);
   };
 
@@ -826,12 +844,10 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
     const filtered = filterAlta ? bairros.filter((b) => b.conversao === "alta") : bairros;
     if (filtered.length === 0) return null;
     
-    const isThisCity = multiSelectCity?.cidade === cidade && multiSelectCity?.estado === estado;
-    
     return (
       <div className="flex flex-wrap gap-2 px-2">
         {filtered.map((b) => {
-          const isSelected = isThisCity && selectedBairros.includes(b.nome);
+          const isSelected = isBairroSelected(b.nome, cidade, estado);
           return (
             <button
               key={b.nome}
@@ -874,36 +890,47 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
         )}
 
         {/* Confirm button - only shows when bairros are selected */}
-        {selectedBairros.length > 0 && multiSelectCity && (
-          <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
-            <p className="text-xs font-semibold text-foreground">
-              {selectedBairros.length}/{MAX_BAIRROS} bairros • {multiSelectCity.cidade}/{multiSelectCity.estado}
-            </p>
-            <div className="flex gap-2">
-              <button onClick={cancelMultiSelect} className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground transition-colors">
-                Limpar
-              </button>
-              <button onClick={() => setShowConfirmDialog(true)} className="text-xs font-bold px-3 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
-                ✓ Confirmar
-              </button>
+        {selectedBairros.length > 0 && (
+          <div className="space-y-2 px-3 py-2 rounded-lg bg-primary/10 border border-primary/30">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-foreground">
+                {selectedBairros.length}/{MAX_BAIRROS} bairros • {uniqueCities.length} cidade{uniqueCities.length > 1 ? "s" : ""}
+              </p>
+              <div className="flex gap-2">
+                <button onClick={cancelMultiSelect} className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:text-foreground transition-colors">
+                  Limpar
+                </button>
+                <button onClick={() => setShowConfirmDialog(true)} className="text-xs font-bold px-3 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                  ✓ Confirmar
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {selectedBairros.map((s, i) => (
+                <span key={`${s.cidade}-${s.bairro}-${i}`} className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded">
+                  {s.bairro} ({s.cidade})
+                </span>
+              ))}
             </div>
           </div>
         )}
 
         {/* Confirmation dialog */}
-        {showConfirmDialog && multiSelectCity && (
+        {showConfirmDialog && selectedBairros.length > 0 && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
             <div className="bg-background border border-border rounded-lg p-6 max-w-md w-full mx-4 space-y-4 shadow-lg">
               <h3 className="text-lg font-bold text-foreground">Confirmar bairros selecionados</h3>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-foreground">{multiSelectCity.cidade}/{multiSelectCity.estado}</span>
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedBairros.map(b => (
-                    <span key={b} className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded-md">{b}</span>
-                  ))}
-                </div>
+              <div className="space-y-3">
+                {uniqueCities.map((c) => (
+                  <div key={`${c.cidade}-${c.estado}`} className="space-y-1">
+                    <p className="text-sm font-semibold text-foreground">📍 {c.cidade}/{c.estado}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {c.bairros.map(b => (
+                        <span key={b} className="text-sm bg-primary text-primary-foreground px-3 py-1 rounded-md">{b}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
               <div className="flex gap-3 pt-2">
                 <button onClick={() => setShowConfirmDialog(false)} className="flex-1 text-sm font-semibold py-2.5 rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors">
