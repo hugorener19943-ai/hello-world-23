@@ -77,6 +77,7 @@ export default function LeadsAutomacao() {
   const [selectedNiche, setSelectedNiche] = useState<string>("");
   const [sidebarTab, setSidebarTab] = useState<string>("research");
   const [pendingAction, setPendingAction] = useState<{ type: "niche"; term: string } | { type: "location"; cidade: string; estado: string; bairro?: string } | null>(null);
+  const [lastFilledBlockIndex, setLastFilledBlockIndex] = useState(0);
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
@@ -99,30 +100,52 @@ export default function LeadsAutomacao() {
       }
       return updated;
     });
+    setLastFilledBlockIndex(blockIndex);
     setPendingAction(null);
+    // After niche selection, switch to maps
+    if (action.type === "niche") {
+      setSidebarTab("maps");
+    }
   }, []);
 
   const handleSelectNiche = useCallback((term: string) => {
     setSelectedNiche(term);
-    setBlocks((prev) => {
-      if (prev.length === 1) {
-        return [{ ...prev[0], query: term }];
-      }
-      return prev;
-    });
-    if (blocks.length > 1) {
-      setPendingAction({ type: "niche", term });
+    if (blocks.length === 1) {
+      setBlocks((prev) => [{ ...prev[0], query: term }]);
+      setLastFilledBlockIndex(0);
+      setSidebarTab("maps");
+    } else {
+      // Auto-advance: pick next block after last filled
+      const nextIndex = Math.min(lastFilledBlockIndex + 1, blocks.length - 1);
+      // If it's the first niche click (lastFilled is 0 and block 0 has no query), use 0
+      const targetIndex = (lastFilledBlockIndex === 0 && !blocks[0]?.query) ? 0 : nextIndex;
+      const action = { type: "niche" as const, term };
+      // Auto-fill and advance
+      setBlocks((prev) => {
+        const updated = [...prev];
+        updated[targetIndex] = { ...updated[targetIndex], query: term };
+        return updated;
+      });
+      setLastFilledBlockIndex(targetIndex);
+      setSidebarTab("maps");
+      toast({ title: `Nicho aplicado na Busca ${targetIndex + 1}`, description: term });
     }
-    setSidebarTab("maps");
-  }, [blocks.length]);
+  }, [blocks, lastFilledBlockIndex, toast]);
 
   const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
     if (blocks.length === 1) {
       setBlocks((prev) => [{ ...prev[0], cidade, estado, bairro: bairro || prev[0].bairro }]);
     } else {
-      setPendingAction({ type: "location", cidade, estado, bairro });
+      // Auto-fill the same block that was last filled (by niche), then advance for next round
+      const targetIndex = Math.min(lastFilledBlockIndex, blocks.length - 1);
+      setBlocks((prev) => {
+        const updated = [...prev];
+        updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairro: bairro || updated[targetIndex].bairro };
+        return updated;
+      });
+      toast({ title: `Local aplicado na Busca ${targetIndex + 1}`, description: `${cidade}/${estado}${bairro ? ` - ${bairro}` : ""}` });
     }
-  }, [blocks.length]);
+  }, [blocks.length, lastFilledBlockIndex, toast]);
 
   const removeBlock = useCallback((id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
