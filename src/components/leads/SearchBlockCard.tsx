@@ -182,7 +182,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
             ))}
           </div>
         )}
-        {(!block.subnichos || block.subnichos.length < 5) && (
+        {(!block.subnichos || block.subnichos.length < 10) && (
           <div className="flex gap-2 items-center">
             <Input
               placeholder="ex: clínica odontológica"

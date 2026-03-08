@@ -616,7 +616,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
                   </p>
 
                   <div>
-                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">🔍 SUBNICHOS — escolha até 5</p>
+                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider px-2 mb-1">🔍 SUBNICHOS — escolha até 10</p>
                     <p className="text-xs text-muted-foreground px-2 mb-2">Termos de busca — clique para preencher as buscas</p>
                     <div className="flex flex-wrap gap-2 px-2">
                       {niche.terms.map(({ term, hot }) => {
