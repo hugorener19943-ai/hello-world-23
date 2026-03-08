@@ -152,7 +152,7 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
                   <ChevronRight className="h-4 w-4 shrink-0 text-primary" />
                 )}
                 <MapPin className="h-4 w-4 text-primary" />
-                <span className="text-foreground text-base">{city.cidade}</span>
+                <span className="text-white text-base">{city.cidade}</span>
                 <Badge variant="outline" className="ml-1 text-[10px] border-muted-foreground/30">
                   {city.estado}
                 </Badge>
