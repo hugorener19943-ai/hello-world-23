@@ -127,7 +127,11 @@ const niches = [
   },
 ];
 
-export function ResearchFlux() {
+interface ResearchFluxProps {
+  onSelectNiche?: (term: string) => void;
+}
+
+export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   const [openNiche, setOpenNiche] = useState<string | null>(null);
   const { toast } = useToast();
 
