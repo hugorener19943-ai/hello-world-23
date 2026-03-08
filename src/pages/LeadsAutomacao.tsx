@@ -220,55 +220,7 @@ export default function LeadsAutomacao() {
     });
   }, [blocks, activeBlockIndex]);
 
-  const handleSelectMultiCityBairros = useCallback((selections: { bairro: string; cidade: string; estado: string }[]) => {
-    // Group by city
-    const grouped = selections.reduce<Record<string, { cidade: string; estado: string; bairros: string[] }>>((acc, s) => {
-      const key = `${s.cidade}|${s.estado}`;
-      if (!acc[key]) acc[key] = { cidade: s.cidade, estado: s.estado, bairros: [] };
-      acc[key].bairros.push(s.bairro);
-      return acc;
-    }, {});
-    const cities = Object.values(grouped);
 
-    if (cities.length === 1) {
-      handleSelectMultipleBairros(cities[0].cidade, cities[0].estado, cities[0].bairros);
-      return;
-    }
-
-    // Multiple cities: fill current block with first city, create new blocks for rest
-    let idx = Math.min(activeBlockIndex, blocks.length - 1);
-    setBlocks((prev) => {
-      const updated = [...prev];
-      cities.forEach((c, i) => {
-        const blockIdx = idx + i;
-        if (blockIdx < updated.length) {
-          updated[blockIdx] = { ...updated[blockIdx], cidade: c.cidade, estado: c.estado, bairros: c.bairros.slice(0, 4) };
-        } else if (updated.length < MAX_BLOCKS) {
-          const nb = newBlock();
-          nb.query = updated[idx]?.query || "";
-          nb.subnichos = updated[idx]?.subnichos || [];
-          nb.cidade = c.cidade;
-          nb.estado = c.estado;
-          nb.bairros = c.bairros.slice(0, 4);
-          nb.targetTotal = updated[idx]?.targetTotal || 100;
-          updated.push(nb);
-        }
-      });
-      return updated;
-    });
-    
-    const firstCity = cities[0];
-    const currentBlock = blocks[idx];
-    setConfirmDialog({
-      blockIndex: idx,
-      query: currentBlock?.query || "",
-      cidade: firstCity.cidade,
-      estado: firstCity.estado,
-      bairros: firstCity.bairros.slice(0, 4),
-      targetTotal: currentBlock?.targetTotal || 100,
-    });
-    toast({ title: `${cities.length} cidades adicionadas aos blocos de busca!` });
-  }, [blocks, activeBlockIndex, handleSelectMultipleBairros, toast]);
 
   const handleConfirmBlock = useCallback(() => {
     if (!confirmDialog) return;
