@@ -767,12 +767,13 @@ const estados: StateData[] = [
 interface FluxMapsProps {
   onSelectLocation?: (cidade: string, estado: string, bairro?: string) => void;
   onSelectMultipleBairros?: (cidade: string, estado: string, bairros: string[]) => void;
+  onSelectCity?: (cidade: string, estado: string) => void;
   selectedNiche?: string;
 }
 
 const MAX_BAIRROS = 8;
 
-export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNiche }: FluxMapsProps) {
+export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectCity, selectedNiche }: FluxMapsProps) {
   const [openState, setOpenState] = useState<string | null>(null);
   const [openSubCity, setOpenSubCity] = useState<string | null>(null);
   const [filterAlta, setFilterAlta] = useState(false);
@@ -960,8 +961,10 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
                   e.dataTransfer.effectAllowed = "copy";
                 }}
                 onClick={() => {
-                  setOpenState(isOpen ? null : st.capital);
+                  const willOpen = !isOpen;
+                  setOpenState(willOpen ? st.capital : null);
                   setOpenSubCity(null);
+                  if (willOpen && onSelectCity) onSelectCity(st.capital, st.estado);
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold bg-muted/30 hover:bg-muted/50 rounded-lg transition-all cursor-pointer"
               >
@@ -1018,7 +1021,9 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
                                 e.dataTransfer.effectAllowed = "copy";
                               }}
                               onClick={() => {
-                                setOpenSubCity(subOpen ? null : sub.cidade);
+                                const willOpen = !subOpen;
+                                setOpenSubCity(willOpen ? sub.cidade : null);
+                                if (willOpen && onSelectCity) onSelectCity(sub.cidade, st.estado);
                               }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-md transition-all cursor-pointer border border-primary/40 bg-primary/15 hover:bg-primary/25"
                             >
