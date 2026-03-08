@@ -492,9 +492,16 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
     }
     setSelectedTerms((prev) => [...prev, term]);
     navigator.clipboard.writeText(term);
-    toast({ title: `Subnicho ${selectedTerms.length + 1} preenchido!`, description: term });
+    const newCount = selectedTerms.length + 1;
+    toast({ title: `Subnicho ${newCount} preenchido!`, description: term });
     if (onSelectNiche && openNiche) {
       onSelectNiche(openNiche, term);
+    }
+    // Auto-scroll to selection panel when hitting limit
+    if (newCount >= 10) {
+      setTimeout(() => {
+        selectionPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
   };
 
