@@ -424,7 +424,7 @@ export default function LeadsAutomacao() {
                   {block.query && `${block.query}`}
                   {block.query && block.cidade && " — "}
                   {block.cidade && `${block.cidade}/${block.estado}`}
-                  {block.bairro && ` (${block.bairro})`}
+                  {block.bairros.length > 0 && ` (${block.bairros.join(", ")})`}
                   {!block.query && !block.cidade && "Vazio"}
                 </span>
                 {pendingAction.type === "niche" && (
