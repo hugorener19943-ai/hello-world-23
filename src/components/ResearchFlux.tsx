@@ -525,7 +525,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
 
         {/* Selection panel showing Subnicho slots */}
         {selectedTerms.length > 0 && (
-          <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
+          <div ref={selectionPanelRef} className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
             <p className="text-sm font-semibold text-white">
               📋 SUBNICHOS SELECIONADOS ({selectedTerms.length}/10)
             </p>
