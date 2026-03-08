@@ -3,10 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Loader2, CheckCircle2, XCircle, MapPin, AlertTriangle } from "lucide-react";
+import { Trash2, Loader2, CheckCircle2, XCircle, MapPin, AlertTriangle, Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getBairrosPorCidade } from "@/lib/bairrosPorCidade";
 import type { SearchBlock } from "./types";
+
+const MAX_BAIRROS = 4;
 
 interface Props {
   block: SearchBlock;
@@ -14,7 +16,7 @@ interface Props {
   canRemove: boolean;
   status?: "idle" | "loading" | "done" | "error";
   result?: { found: number; requested: number; message?: string };
-  onChange: (id: string, field: keyof SearchBlock, value: string | number) => void;
+  onChange: (id: string, field: keyof SearchBlock, value: any) => void;
   onRemove: (id: string) => void;
   onDropData?: (id: string, data: Record<string, string>) => void;
 }
@@ -22,6 +24,7 @@ interface Props {
 export function SearchBlockCard({ block, index, canRemove, status = "idle", result, onChange, onRemove, onDropData }: Props) {
   const [showBairros, setShowBairros] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [newBairroInput, setNewBairroInput] = useState("");
 
   const bairrosSugeridos = useMemo(() => getBairrosPorCidade(block.cidade), [block.cidade]);
   const hasSuggestions = bairrosSugeridos.length > 0;
@@ -52,8 +55,29 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
         const { cidade, estado, bairro } = JSON.parse(locationData);
         if (cidade) onChange(block.id, "cidade", cidade);
         if (estado) onChange(block.id, "estado", estado);
-        if (bairro) onChange(block.id, "bairro", bairro);
+        if (bairro && block.bairros.length < MAX_BAIRROS && !block.bairros.includes(bairro)) {
+          onChange(block.id, "bairros", [...block.bairros, bairro]);
+        }
       } catch {}
+    }
+  };
+
+  const addBairro = (b: string) => {
+    const trimmed = b.trim();
+    if (!trimmed || block.bairros.length >= MAX_BAIRROS || block.bairros.includes(trimmed)) return;
+    onChange(block.id, "bairros", [...block.bairros, trimmed]);
+    setNewBairroInput("");
+  };
+
+  const removeBairro = (b: string) => {
+    onChange(block.id, "bairros", block.bairros.filter((x) => x !== b));
+  };
+
+  const toggleSuggestion = (b: string) => {
+    if (block.bairros.includes(b)) {
+      removeBairro(b);
+    } else if (block.bairros.length < MAX_BAIRROS) {
+      onChange(block.id, "bairros", [...block.bairros, b]);
     }
   };
 
@@ -141,12 +165,12 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
         </div>
       </div>
 
-      {/* Bairro - opcional */}
+      {/* Bairros - até 4 */}
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Label className="text-base font-bold text-white flex items-center gap-1.5">
             <MapPin className="h-4 w-4 text-neon" />
-            Bairro <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+            Bairros <span className="text-xs font-normal text-muted-foreground">(até {MAX_BAIRROS}, opcional)</span>
           </Label>
           {hasSuggestions && (
             <Button
@@ -160,24 +184,58 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
             </Button>
           )}
         </div>
-        <Input
-          placeholder="ex: Pinheiros"
-          value={block.bairro}
-          onChange={(e) => onChange(block.id, "bairro", e.target.value)}
-          className="bg-secondary border-border max-w-xs"
-        />
+
+        {/* Selected bairros chips */}
+        {block.bairros.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {block.bairros.map((b) => (
+              <Badge key={b} className="bg-primary text-primary-foreground glow-neon gap-1 pr-1">
+                {b}
+                <button onClick={() => removeBairro(b)} className="ml-0.5 hover:bg-primary-foreground/20 rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {/* Add bairro input */}
+        {block.bairros.length < MAX_BAIRROS && (
+          <div className="flex gap-2 items-center">
+            <Input
+              placeholder="ex: Pinheiros"
+              value={newBairroInput}
+              onChange={(e) => setNewBairroInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addBairro(newBairroInput); } }}
+              className="bg-secondary border-border max-w-xs h-8 text-sm"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 px-2 text-xs border-primary/30 text-neon"
+              onClick={() => addBairro(newBairroInput)}
+              disabled={!newBairroInput.trim()}
+            >
+              <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar
+            </Button>
+          </div>
+        )}
+
         {showBairros && hasSuggestions && (
           <div className="flex flex-wrap gap-1.5 pt-1">
             {bairrosSugeridos.map((b) => (
               <Badge
                 key={b}
-                variant={block.bairro === b ? "default" : "outline"}
+                variant={block.bairros.includes(b) ? "default" : "outline"}
                 className={`cursor-pointer text-xs transition-colors ${
-                  block.bairro === b
+                  block.bairros.includes(b)
                     ? "bg-primary text-primary-foreground glow-neon"
+                    : block.bairros.length >= MAX_BAIRROS
+                    ? "border-border text-muted-foreground/50 cursor-not-allowed"
                     : "border-border text-muted-foreground hover:border-primary hover:text-primary"
                 }`}
-                onClick={() => onChange(block.id, "bairro", block.bairro === b ? "" : b)}
+                onClick={() => { if (block.bairros.length < MAX_BAIRROS || block.bairros.includes(b)) toggleSuggestion(b); }}
               >
                 {b}
               </Badge>

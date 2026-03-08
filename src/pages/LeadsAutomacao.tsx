@@ -28,7 +28,7 @@ const PAGE_SIZE = 50;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
-  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairro: "", targetTotal: 100 };
+  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairros: [], targetTotal: 100 };
 }
 
 function dedupeKey(e: LeadAutomacao): string {
@@ -44,59 +44,67 @@ interface FetchResult {
 
 async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   const seen = new Map<string, LeadAutomacao>();
-  let offset = 0;
-  let keepGoing = true;
   let pagesScanned = 0;
   let reason: FetchResult["reason"] = "all_fetched";
 
-  while (keepGoing && offset < block.targetTotal) {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { Authorization: AUTH, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: block.query,
-        local: { cidade: block.cidade, estado: block.estado, bairro: block.bairro || undefined },
-        target_total: block.targetTotal,
-        format: "json",
-        pageSize: PAGE_SIZE,
-        offset,
-      }),
-    });
+  // If bairros specified, search each one; otherwise search without bairro
+  const bairroList = block.bairros.length > 0 ? block.bairros : [undefined];
 
-    const contentType = res.headers.get("content-type");
+  for (const bairro of bairroList) {
+    let offset = 0;
+    let keepGoing = true;
 
-    if (!contentType?.includes("application/json")) {
-      const text = await res.text();
-      if (text.trim().startsWith("<!") || text.includes("<html")) {
-        throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}.`);
+    while (keepGoing && seen.size < block.targetTotal) {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          query: block.query,
+          local: { cidade: block.cidade, estado: block.estado, bairro: bairro || undefined },
+          target_total: block.targetTotal,
+          format: "json",
+          pageSize: PAGE_SIZE,
+          offset,
+        }),
+      });
+
+      const contentType = res.headers.get("content-type");
+
+      if (!contentType?.includes("application/json")) {
+        const text = await res.text();
+        if (text.trim().startsWith("<!") || text.includes("<html")) {
+          throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}.`);
+        }
+        throw new Error(`Formato inesperado da resposta: ${contentType}`);
       }
-      throw new Error(`Formato inesperado da resposta: ${contentType}`);
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
+      }
+
+      const data = await res.json();
+      const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
+      pagesScanned++;
+
+      for (const e of batch) {
+        const key = dedupeKey(e);
+        if (!seen.has(key)) seen.set(key, e);
+      }
+
+      if (batch.length < PAGE_SIZE) {
+        reason = "no_more_pages";
+        keepGoing = false;
+      } else if (seen.size >= block.targetTotal) {
+        reason = "all_fetched";
+        keepGoing = false;
+      } else {
+        offset += PAGE_SIZE;
+        await new Promise(r => setTimeout(r, 150));
+      }
     }
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
-    }
-
-    const data = await res.json();
-    const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
-    pagesScanned++;
-
-    for (const e of batch) {
-      const key = dedupeKey(e);
-      if (!seen.has(key)) seen.set(key, e);
-    }
-
-    if (batch.length < PAGE_SIZE) {
-      reason = "no_more_pages";
-      keepGoing = false;
-    } else if (seen.size >= block.targetTotal) {
-      reason = "all_fetched";
-      keepGoing = false;
-    } else {
-      offset += PAGE_SIZE;
-      await new Promise(r => setTimeout(r, 150));
-    }
+    if (seen.size >= block.targetTotal) break;
   }
 
   if (seen.size < block.targetTotal && reason === "all_fetched") {
@@ -122,7 +130,7 @@ export default function LeadsAutomacao() {
   const [pendingAction, setPendingAction] = useState<{ type: "niche"; term: string } | { type: "location"; cidade: string; estado: string; bairro?: string } | null>(null);
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
   const [confirmDialog, setConfirmDialog] = useState<{
-    blockIndex: number; query: string; cidade: string; estado: string; bairro: string; targetTotal: number;
+    blockIndex: number; query: string; cidade: string; estado: string; bairros: string[]; targetTotal: number;
   } | null>(null);
   const { toast } = useToast();
 
@@ -137,11 +145,14 @@ export default function LeadsAutomacao() {
       if (action.type === "niche") {
         updated[blockIndex] = { ...updated[blockIndex], query: action.term };
       } else {
+        const newBairros = action.bairro && !updated[blockIndex].bairros.includes(action.bairro)
+          ? [...updated[blockIndex].bairros, action.bairro].slice(0, 4)
+          : updated[blockIndex].bairros;
         updated[blockIndex] = {
           ...updated[blockIndex],
           cidade: action.cidade,
           estado: action.estado,
-          bairro: action.bairro || updated[blockIndex].bairro,
+          bairros: newBairros,
         };
       }
       return updated;
@@ -170,27 +181,30 @@ export default function LeadsAutomacao() {
     const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairro: bairro || updated[targetIndex].bairro };
+      const existing = updated[targetIndex].bairros;
+      const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 4) : existing;
+      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: newBairros };
       return updated;
     });
-    // Show confirmation dialog
     const currentBlock = blocks[targetIndex];
     setConfirmDialog({
       blockIndex: targetIndex,
       query: currentBlock?.query || "",
       cidade,
       estado,
-      bairro: bairro || currentBlock?.bairro || "",
-      targetTotal: currentBlock?.targetTotal || 20,
+      bairros: bairro && !currentBlock?.bairros.includes(bairro)
+        ? [...(currentBlock?.bairros || []), bairro].slice(0, 4)
+        : currentBlock?.bairros || [],
+      targetTotal: currentBlock?.targetTotal || 100,
     });
   }, [blocks, activeBlockIndex]);
 
   const handleConfirmBlock = useCallback(() => {
     if (!confirmDialog) return;
-    const { blockIndex, targetTotal, cidade, estado, bairro, query } = confirmDialog;
+    const { blockIndex, targetTotal, cidade, estado, bairros, query } = confirmDialog;
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[blockIndex] = { ...updated[blockIndex], query, cidade, estado, bairro, targetTotal };
+      updated[blockIndex] = { ...updated[blockIndex], query, cidade, estado, bairros, targetTotal };
       return updated;
     });
     setConfirmDialog(null);
@@ -228,7 +242,7 @@ export default function LeadsAutomacao() {
       query: b?.query || "",
       cidade: b?.cidade || "",
       estado: b?.estado || "",
-      bairro: b?.bairro || "",
+      bairros: Array.isArray(b?.bairros) ? b.bairros : b?.bairro ? [b.bairro] : [],
       targetTotal: b?.targetTotal || b?.quantidade || 100,
     }));
     setBlocks(newBlocks.length > 0 ? newBlocks : [newBlock()]);
@@ -269,7 +283,7 @@ export default function LeadsAutomacao() {
             message = "Nenhum resultado encontrado para este nicho/local.";
           } else if (found < requested) {
             const reasonText = result.reason === "no_more_pages"
-              ? `A API retornou apenas ${found} empresas — não existem mais resultados para "${block.query}" em ${block.cidade}${block.bairro ? ` (${block.bairro})` : ""}. Tente remover o bairro ou ampliar o nicho.`
+              ? `A API retornou apenas ${found} empresas — não existem mais resultados para "${block.query}" em ${block.cidade}${block.bairros.length ? ` (${block.bairros.join(", ")})` : ""}. Tente remover bairros ou ampliar o nicho.`
               : `Foram encontradas ${found} de ${requested} empresas solicitadas. A região/nicho tem poucas empresas cadastradas.`;
             message = reasonText;
           }
@@ -410,7 +424,7 @@ export default function LeadsAutomacao() {
                   {block.query && `${block.query}`}
                   {block.query && block.cidade && " — "}
                   {block.cidade && `${block.cidade}/${block.estado}`}
-                  {block.bairro && ` (${block.bairro})`}
+                  {block.bairros.length > 0 && ` (${block.bairros.join(", ")})`}
                   {!block.query && !block.cidade && "Vazio"}
                 </span>
                 {pendingAction.type === "niche" && (
@@ -476,13 +490,16 @@ export default function LeadsAutomacao() {
                   />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-xs font-bold text-muted-foreground uppercase">Bairro <span className="text-[10px] font-normal">(opcional)</span></span>
-                  <Input
-                    value={confirmDialog.bairro}
-                    onChange={(e) => setConfirmDialog((prev) => prev ? { ...prev, bairro: e.target.value } : null)}
-                    className="h-9 bg-secondary border-border"
-                    placeholder="ex: Pinheiros"
-                  />
+                  <span className="text-xs font-bold text-muted-foreground uppercase">Bairros <span className="text-[10px] font-normal">(até 4, opcional)</span></span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {confirmDialog.bairros.map((b) => (
+                      <Badge key={b} className="bg-primary text-primary-foreground gap-1 pr-1 text-xs">
+                        {b}
+                        <button onClick={() => setConfirmDialog((prev) => prev ? { ...prev, bairros: prev.bairros.filter(x => x !== b) } : null)} className="ml-0.5 hover:bg-primary-foreground/20 rounded-full p-0.5">×</button>
+                      </Badge>
+                    ))}
+                    {confirmDialog.bairros.length === 0 && <span className="text-xs text-muted-foreground">Nenhum selecionado</span>}
+                  </div>
                 </div>
                 <div className="flex items-center justify-between pt-2 border-t border-border/50">
                   <span className="text-xs font-bold text-muted-foreground uppercase">Quantidade de Leads</span>
