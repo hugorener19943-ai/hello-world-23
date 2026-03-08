@@ -342,11 +342,16 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
                         return (
                           <div key={sub.cidade} className="ml-2">
                             <button
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData("application/flux-location", JSON.stringify({ cidade: sub.cidade, estado: st.estado }));
+                                e.dataTransfer.effectAllowed = "copy";
+                              }}
                               onClick={() => {
                                 setOpenSubCity(subOpen ? null : sub.cidade);
                                 onSelectLocation?.(sub.cidade, st.estado);
                               }}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-muted/20 hover:bg-muted/40 rounded-md transition-all"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-muted/20 hover:bg-muted/40 rounded-md transition-all cursor-grab active:cursor-grabbing"
                             >
                               {subOpen ? (
                                 <ChevronDown className="h-3.5 w-3.5 shrink-0 text-primary" />
