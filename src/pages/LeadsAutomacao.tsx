@@ -149,7 +149,7 @@ export default function LeadsAutomacao() {
         updated[blockIndex] = { ...updated[blockIndex], query: action.term };
       } else {
         const newBairros = action.bairro && !updated[blockIndex].bairros.includes(action.bairro)
-          ? [...updated[blockIndex].bairros, action.bairro].slice(0, 4)
+          ? [...updated[blockIndex].bairros, action.bairro].slice(0, 8)
           : updated[blockIndex].bairros;
         updated[blockIndex] = {
           ...updated[blockIndex],
