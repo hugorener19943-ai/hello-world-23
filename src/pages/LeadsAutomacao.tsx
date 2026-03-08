@@ -27,7 +27,7 @@ const TEMP_FILTERS = ["Todos", "quente", "morno", "frio"] as const;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
-  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairro: "", targetTotal: 20 };
+  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairro: "", targetTotal: 100 };
 }
 
 async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
