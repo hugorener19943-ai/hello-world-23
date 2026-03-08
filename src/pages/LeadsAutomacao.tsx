@@ -61,7 +61,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
         method: "POST",
         headers: { Authorization: AUTH, "Content-Type": "application/json" },
         body: JSON.stringify({
-          query: block.query,
+          query: searchQuery,
           local: { cidade: block.cidade, estado: block.estado, bairro: bairro || undefined },
           target_total: block.targetTotal,
           format: "json",
