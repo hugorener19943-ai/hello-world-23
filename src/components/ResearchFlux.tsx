@@ -160,7 +160,7 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
               >
                 {isOpen ? <ChevronDown className="h-4 w-4 shrink-0 text-primary" /> : <ChevronRight className="h-4 w-4 shrink-0 text-primary" />}
                 <span className="text-lg">{niche.emoji}</span>
-                <span className="text-foreground text-base">{niche.name}</span>
+                <span className="text-white text-base">{niche.name}</span>
                 <span className="ml-auto flex items-center gap-1 text-xs text-destructive font-semibold">
                   <Flame className="h-3.5 w-3.5" />
                   {hotCount} quentes
