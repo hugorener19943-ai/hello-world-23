@@ -188,7 +188,7 @@ export default function LeadsAutomacao() {
       cidade: b?.cidade || "",
       estado: b?.estado || "",
       bairro: b?.bairro || "",
-      targetTotal: b?.targetTotal || b?.quantidade || 20,
+      targetTotal: b?.targetTotal || b?.quantidade || 100,
     }));
     setBlocks(newBlocks.length > 0 ? newBlocks : [newBlock()]);
     setLeads([]);
