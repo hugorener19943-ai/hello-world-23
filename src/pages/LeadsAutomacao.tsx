@@ -186,7 +186,7 @@ export default function LeadsAutomacao() {
     const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
     const currentBlock = blocks[targetIndex];
     const existing = currentBlock?.bairros || [];
-    const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 4) : existing;
+    const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 8) : existing;
     setBlocks((prev) => {
       const updated = [...prev];
       updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: newBairros };
