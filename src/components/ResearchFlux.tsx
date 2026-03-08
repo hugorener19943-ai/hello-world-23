@@ -464,102 +464,81 @@ interface ResearchFluxProps {
 }
 
 export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
-  const [openNiches, setOpenNiches] = useState<string[]>([]);
-  const [selectingMore, setSelectingMore] = useState(false);
+  const [openNiche, setOpenNiche] = useState<string | null>(null);
+  const [selectedTerms, setSelectedTerms] = useState<string[]>([]);
   const { toast } = useToast();
 
-  const copyTerm = (text: string, isSearchTerm: boolean = false) => {
+  const handleNicheClick = (name: string) => {
+    setOpenNiche(openNiche === name ? null : name);
+  };
+
+  const handleTermClick = (term: string) => {
+    if (selectedTerms.includes(term)) {
+      setSelectedTerms((prev) => prev.filter((t) => t !== term));
+      return;
+    }
+    if (selectedTerms.length >= 4) {
+      toast({ title: "Limite atingido", description: "Máximo de 4 buscas" });
+      return;
+    }
+    setSelectedTerms((prev) => [...prev, term]);
+    navigator.clipboard.writeText(term);
+    toast({ title: `Busca ${selectedTerms.length + 1} preenchida!`, description: term });
+    if (onSelectNiche) {
+      onSelectNiche(term);
+    }
+  };
+
+  const copyOffer = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copiado!", description: text });
-    if (isSearchTerm && onSelectNiche) {
-      onSelectNiche(text);
-    }
   };
 
-  const handleNicheClick = (name: string) => {
-    if (openNiches.includes(name)) {
-      setOpenNiches((prev) => prev.filter((n) => n !== name));
-      return;
-    }
-    if (openNiches.length >= 4) {
-      toast({ title: "Limite atingido", description: "Máximo de 4 nichos" });
-      return;
-    }
-    if (openNiches.length === 0) {
-      // First niche — add it and ask if they want more
-      setOpenNiches([name]);
-      setSelectingMore(true);
-    } else if (selectingMore) {
-      // Already in selection mode — just add
-      setOpenNiches((prev) => [...prev, name]);
-      if (openNiches.length + 1 >= 4) {
-        setSelectingMore(false);
-      }
-    } else {
-      // Not in selection mode — replace with single
-      setOpenNiches([name]);
-      setSelectingMore(true);
-    }
+  const clearSelections = () => {
+    setSelectedTerms([]);
   };
 
-  const finishSelection = () => {
-    setSelectingMore(false);
-  };
-
-  // Gather combined terms/offers from all open niches
-  const combinedTerms = openNiches.length > 1
-    ? niches
-        .filter((n) => openNiches.includes(n.name))
-        .flatMap((n) => n.terms)
-    : null;
-
-  const combinedOffers = openNiches.length > 1
-    ? niches
-        .filter((n) => openNiches.includes(n.name))
-        .flatMap((n) => n.offers)
-    : null;
-
-  const combinedTips = openNiches.length > 1
-    ? niches
-        .filter((n) => openNiches.includes(n.name))
-        .map((n) => `${n.emoji} ${n.name}: ${n.tip}`)
-    : null;
+  const currentNicheData = openNiche ? niches.find((n) => n.name === openNiche) : null;
 
   return (
     <ScrollArea className="h-full">
       <div className="p-5 space-y-2">
         <p className="text-sm text-white px-2 mb-3">
-          Clique em um nicho para selecionar ({openNiches.length}/4)
+          Clique em um nicho, depois selecione os termos de busca
         </p>
 
-        {/* Selection panel showing slots */}
-        {selectingMore && openNiches.length > 0 && (
+        {/* Selection panel showing Busca slots */}
+        {selectedTerms.length > 0 && (
           <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
             <p className="text-sm font-semibold text-white">
-              Selecione seus nichos ({openNiches.length}/4)
+              Suas Buscas ({selectedTerms.length}/4)
             </p>
             <div className="space-y-1">
               {[0, 1, 2, 3].map((i) => {
-                const existing = openNiches[i];
-                const nicheData = existing ? niches.find((n) => n.name === existing) : null;
+                const term = selectedTerms[i];
                 return (
                   <div key={i} className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-md ${
-                    nicheData ? "bg-primary/15 text-primary font-semibold" : "bg-muted/20 text-muted-foreground"
+                    term ? "bg-primary/15 text-primary font-semibold" : "bg-muted/20 text-muted-foreground"
                   }`}>
-                    <span className="font-bold min-w-[55px]">Nicho {i + 1}:</span>
-                    <span>{nicheData ? `${nicheData.emoji} ${nicheData.name}` : "— clique abaixo para escolher"}</span>
+                    <span className="font-bold min-w-[55px]">Busca {i + 1}:</span>
+                    <span className="flex-1">{term || "— clique em um termo abaixo"}</span>
+                    {term && (
+                      <button
+                        onClick={() => setSelectedTerms((prev) => prev.filter((_, idx) => idx !== i))}
+                        className="text-destructive hover:text-destructive/80 text-xs"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
                 );
               })}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Clique nos nichos abaixo para adicionar. {4 - openNiches.length} restantes.
-            </p>
             <button
-              onClick={finishSelection}
-              className="px-4 py-2 text-sm font-bold rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition-all"
+              onClick={clearSelections}
+              className="px-4 py-2 text-sm font-bold rounded-lg bg-destructive/20 text-destructive border border-destructive/30 hover:bg-destructive/30 transition-all"
             >
-              ✅ Confirmar seleção
+              🗑️ Limpar seleções
             </button>
           </div>
         )}
