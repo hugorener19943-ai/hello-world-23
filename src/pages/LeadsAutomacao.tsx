@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
 import { LeadCard } from "@/components/leads/LeadCard";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
 import type { FluxTemplate } from "@/lib/fluxTemplates";
