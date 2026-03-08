@@ -567,7 +567,7 @@ export default function LeadsAutomacao() {
               <ResearchFlux onSelectNiche={handleSelectNiche} />
             </TabsContent>
             <TabsContent value="maps" className="flex-1 overflow-hidden mt-0">
-              <FluxMaps onSelectLocation={handleSelectLocation} selectedNiche={selectedNiche} />
+              <FluxMaps onSelectLocation={handleSelectLocation} onSelectMultipleBairros={handleSelectMultipleBairros} selectedNiche={selectedNiche} />
             </TabsContent>
           </Tabs>
         </aside>
