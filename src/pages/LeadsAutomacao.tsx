@@ -179,22 +179,38 @@ export default function LeadsAutomacao() {
 
   const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
     const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
+    const currentBlock = blocks[targetIndex];
+    const existing = currentBlock?.bairros || [];
+    const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 4) : existing;
     setBlocks((prev) => {
       const updated = [...prev];
-      const existing = updated[targetIndex].bairros;
-      const newBairros = bairro && !existing.includes(bairro) ? [...existing, bairro].slice(0, 4) : existing;
       updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: newBairros };
       return updated;
     });
-    const currentBlock = blocks[targetIndex];
     setConfirmDialog({
       blockIndex: targetIndex,
       query: currentBlock?.query || "",
       cidade,
       estado,
-      bairros: bairro && !currentBlock?.bairros.includes(bairro)
-        ? [...(currentBlock?.bairros || []), bairro].slice(0, 4)
-        : currentBlock?.bairros || [],
+      bairros: newBairros,
+      targetTotal: currentBlock?.targetTotal || 100,
+    });
+  }, [blocks, activeBlockIndex]);
+
+  const handleSelectMultipleBairros = useCallback((cidade: string, estado: string, bairros: string[]) => {
+    const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
+    const currentBlock = blocks[targetIndex];
+    setBlocks((prev) => {
+      const updated = [...prev];
+      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairros: bairros.slice(0, 4) };
+      return updated;
+    });
+    setConfirmDialog({
+      blockIndex: targetIndex,
+      query: currentBlock?.query || "",
+      cidade,
+      estado,
+      bairros: bairros.slice(0, 4),
       targetTotal: currentBlock?.targetTotal || 100,
     });
   }, [blocks, activeBlockIndex]);
