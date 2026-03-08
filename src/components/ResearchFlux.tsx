@@ -477,13 +477,13 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
       setSelectedTerms((prev) => prev.filter((t) => t !== term));
       return;
     }
-    if (selectedTerms.length >= 4) {
-      toast({ title: "Limite atingido", description: "Máximo de 4 buscas" });
+    if (selectedTerms.length >= 5) {
+      toast({ title: "Limite atingido", description: "Máximo de 5 subnichos" });
       return;
     }
     setSelectedTerms((prev) => [...prev, term]);
     navigator.clipboard.writeText(term);
-    toast({ title: `Busca ${selectedTerms.length + 1} preenchida!`, description: term });
+    toast({ title: `Subnicho ${selectedTerms.length + 1} preenchido!`, description: term });
     if (onSelectNiche) {
       onSelectNiche(term);
     }
