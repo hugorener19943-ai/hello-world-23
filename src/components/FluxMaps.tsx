@@ -767,6 +767,7 @@ const estados: StateData[] = [
 interface FluxMapsProps {
   onSelectLocation?: (cidade: string, estado: string, bairro?: string) => void;
   onSelectMultipleBairros?: (cidade: string, estado: string, bairros: string[]) => void;
+  onSelectCity?: (cidade: string, estado: string) => void;
   onToggleBairro?: (cidade: string, estado: string, bairro: string, selected: boolean) => void;
   selectedNiche?: string;
 }
