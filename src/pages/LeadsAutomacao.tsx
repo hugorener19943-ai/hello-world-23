@@ -571,7 +571,17 @@ export default function LeadsAutomacao() {
               </TabsTrigger>
             </TabsList>
             <TabsContent value="research" className="flex-1 overflow-hidden mt-0">
-              <ResearchFlux onSelectNiche={handleSelectNiche} onConfirmSubnichos={() => setSidebarTab("maps")} />
+              <ResearchFlux onSelectNiche={handleSelectNiche} onConfirmSubnichos={(limit) => {
+                if (limit) {
+                  const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
+                  setBlocks((prev) => {
+                    const updated = [...prev];
+                    updated[targetIndex] = { ...updated[targetIndex], targetTotal: limit };
+                    return updated;
+                  });
+                }
+                setSidebarTab("maps");
+              }} />
             </TabsContent>
             <TabsContent value="maps" className="flex-1 overflow-hidden mt-0">
               <FluxMaps onSelectLocation={handleSelectLocation} onSelectMultipleBairros={handleSelectMultipleBairros} selectedNiche={selectedNiche} />
