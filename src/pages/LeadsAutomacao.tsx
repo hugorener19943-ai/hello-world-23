@@ -242,7 +242,7 @@ export default function LeadsAutomacao() {
       query: b?.query || "",
       cidade: b?.cidade || "",
       estado: b?.estado || "",
-      bairro: b?.bairro || "",
+      bairros: Array.isArray(b?.bairros) ? b.bairros : b?.bairro ? [b.bairro] : [],
       targetTotal: b?.targetTotal || b?.quantidade || 100,
     }));
     setBlocks(newBlocks.length > 0 ? newBlocks : [newBlock()]);
