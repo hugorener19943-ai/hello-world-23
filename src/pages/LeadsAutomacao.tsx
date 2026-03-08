@@ -24,46 +24,69 @@ const API_URL = "https://api.fluxleads.com.br/webhook/buscar-empresas-automacao"
 const AUTH = "Bearer key_pro_123";
 const MAX_BLOCKS = 5;
 const TEMP_FILTERS = ["Todos", "quente", "morno", "frio"] as const;
+const PAGE_SIZE = 50;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
   return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairro: "", targetTotal: 100 };
 }
 
+function dedupeKey(e: LeadAutomacao): string {
+  if (e.fsq_id) return e.fsq_id;
+  return `${(e.nome || "").toLowerCase()}|${(e.endereco || "").toLowerCase()}`;
+}
+
 async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { Authorization: AUTH, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: block.query,
-      local: { cidade: block.cidade, estado: block.estado, bairro: block.bairro || undefined },
-      target_total: block.targetTotal,
-      format: "json",
-    }),
-  });
+  const seen = new Map<string, LeadAutomacao>();
+  let offset = 0;
+  let keepGoing = true;
 
-  const contentType = res.headers.get("content-type");
+  while (keepGoing && offset < block.targetTotal) {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { Authorization: AUTH, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: block.query,
+        local: { cidade: block.cidade, estado: block.estado, bairro: block.bairro || undefined },
+        target_total: block.targetTotal,
+        format: "json",
+        pageSize: PAGE_SIZE,
+        offset,
+      }),
+    });
 
-  if (!contentType?.includes("application/json")) {
-    const text = await res.text();
-    console.error("Expected JSON but got:", contentType);
-    console.error("Response preview:", text.substring(0, 200));
+    const contentType = res.headers.get("content-type");
 
-    if (text.trim().startsWith("<!") || text.includes("<html")) {
-      throw new Error(
-        `API retornou HTML em vez de JSON. Status: ${res.status}. Verifique autenticação ou rate limiting.`
-      );
+    if (!contentType?.includes("application/json")) {
+      const text = await res.text();
+      if (text.trim().startsWith("<!") || text.includes("<html")) {
+        throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}.`);
+      }
+      throw new Error(`Formato inesperado da resposta: ${contentType}`);
     }
-    throw new Error(`Formato inesperado da resposta: ${contentType}`);
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
+    }
+
+    const data = await res.json();
+    const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas : [];
+
+    for (const e of batch) {
+      const key = dedupeKey(e);
+      if (!seen.has(key)) seen.set(key, e);
+    }
+
+    if (batch.length < PAGE_SIZE || seen.size >= block.targetTotal) {
+      keepGoing = false;
+    } else {
+      offset += PAGE_SIZE;
+      await new Promise(r => setTimeout(r, 150));
+    }
   }
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
-  }
-
-  const data = await res.json();
-  return Array.isArray(data.empresas) ? data.empresas : [];
+  return Array.from(seen.values());
 }
 
 export default function LeadsAutomacao() {
