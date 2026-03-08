@@ -27,7 +27,7 @@ const TEMP_FILTERS = ["Todos", "quente", "morno", "frio"] as const;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
-  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairro: "", targetTotal: 20 };
+  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairro: "", targetTotal: 100 };
 }
 
 async function fetchBlock(block: SearchBlock): Promise<LeadAutomacao[]> {
@@ -188,7 +188,7 @@ export default function LeadsAutomacao() {
       cidade: b?.cidade || "",
       estado: b?.estado || "",
       bairro: b?.bairro || "",
-      targetTotal: b?.targetTotal || b?.quantidade || 20,
+      targetTotal: b?.targetTotal || b?.quantidade || 100,
     }));
     setBlocks(newBlocks.length > 0 ? newBlocks : [newBlock()]);
     setLeads([]);
@@ -238,8 +238,16 @@ export default function LeadsAutomacao() {
 
     let unique = deduplicateLeads(allLeads);
     if (onlyHotLeads) {
-      unique = unique.filter((l) => (l.temperatura_lead || "").toLowerCase().includes("quente"));
+      // Prioritize hot leads but also include high-score warm leads
+      const hot = unique.filter((l) => (l.temperatura_lead || "").toLowerCase().includes("quente"));
+      const warmHighScore = unique.filter((l) => {
+        const temp = (l.temperatura_lead || "").toLowerCase();
+        return temp.includes("morno") && (l.score ?? 0) >= 70;
+      });
+      unique = hot.length > 0 ? [...hot, ...warmHighScore.filter((w) => !hot.some((h) => (h.fsq_id || h.nome) === (w.fsq_id || w.nome)))] : unique;
     }
+    // Sort by score descending for better results
+    unique.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     setLeads(unique);
     setSelectedLeads(new Set());
     setLoading(false);
@@ -427,7 +435,7 @@ export default function LeadsAutomacao() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {[10, 20, 50, 100, 200, 300, 400].map((n) => (
+                      {[20, 50, 100, 200, 300, 400].map((n) => (
                         <SelectItem key={n} value={String(n)}>{n} leads</SelectItem>
                       ))}
                     </SelectContent>
