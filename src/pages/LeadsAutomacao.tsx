@@ -75,6 +75,8 @@ export default function LeadsAutomacao() {
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const [selectedNiche, setSelectedNiche] = useState<string>("");
   const [sidebarTab, setSidebarTab] = useState<string>("research");
+  const [nicheBlockCursor, setNicheBlockCursor] = useState(0);
+  const [locationBlockCursor, setLocationBlockCursor] = useState(0);
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
@@ -83,26 +85,36 @@ export default function LeadsAutomacao() {
 
   const handleSelectNiche = useCallback((term: string) => {
     setSelectedNiche(term);
-    // Auto-fill first block's query
     setBlocks((prev) => {
-      const updated = [...prev];
-      if (updated.length > 0) {
-        updated[0] = { ...updated[0], query: term };
+      let updated = [...prev];
+      let cursor = nicheBlockCursor;
+      // If cursor is beyond existing blocks, create a new one (up to MAX)
+      if (cursor >= updated.length && updated.length < MAX_BLOCKS) {
+        updated.push(newBlock());
       }
+      // Clamp cursor
+      cursor = Math.min(cursor, updated.length - 1);
+      updated[cursor] = { ...updated[cursor], query: term };
+      // Advance cursor for next click
+      setNicheBlockCursor(cursor + 1);
       return updated;
     });
     setSidebarTab("maps");
-  }, []);
+  }, [nicheBlockCursor]);
 
   const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
     setBlocks((prev) => {
-      const updated = [...prev];
-      if (updated.length > 0) {
-        updated[0] = { ...updated[0], cidade, estado, bairro: bairro || updated[0].bairro };
+      let updated = [...prev];
+      let cursor = locationBlockCursor;
+      if (cursor >= updated.length && updated.length < MAX_BLOCKS) {
+        updated.push(newBlock());
       }
+      cursor = Math.min(cursor, updated.length - 1);
+      updated[cursor] = { ...updated[cursor], cidade, estado, bairro: bairro || updated[cursor].bairro };
+      setLocationBlockCursor(cursor + 1);
       return updated;
     });
-  }, []);
+  }, [locationBlockCursor]);
 
   const removeBlock = useCallback((id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
