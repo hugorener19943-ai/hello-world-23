@@ -4,16 +4,28 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
-interface CityData {
-  cidade: string;
-  estado: string;
-  potencial: "alto" | "medio";
-  bairros: { nome: string; conversao: "alta" | "media" }[];
+interface BairroData {
+  nome: string;
+  conversao: "alta" | "media";
 }
 
-const cidadesRecomendadas: CityData[] = [
+interface SubCity {
+  cidade: string;
+  potencial: "alto" | "medio";
+  bairros: BairroData[];
+}
+
+interface StateData {
+  capital: string;
+  estado: string;
+  potencial: "alto" | "medio";
+  bairros: BairroData[];
+  cidades: SubCity[];
+}
+
+const estados: StateData[] = [
   {
-    cidade: "São Paulo", estado: "SP", potencial: "alto",
+    capital: "São Paulo", estado: "SP", potencial: "alto",
     bairros: [
       { nome: "Pinheiros", conversao: "alta" }, { nome: "Vila Mariana", conversao: "alta" },
       { nome: "Moema", conversao: "alta" }, { nome: "Itaim Bibi", conversao: "alta" },
@@ -21,161 +33,176 @@ const cidadesRecomendadas: CityData[] = [
       { nome: "Brooklin", conversao: "media" }, { nome: "Perdizes", conversao: "media" },
       { nome: "Santana", conversao: "media" }, { nome: "Tatuapé", conversao: "media" },
     ],
+    cidades: [
+      {
+        cidade: "Campinas", potencial: "alto",
+        bairros: [
+          { nome: "Cambuí", conversao: "alta" }, { nome: "Nova Campinas", conversao: "alta" },
+          { nome: "Barão Geraldo", conversao: "media" }, { nome: "Taquaral", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "São José do Rio Preto", potencial: "alto",
+        bairros: [
+          { nome: "Redentora", conversao: "alta" }, { nome: "Boa Vista", conversao: "alta" },
+          { nome: "Jardim Walkíria", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+          { nome: "Higienópolis", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Ribeirão Preto", potencial: "alto",
+        bairros: [
+          { nome: "Jardim Sumaré", conversao: "alta" }, { nome: "Alto da Boa Vista", conversao: "alta" },
+          { nome: "Jardim Irajá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Sorocaba", potencial: "alto",
+        bairros: [
+          { nome: "Campolim", conversao: "alta" }, { nome: "Parque Campolim", conversao: "alta" },
+          { nome: "Centro", conversao: "media" }, { nome: "Jardim Faculdade", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Santos", potencial: "alto",
+        bairros: [
+          { nome: "Gonzaga", conversao: "alta" }, { nome: "Boqueirão", conversao: "alta" },
+          { nome: "Ponta da Praia", conversao: "media" }, { nome: "Embaré", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Bauru", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Jardim Estoril", conversao: "alta" },
+          { nome: "Vila Universitária", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
-    cidade: "Rio de Janeiro", estado: "RJ", potencial: "alto",
+    capital: "Rio de Janeiro", estado: "RJ", potencial: "alto",
     bairros: [
       { nome: "Copacabana", conversao: "alta" }, { nome: "Ipanema", conversao: "alta" },
       { nome: "Leblon", conversao: "alta" }, { nome: "Botafogo", conversao: "alta" },
       { nome: "Barra da Tijuca", conversao: "alta" }, { nome: "Tijuca", conversao: "media" },
       { nome: "Flamengo", conversao: "media" }, { nome: "Centro", conversao: "media" },
     ],
+    cidades: [],
   },
   {
-    cidade: "Belo Horizonte", estado: "MG", potencial: "alto",
+    capital: "Belo Horizonte", estado: "MG", potencial: "alto",
     bairros: [
       { nome: "Savassi", conversao: "alta" }, { nome: "Lourdes", conversao: "alta" },
       { nome: "Funcionários", conversao: "alta" }, { nome: "Pampulha", conversao: "media" },
       { nome: "Buritis", conversao: "media" }, { nome: "Mangabeiras", conversao: "media" },
     ],
+    cidades: [
+      {
+        cidade: "Uberlândia", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Santa Mônica", conversao: "alta" },
+          { nome: "Saraiva", conversao: "media" }, { nome: "Altamira", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
-    cidade: "Curitiba", estado: "PR", potencial: "alto",
+    capital: "Curitiba", estado: "PR", potencial: "alto",
     bairros: [
       { nome: "Batel", conversao: "alta" }, { nome: "Água Verde", conversao: "alta" },
       { nome: "Bigorrilho", conversao: "alta" }, { nome: "Ecoville", conversao: "media" },
       { nome: "Centro", conversao: "media" }, { nome: "Juvevê", conversao: "media" },
     ],
+    cidades: [
+      {
+        cidade: "Londrina", potencial: "alto",
+        bairros: [
+          { nome: "Gleba Palhano", conversao: "alta" }, { nome: "Centro", conversao: "alta" },
+          { nome: "Bela Suíça", conversao: "media" }, { nome: "Jardim Higienópolis", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Maringá", potencial: "alto",
+        bairros: [
+          { nome: "Zona 7", conversao: "alta" }, { nome: "Zona 3", conversao: "alta" },
+          { nome: "Centro", conversao: "media" }, { nome: "Novo Centro", conversao: "alta" },
+        ],
+      },
+    ],
   },
   {
-    cidade: "Porto Alegre", estado: "RS", potencial: "medio",
+    capital: "Porto Alegre", estado: "RS", potencial: "medio",
     bairros: [
       { nome: "Moinhos de Vento", conversao: "alta" }, { nome: "Petrópolis", conversao: "alta" },
       { nome: "Bom Fim", conversao: "media" }, { nome: "Cidade Baixa", conversao: "media" },
       { nome: "Menino Deus", conversao: "media" },
     ],
+    cidades: [],
   },
   {
-    cidade: "Florianópolis", estado: "SC", potencial: "medio",
+    capital: "Florianópolis", estado: "SC", potencial: "medio",
     bairros: [
       { nome: "Centro", conversao: "alta" }, { nome: "Trindade", conversao: "media" },
       { nome: "Jurerê", conversao: "alta" }, { nome: "Lagoa da Conceição", conversao: "media" },
     ],
+    cidades: [
+      {
+        cidade: "Joinville", potencial: "alto",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "América", conversao: "alta" },
+          { nome: "Atiradores", conversao: "media" }, { nome: "Glória", conversao: "media" },
+        ],
+      },
+    ],
   },
   {
-    cidade: "Brasília", estado: "DF", potencial: "alto",
+    capital: "Brasília", estado: "DF", potencial: "alto",
     bairros: [
       { nome: "Asa Sul", conversao: "alta" }, { nome: "Asa Norte", conversao: "alta" },
       { nome: "Lago Sul", conversao: "alta" }, { nome: "Sudoeste", conversao: "media" },
       { nome: "Águas Claras", conversao: "media" },
     ],
+    cidades: [],
   },
   {
-    cidade: "Goiânia", estado: "GO", potencial: "medio",
+    capital: "Goiânia", estado: "GO", potencial: "medio",
     bairros: [
       { nome: "Setor Bueno", conversao: "alta" }, { nome: "Setor Marista", conversao: "alta" },
       { nome: "Jardim Goiás", conversao: "media" }, { nome: "Setor Oeste", conversao: "media" },
     ],
+    cidades: [],
   },
   {
-    cidade: "Salvador", estado: "BA", potencial: "medio",
+    capital: "Salvador", estado: "BA", potencial: "medio",
     bairros: [
       { nome: "Barra", conversao: "alta" }, { nome: "Pituba", conversao: "alta" },
       { nome: "Itaigara", conversao: "media" }, { nome: "Rio Vermelho", conversao: "media" },
     ],
+    cidades: [],
   },
   {
-    cidade: "Campinas", estado: "SP", potencial: "alto",
-    bairros: [
-      { nome: "Cambuí", conversao: "alta" }, { nome: "Nova Campinas", conversao: "alta" },
-      { nome: "Barão Geraldo", conversao: "media" }, { nome: "Taquaral", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "São José do Rio Preto", estado: "SP", potencial: "alto",
-    bairros: [
-      { nome: "Redentora", conversao: "alta" }, { nome: "Boa Vista", conversao: "alta" },
-      { nome: "Jardim Walkíria", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-      { nome: "Higienópolis", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "Ribeirão Preto", estado: "SP", potencial: "alto",
-    bairros: [
-      { nome: "Jardim Sumaré", conversao: "alta" }, { nome: "Alto da Boa Vista", conversao: "alta" },
-      { nome: "Jardim Irajá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
-      { nome: "Jardim Califórnia", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "Sorocaba", estado: "SP", potencial: "alto",
-    bairros: [
-      { nome: "Campolim", conversao: "alta" }, { nome: "Parque Campolim", conversao: "alta" },
-      { nome: "Centro", conversao: "media" }, { nome: "Jardim Faculdade", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "Santos", estado: "SP", potencial: "alto",
-    bairros: [
-      { nome: "Gonzaga", conversao: "alta" }, { nome: "Boqueirão", conversao: "alta" },
-      { nome: "Ponta da Praia", conversao: "media" }, { nome: "Embaré", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "Joinville", estado: "SC", potencial: "alto",
-    bairros: [
-      { nome: "Centro", conversao: "alta" }, { nome: "América", conversao: "alta" },
-      { nome: "Atiradores", conversao: "media" }, { nome: "Glória", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "Londrina", estado: "PR", potencial: "alto",
-    bairros: [
-      { nome: "Gleba Palhano", conversao: "alta" }, { nome: "Centro", conversao: "alta" },
-      { nome: "Bela Suíça", conversao: "media" }, { nome: "Jardim Higienópolis", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "Maringá", estado: "PR", potencial: "alto",
-    bairros: [
-      { nome: "Zona 7", conversao: "alta" }, { nome: "Zona 3", conversao: "alta" },
-      { nome: "Centro", conversao: "media" }, { nome: "Novo Centro", conversao: "alta" },
-    ],
-  },
-  {
-    cidade: "Vitória", estado: "ES", potencial: "medio",
+    capital: "Vitória", estado: "ES", potencial: "medio",
     bairros: [
       { nome: "Praia do Canto", conversao: "alta" }, { nome: "Jardim da Penha", conversao: "alta" },
       { nome: "Enseada do Suá", conversao: "alta" }, { nome: "Centro", conversao: "media" },
     ],
+    cidades: [],
   },
   {
-    cidade: "Recife", estado: "PE", potencial: "medio",
+    capital: "Recife", estado: "PE", potencial: "medio",
     bairros: [
       { nome: "Boa Viagem", conversao: "alta" }, { nome: "Espinheiro", conversao: "alta" },
       { nome: "Graças", conversao: "alta" }, { nome: "Casa Forte", conversao: "media" },
     ],
+    cidades: [],
   },
   {
-    cidade: "Fortaleza", estado: "CE", potencial: "medio",
+    capital: "Fortaleza", estado: "CE", potencial: "medio",
     bairros: [
       { nome: "Aldeota", conversao: "alta" }, { nome: "Meireles", conversao: "alta" },
       { nome: "Cocó", conversao: "alta" }, { nome: "Varjota", conversao: "media" },
     ],
-  },
-  {
-    cidade: "Uberlândia", estado: "MG", potencial: "alto",
-    bairros: [
-      { nome: "Centro", conversao: "alta" }, { nome: "Santa Mônica", conversao: "alta" },
-      { nome: "Saraiva", conversao: "media" }, { nome: "Altamira", conversao: "media" },
-    ],
-  },
-  {
-    cidade: "Bauru", estado: "SP", potencial: "medio",
-    bairros: [
-      { nome: "Centro", conversao: "alta" }, { nome: "Jardim Estoril", conversao: "alta" },
-      { nome: "Vila Universitária", conversao: "media" },
-    ],
+    cidades: [],
   },
 ];
 
