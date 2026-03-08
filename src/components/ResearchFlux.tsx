@@ -465,8 +465,7 @@ interface ResearchFluxProps {
 
 export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   const [openNiches, setOpenNiches] = useState<string[]>([]);
-  const [pendingNiche, setPendingNiche] = useState<string | null>(null);
-  const [showDialog, setShowDialog] = useState(false);
+  const [selectingMore, setSelectingMore] = useState(false);
   const { toast } = useToast();
 
   const copyTerm = (text: string, isSearchTerm: boolean = false) => {
@@ -477,7 +476,6 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
     }
   };
 
-  // When user clicks a niche, if already open just close it, otherwise ask
   const handleNicheClick = (name: string) => {
     if (openNiches.includes(name)) {
       setOpenNiches((prev) => prev.filter((n) => n !== name));
@@ -487,20 +485,25 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
       toast({ title: "Limite atingido", description: "Máximo de 4 nichos" });
       return;
     }
-    setPendingNiche(name);
-    setShowDialog(true);
+    if (openNiches.length === 0) {
+      // First niche — add it and ask if they want more
+      setOpenNiches([name]);
+      setSelectingMore(true);
+    } else if (selectingMore) {
+      // Already in selection mode — just add
+      setOpenNiches((prev) => [...prev, name]);
+      if (openNiches.length + 1 >= 4) {
+        setSelectingMore(false);
+      }
+    } else {
+      // Not in selection mode — replace with single
+      setOpenNiches([name]);
+      setSelectingMore(true);
+    }
   };
 
-  const confirmAddNiche = (addMore: boolean) => {
-    if (pendingNiche) {
-      setOpenNiches((prev) => [...prev, pendingNiche]);
-    }
-    setPendingNiche(null);
-    setShowDialog(false);
-    if (!addMore) {
-      // user chose "Não" — just open that single one
-    }
-    // if addMore, dialog closes and user can keep clicking more
+  const finishSelection = () => {
+    setSelectingMore(false);
   };
 
   // Gather combined terms/offers from all open niches
