@@ -1021,7 +1021,9 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, onSelectCi
                                 e.dataTransfer.effectAllowed = "copy";
                               }}
                               onClick={() => {
-                                setOpenSubCity(subOpen ? null : sub.cidade);
+                                const willOpen = !subOpen;
+                                setOpenSubCity(willOpen ? sub.cidade : null);
+                                if (willOpen && onSelectCity) onSelectCity(sub.cidade, st.estado);
                               }}
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-md transition-all cursor-pointer border border-primary/40 bg-primary/15 hover:bg-primary/25"
                             >
