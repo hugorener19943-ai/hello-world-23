@@ -461,11 +461,13 @@ const niches = [
 
 interface ResearchFluxProps {
   onSelectNiche?: (niche: string, subnicho: string) => void;
+  onConfirmSubnichos?: () => void;
 }
 
-export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
+export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFluxProps = {}) {
   const [openNiche, setOpenNiche] = useState<string | null>(null);
   const [selectedTerms, setSelectedTerms] = useState<string[]>([]);
+  const [showConfirm, setShowConfirm] = useState(false);
   const { toast } = useToast();
 
   const handleNicheClick = (name: string) => {
