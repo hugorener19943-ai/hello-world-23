@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ChevronDown, ChevronRight, Copy, Lightbulb, Flame } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
@@ -470,6 +470,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmLimit, setConfirmLimit] = useState(100);
   const { toast } = useToast();
+  const selectionPanelRef = useRef<HTMLDivElement>(null);
 
   const handleNicheClick = (name: string) => {
     if (openNiche === name) {
@@ -491,9 +492,16 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
     }
     setSelectedTerms((prev) => [...prev, term]);
     navigator.clipboard.writeText(term);
-    toast({ title: `Subnicho ${selectedTerms.length + 1} preenchido!`, description: term });
+    const newCount = selectedTerms.length + 1;
+    toast({ title: `Subnicho ${newCount} preenchido!`, description: term });
     if (onSelectNiche && openNiche) {
       onSelectNiche(openNiche, term);
+    }
+    // Auto-scroll to selection panel when hitting limit
+    if (newCount >= 10) {
+      setTimeout(() => {
+        selectionPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
   };
 
@@ -517,7 +525,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
 
         {/* Selection panel showing Subnicho slots */}
         {selectedTerms.length > 0 && (
-          <div className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
+          <div ref={selectionPanelRef} className="mx-2 mb-3 p-4 rounded-lg border border-primary/40 bg-primary/10 animate-fade-in space-y-3">
             <p className="text-sm font-semibold text-white">
               📋 SUBNICHOS SELECIONADOS ({selectedTerms.length}/10)
             </p>
