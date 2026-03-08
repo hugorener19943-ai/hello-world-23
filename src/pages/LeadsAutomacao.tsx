@@ -238,8 +238,16 @@ export default function LeadsAutomacao() {
 
     let unique = deduplicateLeads(allLeads);
     if (onlyHotLeads) {
-      unique = unique.filter((l) => (l.temperatura_lead || "").toLowerCase().includes("quente"));
+      // Prioritize hot leads but also include high-score warm leads
+      const hot = unique.filter((l) => (l.temperatura_lead || "").toLowerCase().includes("quente"));
+      const warmHighScore = unique.filter((l) => {
+        const temp = (l.temperatura_lead || "").toLowerCase();
+        return temp.includes("morno") && (l.score ?? 0) >= 70;
+      });
+      unique = hot.length > 0 ? [...hot, ...warmHighScore.filter((w) => !hot.some((h) => (h.fsq_id || h.nome) === (w.fsq_id || w.nome)))] : unique;
     }
+    // Sort by score descending for better results
+    unique.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     setLeads(unique);
     setSelectedLeads(new Set());
     setLoading(false);
