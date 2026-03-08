@@ -349,7 +349,7 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
                               onClick={() => {
                                 setOpenSubCity(subOpen ? null : sub.cidade);
                               }}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold bg-muted/20 hover:bg-muted/40 rounded-md transition-all cursor-pointer"
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-md transition-all cursor-pointer border border-primary/40 bg-primary/15 hover:bg-primary/25"
                             >
                               {subOpen ? (
                                 <ChevronDown className="h-3.5 w-3.5 shrink-0 text-primary" />
