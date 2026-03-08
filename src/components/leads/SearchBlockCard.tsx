@@ -142,7 +142,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="space-y-1">
           <Label className="text-base font-bold text-white">Nicho</Label>
-          <Input placeholder="ex: clínica odontológica" value={block.query} onChange={(e) => onChange(block.id, "query", e.target.value)} className="bg-secondary border-border" />
+          <Input placeholder="ex: Saúde" value={block.query} onChange={(e) => onChange(block.id, "query", e.target.value)} className="bg-secondary border-border" />
         </div>
         <div className="space-y-1">
           <Label className="text-base font-bold text-white">Cidade</Label>
@@ -163,6 +163,44 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Subnichos - até 5 */}
+      <div className="space-y-2">
+        <Label className="text-base font-bold text-white flex items-center gap-1.5">
+          🔍 Subnichos <span className="text-xs font-normal text-muted-foreground">(até 5)</span>
+        </Label>
+        {block.subnichos && block.subnichos.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {block.subnichos.map((s) => (
+              <Badge key={s} className="bg-primary text-primary-foreground glow-neon gap-1 pr-1">
+                {s}
+                <button onClick={() => onChange(block.id, "subnichos", (block.subnichos || []).filter((x) => x !== s))} className="ml-0.5 hover:bg-primary-foreground/20 rounded-full p-0.5">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
+        {(!block.subnichos || block.subnichos.length < 5) && (
+          <div className="flex gap-2 items-center">
+            <Input
+              placeholder="ex: clínica odontológica"
+              className="bg-secondary border-border max-w-xs h-8 text-sm"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const val = (e.target as HTMLInputElement).value.trim();
+                  if (val && !(block.subnichos || []).includes(val)) {
+                    onChange(block.id, "subnichos", [...(block.subnichos || []), val]);
+                    (e.target as HTMLInputElement).value = "";
+                  }
+                }
+              }}
+            />
+            <span className="text-xs text-muted-foreground">Enter para adicionar</span>
+          </div>
+        )}
       </div>
 
       {/* Bairros - até 4 */}

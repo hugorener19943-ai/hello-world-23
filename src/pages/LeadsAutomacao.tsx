@@ -28,7 +28,7 @@ const PAGE_SIZE = 50;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
-  return { id: `b${++blockIdCounter}`, query: "", cidade: "", estado: "", bairros: [], targetTotal: 100 };
+  return { id: `b${++blockIdCounter}`, query: "", subnichos: [], cidade: "", estado: "", bairros: [], targetTotal: 100 };
 }
 
 function dedupeKey(e: LeadAutomacao): string {
@@ -47,9 +47,11 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   let pagesScanned = 0;
   let reason: FetchResult["reason"] = "all_fetched";
 
-  // If bairros specified, search each one; otherwise search without bairro
+  // Use subnichos as search queries if available, otherwise fall back to query
+  const queries = block.subnichos && block.subnichos.length > 0 ? block.subnichos : [block.query];
   const bairroList = block.bairros.length > 0 ? block.bairros : [undefined];
 
+  for (const searchQuery of queries) {
   for (const bairro of bairroList) {
     let offset = 0;
     let keepGoing = true;
@@ -59,7 +61,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
         method: "POST",
         headers: { Authorization: AUTH, "Content-Type": "application/json" },
         body: JSON.stringify({
-          query: block.query,
+          query: searchQuery,
           local: { cidade: block.cidade, estado: block.estado, bairro: bairro || undefined },
           target_total: block.targetTotal,
           format: "json",
@@ -105,6 +107,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
     }
 
     if (seen.size >= block.targetTotal) break;
+  }
   }
 
   if (seen.size < block.targetTotal && reason === "all_fetched") {
@@ -164,17 +167,19 @@ export default function LeadsAutomacao() {
     }
   }, []);
 
-  const handleSelectNiche = useCallback((term: string) => {
-    setSelectedNiche(term);
+  const handleSelectNiche = useCallback((niche: string, subnicho: string) => {
+    setSelectedNiche(niche);
     const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
     setBlocks((prev) => {
       const updated = [...prev];
-      updated[targetIndex] = { ...updated[targetIndex], query: term };
+      const block = updated[targetIndex];
+      const currentSubnichos = block.subnichos || [];
+      if (currentSubnichos.length < 5 && !currentSubnichos.includes(subnicho)) {
+        updated[targetIndex] = { ...block, query: niche, subnichos: [...currentSubnichos, subnicho] };
+      }
       return updated;
     });
-    toast({ title: `Nicho → Busca ${targetIndex + 1}`, description: term });
-    // Go to maps to pick location for the same block
-    setSidebarTab("maps");
+    toast({ title: `${niche} → Subnicho: ${subnicho}`, description: `Busca ${targetIndex + 1}` });
   }, [blocks.length, activeBlockIndex, toast]);
 
   const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
