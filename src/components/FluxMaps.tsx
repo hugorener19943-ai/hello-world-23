@@ -807,20 +807,19 @@ export function FluxMaps({ onSelectLocation, onSelectMultipleBairros, selectedNi
       if (onSelectMultipleBairros) {
         onSelectMultipleBairros(multiSelectCity.cidade, multiSelectCity.estado, selectedBairros);
       } else {
-        // Fallback: send each bairro individually
         selectedBairros.forEach(b => onSelectLocation?.(multiSelectCity.cidade, multiSelectCity.estado, b));
       }
       toast({ title: "Bairros selecionados!", description: `${selectedBairros.join(", ")} - ${multiSelectCity.cidade}/${multiSelectCity.estado}` });
       setSelectedBairros([]);
       setMultiSelectCity(null);
-      setMultiSelectMode(false);
+      setShowConfirmDialog(false);
     }
   };
 
   const cancelMultiSelect = () => {
     setSelectedBairros([]);
     setMultiSelectCity(null);
-    setMultiSelectMode(false);
+    setShowConfirmDialog(false);
   };
 
   const renderBairros = (bairros: { nome: string; conversao: "alta" | "media" }[], cidade: string, estado: string) => {
