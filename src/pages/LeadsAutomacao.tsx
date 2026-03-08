@@ -79,6 +79,9 @@ export default function LeadsAutomacao() {
   const [sidebarTab, setSidebarTab] = useState<string>("research");
   const [pendingAction, setPendingAction] = useState<{ type: "niche"; term: string } | { type: "location"; cidade: string; estado: string; bairro?: string } | null>(null);
   const [activeBlockIndex, setActiveBlockIndex] = useState(0);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    blockIndex: number; query: string; cidade: string; estado: string; bairro: string; targetTotal: number;
+  } | null>(null);
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
