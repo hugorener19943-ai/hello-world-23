@@ -11,7 +11,7 @@ import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
 import { LeadCard } from "@/components/leads/LeadCard";
-import { TemplateSelector } from "@/components/leads/TemplateSelector";
+
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
 import type { FluxTemplate } from "@/lib/fluxTemplates";
 import type { LeadAutomacao } from "@/lib/buscarLeadsAutomacao";
@@ -332,7 +332,7 @@ export default function LeadsAutomacao() {
                     <Plus className="h-4 w-4 mr-1" /> Adicionar busca
                   </Button>
                 )}
-                <TemplateSelector onApplyTemplate={applyTemplate} />
+                
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
                   <Checkbox
                     id="onlyHot"
