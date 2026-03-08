@@ -283,6 +283,11 @@ export function FluxMaps({ onSelectLocation, selectedNiche }: FluxMapsProps) {
           return (
             <div key={st.capital}>
               <button
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("application/flux-location", JSON.stringify({ cidade: st.capital, estado: st.estado }));
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
                 onClick={() => {
                   setOpenState(isOpen ? null : st.capital);
                   setOpenSubCity(null);
