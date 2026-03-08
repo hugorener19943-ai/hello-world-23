@@ -1,9 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Copy, ExternalLink, Flame, Thermometer, Snowflake, Phone, Mail, Globe, MessageCircle } from "lucide-react";
 import type { LeadWithOrigin } from "./types";
 import { useToast } from "@/hooks/use-toast";
+
+interface LeadCardProps {
+  lead: LeadWithOrigin;
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}
 
 function tempCardClass(temp?: string) {
   const t = (temp || "").toLowerCase();
@@ -37,7 +44,7 @@ function ScoreBar({ score }: { score?: number }) {
   );
 }
 
-export function LeadCard({ lead }: { lead: LeadWithOrigin }) {
+export function LeadCard({ lead, selected = false, onToggleSelect }: LeadCardProps) {
   const { toast } = useToast();
   const copyText = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -45,9 +52,18 @@ export function LeadCard({ lead }: { lead: LeadWithOrigin }) {
   };
 
   return (
-    <div className={`rounded-lg border border-border bg-card p-5 space-y-3 transition-shadow hover:shadow-lg hover:shadow-neon/5 ${tempCardClass(lead.temperatura_lead)}`}>
+    <div className={`rounded-lg border bg-card p-5 space-y-3 transition-all hover:shadow-lg hover:shadow-neon/5 ${tempCardClass(lead.temperatura_lead)} ${selected ? "ring-2 ring-primary border-primary" : "border-border"}`}>
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-2">{lead.nome}</h3>
+        <div className="flex items-center gap-2">
+          {onToggleSelect && (
+            <Checkbox
+              checked={selected}
+              onCheckedChange={onToggleSelect}
+              className="shrink-0"
+            />
+          )}
+          <h3 className="font-semibold text-foreground text-sm leading-tight line-clamp-2">{lead.nome}</h3>
+        </div>
         <TempIcon temp={lead.temperatura_lead} />
       </div>
 

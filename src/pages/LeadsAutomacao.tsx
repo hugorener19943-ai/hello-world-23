@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose } from "lucide-react";
+import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare } from "lucide-react";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { LeadCard } from "@/components/leads/LeadCard";
@@ -68,6 +69,8 @@ export default function LeadsAutomacao() {
   const [tempFilter, setTempFilter] = useState("Todos");
   const [searchName, setSearchName] = useState("");
   const [showResearch, setShowResearch] = useState(true);
+  const [onlyHotLeads, setOnlyHotLeads] = useState(false);
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
@@ -141,13 +144,17 @@ export default function LeadsAutomacao() {
       }
     });
 
-    const unique = deduplicateLeads(allLeads);
+    let unique = deduplicateLeads(allLeads);
+    if (onlyHotLeads) {
+      unique = unique.filter((l) => (l.temperatura_lead || "").toLowerCase().includes("quente"));
+    }
     setLeads(unique);
+    setSelectedLeads(new Set());
     setLoading(false);
 
     if (errors.length) toast({ title: "Algumas buscas falharam", description: errors.join("; "), variant: "destructive" });
-    else if (unique.length === 0) toast({ title: "Nenhuma empresa encontrada." });
-    else toast({ title: `${unique.length} empresas encontradas com potencial de automação` });
+    else if (unique.length === 0) toast({ title: onlyHotLeads ? "Nenhum lead quente encontrado." : "Nenhuma empresa encontrada." });
+    else toast({ title: `${unique.length} empresas encontradas${onlyHotLeads ? " (apenas quentes)" : ""}` });
   };
 
   const filtered = useMemo(() => {
@@ -171,22 +178,45 @@ export default function LeadsAutomacao() {
     return c;
   }, [leads]);
 
-  const exportCSV = () => {
-    if (!leads.length) return;
+  const toggleLeadSelection = useCallback((id: string) => {
+    setSelectedLeads((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedLeads(new Set(filtered.map((l) => l.fsq_id || `${l.nome}|${l.endereco}`)));
+  }, [filtered]);
+
+  const deselectAll = useCallback(() => {
+    setSelectedLeads(new Set());
+  }, []);
+
+  const exportCSV = (onlySelected: boolean = false) => {
+    const toExport = onlySelected
+      ? filtered.filter((l) => selectedLeads.has(l.fsq_id || `${l.nome}|${l.endereco}`))
+      : leads;
+    if (!toExport.length) {
+      toast({ title: "Nenhum lead para exportar", variant: "destructive" });
+      return;
+    }
     const headers = ["nome", "telefone_raw", "email", "website", "score", "temperatura_lead", "prioridade_comercial", "canal_sugerido", "tipo_automacao_indicada", "abordagem_sugerida", "originLabel"];
     const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const rows = leads.map((l) => headers.map((h) => esc((l as any)[h])));
+    const rows = toExport.map((l) => headers.map((h) => esc((l as any)[h])));
     const csv = [headers.map(esc).join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `leads_multi_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `leads_${onlySelected ? "selecionados" : "todos"}_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast({ title: "CSV exportado!", description: `${leads.length} leads` });
+    toast({ title: "CSV exportado!", description: `${toExport.length} leads` });
   };
 
   return (
@@ -263,6 +293,17 @@ export default function LeadsAutomacao() {
                   </Button>
                 )}
                 <TemplateSelector onApplyTemplate={applyTemplate} />
+                <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
+                  <Checkbox
+                    id="onlyHot"
+                    checked={onlyHotLeads}
+                    onCheckedChange={(checked) => setOnlyHotLeads(!!checked)}
+                    className="border-destructive data-[state=checked]:bg-destructive"
+                  />
+                  <label htmlFor="onlyHot" className="text-sm font-medium text-destructive cursor-pointer flex items-center gap-1">
+                    <Flame className="h-4 w-4" /> Apenas Quentes
+                  </label>
+                </div>
                 <Button onClick={buscar} disabled={loading} className="glow-neon">
                   {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
                   Buscar Empresas
@@ -304,12 +345,25 @@ export default function LeadsAutomacao() {
                   <Badge variant="outline" className="text-muted-foreground">❄️ {tempCounts.frio}</Badge>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={exportCSV} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
-                <Download className="h-4 w-4 mr-2" /> Exportar CSV ({leads.length})
-              </Button>
+              <div className="flex gap-2">
+                {selectedLeads.size > 0 && (
+                  <Button variant="default" size="sm" onClick={() => exportCSV(true)} className="bg-destructive hover:bg-destructive/90">
+                    <Download className="h-4 w-4 mr-2" /> Exportar Selecionados ({selectedLeads.size})
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => exportCSV(false)} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
+                  <Download className="h-4 w-4 mr-2" /> Exportar Todos ({leads.length})
+                </Button>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 mr-2">
+                <CheckSquare className="h-4 w-4 text-muted-foreground" />
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>Selecionar Todos</Button>
+                <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={deselectAll}>Limpar</Button>
+                {selectedLeads.size > 0 && <span className="text-xs text-neon font-semibold">{selectedLeads.size} selecionados</span>}
+              </div>
               <Filter className="h-4 w-4 text-muted-foreground" />
               {TEMP_FILTERS.map((f) => (
                 <Button
@@ -334,9 +388,17 @@ export default function LeadsAutomacao() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {filtered.map((lead, i) => (
-                <LeadCard key={lead.fsq_id || `${i}`} lead={lead} />
-              ))}
+              {filtered.map((lead, i) => {
+                const id = lead.fsq_id || `${lead.nome}|${lead.endereco}`;
+                return (
+                  <LeadCard
+                    key={id}
+                    lead={lead}
+                    selected={selectedLeads.has(id)}
+                    onToggleSelect={() => toggleLeadSelection(id)}
+                  />
+                );
+              })}
             </div>
 
             {filtered.length === 0 && (
