@@ -77,7 +77,7 @@ export default function LeadsAutomacao() {
   const [selectedNiche, setSelectedNiche] = useState<string>("");
   const [sidebarTab, setSidebarTab] = useState<string>("research");
   const [pendingAction, setPendingAction] = useState<{ type: "niche"; term: string } | { type: "location"; cidade: string; estado: string; bairro?: string } | null>(null);
-  const [lastFilledBlockIndex, setLastFilledBlockIndex] = useState(0);
+  const [activeBlockIndex, setActiveBlockIndex] = useState(0);
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
@@ -100,9 +100,8 @@ export default function LeadsAutomacao() {
       }
       return updated;
     });
-    setLastFilledBlockIndex(blockIndex);
+    setActiveBlockIndex(blockIndex);
     setPendingAction(null);
-    // After niche selection, switch to maps
     if (action.type === "niche") {
       setSidebarTab("maps");
     }
@@ -110,42 +109,39 @@ export default function LeadsAutomacao() {
 
   const handleSelectNiche = useCallback((term: string) => {
     setSelectedNiche(term);
-    if (blocks.length === 1) {
-      setBlocks((prev) => [{ ...prev[0], query: term }]);
-      setLastFilledBlockIndex(0);
-      setSidebarTab("maps");
-    } else {
-      // Auto-advance: pick next block after last filled
-      const nextIndex = Math.min(lastFilledBlockIndex + 1, blocks.length - 1);
-      // If it's the first niche click (lastFilled is 0 and block 0 has no query), use 0
-      const targetIndex = (lastFilledBlockIndex === 0 && !blocks[0]?.query) ? 0 : nextIndex;
-      const action = { type: "niche" as const, term };
-      // Auto-fill and advance
-      setBlocks((prev) => {
-        const updated = [...prev];
-        updated[targetIndex] = { ...updated[targetIndex], query: term };
-        return updated;
-      });
-      setLastFilledBlockIndex(targetIndex);
-      setSidebarTab("maps");
-      toast({ title: `Nicho aplicado na Busca ${targetIndex + 1}`, description: term });
-    }
-  }, [blocks, lastFilledBlockIndex, toast]);
+    const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
+    setBlocks((prev) => {
+      const updated = [...prev];
+      updated[targetIndex] = { ...updated[targetIndex], query: term };
+      return updated;
+    });
+    toast({ title: `Nicho → Busca ${targetIndex + 1}`, description: term });
+    // Go to maps to pick location for the same block
+    setSidebarTab("maps");
+  }, [blocks.length, activeBlockIndex, toast]);
 
   const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
-    if (blocks.length === 1) {
-      setBlocks((prev) => [{ ...prev[0], cidade, estado, bairro: bairro || prev[0].bairro }]);
-    } else {
-      // Auto-fill the same block that was last filled (by niche), then advance for next round
-      const targetIndex = Math.min(lastFilledBlockIndex, blocks.length - 1);
-      setBlocks((prev) => {
-        const updated = [...prev];
-        updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairro: bairro || updated[targetIndex].bairro };
-        return updated;
-      });
-      toast({ title: `Local aplicado na Busca ${targetIndex + 1}`, description: `${cidade}/${estado}${bairro ? ` - ${bairro}` : ""}` });
+    const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
+    setBlocks((prev) => {
+      const updated = [...prev];
+      updated[targetIndex] = { ...updated[targetIndex], cidade, estado, bairro: bairro || updated[targetIndex].bairro };
+      return updated;
+    });
+    toast({ title: `Local → Busca ${targetIndex + 1}`, description: `${cidade}/${estado}${bairro ? ` - ${bairro}` : ""}` });
+    // Location done → advance cursor to next block and go back to Research
+    const nextIndex = targetIndex + 1;
+    if (nextIndex < blocks.length) {
+      setActiveBlockIndex(nextIndex);
+      setSidebarTab("research");
+      toast({ title: `Agora preenchendo Busca ${nextIndex + 1}`, variant: "default" });
+    } else if (nextIndex < MAX_BLOCKS) {
+      // Auto-create next block
+      setBlocks((prev) => [...prev, newBlock()]);
+      setActiveBlockIndex(nextIndex);
+      setSidebarTab("research");
+      toast({ title: `Busca ${nextIndex + 1} criada automaticamente`, variant: "default" });
     }
-  }, [blocks.length, lastFilledBlockIndex, toast]);
+  }, [blocks.length, activeBlockIndex, toast]);
 
   const removeBlock = useCallback((id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
