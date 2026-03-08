@@ -186,7 +186,7 @@ export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   };
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full" style={{ background: "linear-gradient(145deg, hsl(0 0% 78%), hsl(0 0% 65%), hsl(0 0% 72%))" }}>
       <div className="p-5 space-y-2">
         <p className="text-sm text-white px-2 mb-3">
           Clique em um nicho para ver termos e o que oferecer
