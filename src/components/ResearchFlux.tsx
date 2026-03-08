@@ -127,13 +127,20 @@ const niches = [
   },
 ];
 
-export function ResearchFlux() {
+interface ResearchFluxProps {
+  onSelectNiche?: (term: string) => void;
+}
+
+export function ResearchFlux({ onSelectNiche }: ResearchFluxProps = {}) {
   const [openNiche, setOpenNiche] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const copyTerm = (text: string) => {
+  const copyTerm = (text: string, isSearchTerm: boolean = false) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Copiado!", description: text });
+    if (isSearchTerm && onSelectNiche) {
+      onSelectNiche(text);
+    }
   };
 
   return (
@@ -172,7 +179,7 @@ export function ResearchFlux() {
                       {niche.terms.map(({ term, hot }) => (
                         <button
                           key={term}
-                          onClick={() => copyTerm(term)}
+                          onClick={() => copyTerm(term, true)}
                           className={`inline-flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-all duration-200 border ${
                             hot
                               ? "bg-destructive/15 text-destructive border-destructive/30 hover:bg-destructive/25"

@@ -4,10 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare } from "lucide-react";
+import { Search, Loader2, Download, Filter, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare, MapPin } from "lucide-react";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { ResearchFlux } from "@/components/ResearchFlux";
+import { FluxMaps } from "@/components/FluxMaps";
 import { LeadCard } from "@/components/leads/LeadCard";
 import { TemplateSelector } from "@/components/leads/TemplateSelector";
 import type { SearchBlock, LeadWithOrigin } from "@/components/leads/types";
@@ -71,10 +73,35 @@ export default function LeadsAutomacao() {
   const [showResearch, setShowResearch] = useState(true);
   const [onlyHotLeads, setOnlyHotLeads] = useState(false);
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+  const [selectedNiche, setSelectedNiche] = useState<string>("");
+  const [sidebarTab, setSidebarTab] = useState<string>("research");
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, [field]: value } : b)));
+  }, []);
+
+  const handleSelectNiche = useCallback((term: string) => {
+    setSelectedNiche(term);
+    // Auto-fill first block's query
+    setBlocks((prev) => {
+      const updated = [...prev];
+      if (updated.length > 0) {
+        updated[0] = { ...updated[0], query: term };
+      }
+      return updated;
+    });
+    setSidebarTab("maps");
+  }, []);
+
+  const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
+    setBlocks((prev) => {
+      const updated = [...prev];
+      if (updated.length > 0) {
+        updated[0] = { ...updated[0], cidade, estado, bairro: bairro || updated[0].bairro };
+      }
+      return updated;
+    });
   }, []);
 
   const removeBlock = useCallback((id: string) => {
@@ -227,15 +254,28 @@ export default function LeadsAutomacao() {
           <div className="px-5 py-4 border-b border-border/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-destructive text-xl">⚡</span>
-              <span className="text-destructive font-extrabold text-lg">Research Flux</span>
+              <span className="text-destructive font-extrabold text-lg">Flux Painel</span>
             </div>
             <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-muted-foreground" onClick={() => setShowResearch(false)}>
               <PanelLeftClose className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex-1 overflow-hidden">
-            <ResearchFlux />
-          </div>
+          <Tabs value={sidebarTab} onValueChange={setSidebarTab} className="flex-1 flex flex-col overflow-hidden">
+            <TabsList className="mx-4 mt-3 grid grid-cols-2">
+              <TabsTrigger value="research" className="text-xs font-bold gap-1">
+                <Zap className="h-3.5 w-3.5" /> Research
+              </TabsTrigger>
+              <TabsTrigger value="maps" className="text-xs font-bold gap-1">
+                <MapPin className="h-3.5 w-3.5" /> Flux Maps
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="research" className="flex-1 overflow-hidden mt-0">
+              <ResearchFlux onSelectNiche={handleSelectNiche} />
+            </TabsContent>
+            <TabsContent value="maps" className="flex-1 overflow-hidden mt-0">
+              <FluxMaps onSelectLocation={handleSelectLocation} selectedNiche={selectedNiche} />
+            </TabsContent>
+          </Tabs>
         </aside>
       )}
 
