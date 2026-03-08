@@ -165,10 +165,10 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
         </div>
       </div>
 
-      {/* Subnichos - até 5 */}
+      {/* Subnichos - até 10 */}
       <div className="space-y-2">
         <Label className="text-base font-bold text-white flex items-center gap-1.5">
-          🔍 Subnichos <span className="text-xs font-normal text-muted-foreground">(até 5)</span>
+          🔍 Subnichos <span className="text-xs font-normal text-muted-foreground">(até 10)</span>
         </Label>
         {block.subnichos && block.subnichos.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
