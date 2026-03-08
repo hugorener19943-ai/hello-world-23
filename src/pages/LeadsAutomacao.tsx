@@ -76,46 +76,53 @@ export default function LeadsAutomacao() {
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const [selectedNiche, setSelectedNiche] = useState<string>("");
   const [sidebarTab, setSidebarTab] = useState<string>("research");
-  const [nicheBlockCursor, setNicheBlockCursor] = useState(0);
-  const [locationBlockCursor, setLocationBlockCursor] = useState(0);
+  const [pendingAction, setPendingAction] = useState<{ type: "niche"; term: string } | { type: "location"; cidade: string; estado: string; bairro?: string } | null>(null);
   const { toast } = useToast();
 
   const updateBlock = useCallback((id: string, field: keyof SearchBlock, value: string | number) => {
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, [field]: value } : b)));
   }, []);
 
+  const applyToBlock = useCallback((blockIndex: number, action: NonNullable<typeof pendingAction>) => {
+    setBlocks((prev) => {
+      const updated = [...prev];
+      if (blockIndex >= updated.length) return updated;
+      if (action.type === "niche") {
+        updated[blockIndex] = { ...updated[blockIndex], query: action.term };
+      } else {
+        updated[blockIndex] = {
+          ...updated[blockIndex],
+          cidade: action.cidade,
+          estado: action.estado,
+          bairro: action.bairro || updated[blockIndex].bairro,
+        };
+      }
+      return updated;
+    });
+    setPendingAction(null);
+  }, []);
+
   const handleSelectNiche = useCallback((term: string) => {
     setSelectedNiche(term);
     setBlocks((prev) => {
-      let updated = [...prev];
-      let cursor = nicheBlockCursor;
-      // If cursor is beyond existing blocks, create a new one (up to MAX)
-      if (cursor >= updated.length && updated.length < MAX_BLOCKS) {
-        updated.push(newBlock());
+      if (prev.length === 1) {
+        return [{ ...prev[0], query: term }];
       }
-      // Clamp cursor
-      cursor = Math.min(cursor, updated.length - 1);
-      updated[cursor] = { ...updated[cursor], query: term };
-      // Advance cursor for next click
-      setNicheBlockCursor(cursor + 1);
-      return updated;
+      return prev;
     });
+    if (blocks.length > 1) {
+      setPendingAction({ type: "niche", term });
+    }
     setSidebarTab("maps");
-  }, [nicheBlockCursor]);
+  }, [blocks.length]);
 
   const handleSelectLocation = useCallback((cidade: string, estado: string, bairro?: string) => {
-    setBlocks((prev) => {
-      let updated = [...prev];
-      let cursor = locationBlockCursor;
-      if (cursor >= updated.length && updated.length < MAX_BLOCKS) {
-        updated.push(newBlock());
-      }
-      cursor = Math.min(cursor, updated.length - 1);
-      updated[cursor] = { ...updated[cursor], cidade, estado, bairro: bairro || updated[cursor].bairro };
-      setLocationBlockCursor(cursor + 1);
-      return updated;
-    });
-  }, [locationBlockCursor]);
+    if (blocks.length === 1) {
+      setBlocks((prev) => [{ ...prev[0], cidade, estado, bairro: bairro || prev[0].bairro }]);
+    } else {
+      setPendingAction({ type: "location", cidade, estado, bairro });
+    }
+  }, [blocks.length]);
 
   const removeBlock = useCallback((id: string) => {
     setBlocks((prev) => prev.filter((b) => b.id !== id));
