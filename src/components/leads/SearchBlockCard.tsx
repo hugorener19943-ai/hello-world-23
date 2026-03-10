@@ -254,7 +254,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
         <div className="flex items-center gap-2">
           <Label className="text-base font-bold text-white flex items-center gap-1.5">
             <MapPin className="h-4 w-4 text-neon" />
-            Bairros <span className="text-xs font-normal text-muted-foreground">(até {MAX_BAIRROS}, opcional)</span>
+            Bairros <span className="text-xs font-normal text-foreground/70">(até {MAX_BAIRROS}, opcional)</span>
           </Label>
           {hasSuggestions && (
             <Button
