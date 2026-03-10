@@ -203,6 +203,41 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
             <span className="text-xs text-muted-foreground">Enter para adicionar</span>
           </div>
         )}
+        {/* Subnicho suggestions */}
+        {subnichoSuggestions.length > 0 && (
+          <div className="space-y-1">
+            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+              <Lightbulb className="h-3 w-3 text-primary" /> Sugestões com alta demanda de automação:
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {subnichoSuggestions.map((s) => {
+                const isAdded = (block.subnichos || []).includes(s);
+                return (
+                  <Badge
+                    key={s}
+                    variant={isAdded ? "default" : "outline"}
+                    className={`cursor-pointer text-[10px] transition-colors ${
+                      isAdded
+                        ? "bg-primary text-primary-foreground"
+                        : (block.subnichos || []).length >= 10
+                        ? "border-border text-muted-foreground/50 cursor-not-allowed"
+                        : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+                    }`}
+                    onClick={() => {
+                      if (isAdded) {
+                        onChange(block.id, "subnichos", (block.subnichos || []).filter(x => x !== s));
+                      } else if ((block.subnichos || []).length < 10) {
+                        onChange(block.id, "subnichos", [...(block.subnichos || []), s]);
+                      }
+                    }}
+                  >
+                    {isAdded ? "✓ " : ""}{s}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bairros - até 4 */}
