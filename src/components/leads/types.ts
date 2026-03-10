@@ -149,8 +149,8 @@ export function getEffectiveLevel(lead: LeadAutomacao): string {
   if (lead.nivel_automacao) return lead.nivel_automacao.toLowerCase();
   if (lead.temperatura_lead) return lead.temperatura_lead.toLowerCase();
   if (score >= 90) return "muito quente";
-  if (score >= 60) return "quente";
-  if (score >= 30) return "médio";
+  if (score >= 45) return "quente";
+  if (score >= 25) return "morno";
   return "baixo";
 }
 
