@@ -11,6 +11,15 @@ import type { SearchBlock } from "./types";
 
 const MAX_BAIRROS = 8;
 
+function normalizeKey(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+function hasSubnicho(list: string[], value: string): boolean {
+  const key = normalizeKey(value);
+  return list.some(s => normalizeKey(s) === key);
+}
+
 interface Props {
   block: SearchBlock;
   index: number;
