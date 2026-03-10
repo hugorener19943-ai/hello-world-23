@@ -652,11 +652,18 @@ export default function LeadsAutomacao() {
                   </Button>
                 )}
                 <TemplateSelector onApplyTemplate={applyTemplate} />
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
-                  <Checkbox id="onlyHot" checked={onlyHotLeads} onCheckedChange={(checked) => setOnlyHotLeads(!!checked)} className="border-primary data-[state=checked]:bg-primary" />
-                  <label htmlFor="onlyHot" className="text-sm font-medium text-primary cursor-pointer flex items-center gap-1">
-                    <Flame className="h-4 w-4" /> Leads Prioritários
-                  </label>
+                <div className="flex items-center gap-1 px-3 py-2 rounded-md border border-primary/30 bg-primary/5">
+                  <Flame className="h-4 w-4 text-primary shrink-0" />
+                  <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                    <SelectTrigger className="h-8 w-[180px] text-xs border-0 bg-transparent font-semibold text-primary">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os Leads</SelectItem>
+                      <SelectItem value="prioritarios">Leads Prioritários</SelectItem>
+                      <SelectItem value="muito_quentes">Somente Muito Quentes</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex items-center gap-3 ml-auto">
                   <Button onClick={buscar} disabled={loading} className="glow-neon">
