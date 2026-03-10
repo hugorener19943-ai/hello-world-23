@@ -15,6 +15,7 @@ export type SortOption = "score" | "google_avaliacoes" | "google_nota" | "signal
 const QUICK_FILTERS: { value: QuickFilter; label: string }[] = [
   { value: "muito_quente", label: "Muito quentes" },
   { value: "quente", label: "Quentes" },
+  { value: "morno", label: "Mornos" },
   { value: "com_whatsapp", label: "Com WhatsApp" },
   { value: "com_email", label: "Com email" },
   { value: "sem_chatbot", label: "Sem chatbot" },
