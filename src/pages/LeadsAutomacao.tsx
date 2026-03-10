@@ -376,6 +376,7 @@ export default function LeadsAutomacao() {
         case "sem_site": list = list.filter(l => !l.site && !l.website); break;
         case "sem_chatbot": list = list.filter(l => l.tem_chatbot === false || l.chatbot_present === false); break;
         case "sem_crm": list = list.filter(l => l.crm_present === false); break;
+        case "whatsapp_manual": list = list.filter(l => l.whatsapp_manual === true); break;
         case "tech_wordpress": list = list.filter(l => getTechBadges(l).includes("WordPress")); break;
         case "tech_wix": list = list.filter(l => getTechBadges(l).includes("Wix")); break;
         case "tech_shopify": list = list.filter(l => getTechBadges(l).includes("Shopify")); break;
