@@ -34,6 +34,7 @@ export function KpiBar({ leads, meta, onFilterClick }: KpiBarProps) {
     { label: "Email", value: comEmail, icon: <Mail className="h-3.5 w-3.5" />, filter: "com_email" },
     { label: "Instagram", value: comInstagram, icon: <Instagram className="h-3.5 w-3.5" />, filter: "com_instagram" },
     { label: "Sem site", value: semSite, icon: <Globe className="h-3.5 w-3.5 text-destructive" />, filter: "sem_site" },
+    { label: "Mornos", value: mornos, icon: <Flame className="h-3.5 w-3.5 text-yellow-400" />, filter: "morno" },
     { label: "Quentes", value: quentes, icon: <Flame className="h-3.5 w-3.5 text-orange-400" />, filter: "quente" },
     { label: "Muito Quentes", value: muitoQuentes, icon: <Flame className="h-3.5 w-3.5 text-red-400" />, filter: "muito_quente" },
   ];
