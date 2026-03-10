@@ -158,7 +158,7 @@ export function getLevelMicrocopy(level: string): string {
   const l = level.toLowerCase();
   if (l.includes("muito quente")) return "Alta prioridade comercial";
   if (l.includes("quente")) return "Boa oportunidade";
-  if (l.includes("méd") || l.includes("med")) return "Estrutura intermediária";
+  if (l.includes("morno") || l.includes("méd") || l.includes("med")) return "Estrutura intermediária";
   return "Baixo potencial imediato";
 }
 
