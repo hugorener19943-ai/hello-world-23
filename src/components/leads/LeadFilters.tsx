@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 
 export type QuickFilter =
   | "" | "quente" | "muito_quente" | "com_whatsapp" | "com_email" | "com_instagram"
-  | "sem_site" | "sem_chatbot" | "sem_crm" | "tech_wordpress" | "tech_wix" | "tech_shopify"
+  | "sem_site" | "sem_chatbot" | "sem_crm" | "whatsapp_manual"
+  | "tech_wordpress" | "tech_wix" | "tech_shopify"
   | "intent_agendamento" | "intent_orcamento";
 
 export type SortOption = "score" | "google_avaliacoes" | "google_nota" | "signals" | "contacts";
