@@ -658,9 +658,9 @@ export default function LeadsAutomacao() {
                 )}
                 <TemplateSelector onApplyTemplate={applyTemplate} />
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
-                  <Checkbox id="onlyHot" checked={onlyHotLeads} onCheckedChange={(checked) => setOnlyHotLeads(!!checked)} className="border-destructive data-[state=checked]:bg-destructive" />
-                  <label htmlFor="onlyHot" className="text-sm font-medium text-destructive cursor-pointer flex items-center gap-1">
-                    <Flame className="h-4 w-4" /> Apenas Quentes
+                  <Checkbox id="onlyHot" checked={onlyHotLeads} onCheckedChange={(checked) => setOnlyHotLeads(!!checked)} className="border-primary data-[state=checked]:bg-primary" />
+                  <label htmlFor="onlyHot" className="text-sm font-medium text-primary cursor-pointer flex items-center gap-1">
+                    <Flame className="h-4 w-4" /> Leads Prioritários
                   </label>
                 </div>
                 <div className="flex items-center gap-3 ml-auto">
