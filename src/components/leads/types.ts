@@ -164,11 +164,36 @@ export function getLevelMicrocopy(level: string): string {
 
 export function isHotLead(lead: LeadAutomacao): boolean {
   if (lead.lead_para_automacao) return true;
-  if (getEffectiveScore(lead) >= 8) return true;
-  if ((lead.dor_operacional_score ?? 0) >= 8) return true;
+  if (getEffectiveScore(lead) >= 4) return true;
+  if ((lead.dor_operacional_score ?? 0) >= 4) return true;
   const level = getEffectiveLevel(lead);
   if (level.includes("quente") || level.includes("morno")) return true;
   return false;
+}
+
+export type ViewMode = "todos" | "prioritarios" | "muito_quentes";
+
+export function filterByViewMode(leads: LeadWithOrigin[], mode: ViewMode): LeadWithOrigin[] {
+  if (mode === "todos") return leads;
+  if (mode === "muito_quentes") return leads.filter(l => getEffectiveLevel(l).includes("muito quente"));
+  return leads.filter(isHotLead);
+}
+
+export function commercialSort(leads: LeadWithOrigin[]): LeadWithOrigin[] {
+  return [...leads].sort((a, b) => {
+    const scoreDiff = getEffectiveScore(b) - getEffectiveScore(a);
+    if (scoreDiff !== 0) return scoreDiff;
+    const dorDiff = (b.dor_operacional_score ?? 0) - (a.dor_operacional_score ?? 0);
+    if (dorDiff !== 0) return dorDiff;
+    const avDiff = (b.google_avaliacoes ?? 0) - (a.google_avaliacoes ?? 0);
+    if (avDiff !== 0) return avDiff;
+    const siteA = (a.site || a.website) ? 1 : 0;
+    const siteB = (b.site || b.website) ? 1 : 0;
+    if (siteB !== siteA) return siteB - siteA;
+    const wpA = (a.whatsapp || a.whatsapp_link) ? 1 : 0;
+    const wpB = (b.whatsapp || b.whatsapp_link) ? 1 : 0;
+    return wpB - wpA;
+  });
 }
 
 export type SignalType = "problem" | "info" | "positive";
