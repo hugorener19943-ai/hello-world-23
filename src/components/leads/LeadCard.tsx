@@ -92,8 +92,11 @@ export function LeadCard({ lead, selected = false, onToggleSelect }: LeadCardPro
   const salesTags = getSalesTags(lead);
   const pain = getPainText(lead.dor_operacional_score);
   const summary = getLeadSummary(lead);
-  const hooks = getCommercialHooks(lead);
-  const scoreReasons = getScoreReasons(lead);
+  // Prefer API-returned hooks/reasons, fallback to frontend-generated
+  const hooks = lead.commercial_hooks?.length ? lead.commercial_hooks : getCommercialHooks(lead);
+  const scoreReasons = lead.score_reasons?.length
+    ? lead.score_reasons.map(r => ({ label: r, points: 0 }))
+    : getScoreReasons(lead);
   const site = lead.site || lead.website;
   const phone = lead.telefone || lead.telefone_raw;
 
