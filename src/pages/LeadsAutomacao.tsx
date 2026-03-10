@@ -695,7 +695,68 @@ export default function LeadsAutomacao() {
               {/* KPI Bar */}
               <KpiBar leads={leads} meta={apiMeta} onFilterClick={handleKpiFilterClick} />
 
-              {/* Export + Selection */}
+              {/* Metro Expansion Suggestion */}
+              {(() => {
+                const hasShortfall = Object.values(blockResults).some(r => r.found < r.requested);
+                const searchedCities = blocks.filter(b => b.cidade && b.estado);
+                if (!hasShortfall || searchedCities.length === 0) return null;
+                const firstCity = searchedCities[0];
+                const metroCities = getMetroCities(firstCity.cidade, firstCity.estado);
+                if (metroCities.length === 0) return null;
+                const alreadySearched = new Set(blocks.map(b => b.cidade.toLowerCase().trim()));
+                const available = metroCities.filter(m => !alreadySearched.has(m.cidade.toLowerCase()));
+                if (available.length === 0) return null;
+                return (
+                  <Card className="border-yellow-500/40 bg-yellow-500/5">
+                    <CardContent className="py-4">
+                      <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 text-yellow-500 shrink-0 mt-0.5" />
+                        <div className="space-y-2 flex-1">
+                          <p className="text-sm font-semibold text-yellow-500">
+                            Expandir para região metropolitana de {firstCity.cidade}?
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Resultados abaixo do esperado. Adicione cidades próximas para aumentar o volume de leads.
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {available.slice(0, 6).map((city) => (
+                              <Button
+                                key={city.cidade}
+                                variant="outline"
+                                size="sm"
+                                className={`h-7 text-xs gap-1 ${
+                                  city.potencial === "alto"
+                                    ? "border-primary/50 text-primary hover:bg-primary/15"
+                                    : "border-border text-muted-foreground hover:bg-muted"
+                                }`}
+                                onClick={() => {
+                                  if (blocks.length < MAX_BLOCKS) {
+                                    const nb = newBlock();
+                                    nb.query = firstCity.query || blocks[0]?.query || "";
+                                    nb.cidade = city.cidade;
+                                    nb.estado = city.estado;
+                                    nb.targetTotal = firstCity.targetTotal || 100;
+                                    nb.subnichos = [...(firstCity.subnichos || [])];
+                                    setBlocks(prev => [...prev, nb]);
+                                    toast({ title: `${city.cidade}/${city.estado} adicionada como nova busca` });
+                                  } else {
+                                    toast({ title: "Máximo de buscas atingido", variant: "destructive" });
+                                  }
+                                }}
+                              >
+                                <Plus className="h-3 w-3" />
+                                {city.cidade}
+                                {city.potencial === "alto" && <Flame className="h-3 w-3 text-destructive" />}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <CheckSquare className="h-4 w-4 text-muted-foreground" />
