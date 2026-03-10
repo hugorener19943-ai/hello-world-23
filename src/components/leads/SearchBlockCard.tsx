@@ -220,7 +220,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
             </p>
             <div className="flex flex-wrap gap-1.5">
               {subnichoSuggestions.map((s) => {
-                const isAdded = (block.subnichos || []).includes(s);
+                const isAdded = hasSubnicho(block.subnichos || [], s);
                 return (
                   <Badge
                     key={s}
@@ -234,9 +234,10 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
                     }`}
                     onClick={() => {
                       if (isAdded) {
-                        onChange(block.id, "subnichos", (block.subnichos || []).filter(x => x !== s));
-                      } else if ((block.subnichos || []).length < 10) {
+                        onChange(block.id, "subnichos", (block.subnichos || []).filter(x => normalizeKey(x) !== normalizeKey(s)));
+                      } else if ((block.subnichos || []).length < 10 && !hasSubnicho(block.subnichos || [], s)) {
                         onChange(block.id, "subnichos", [...(block.subnichos || []), s]);
+                      }
                       }
                     }}
                   >
