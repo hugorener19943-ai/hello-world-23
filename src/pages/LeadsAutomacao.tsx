@@ -358,8 +358,8 @@ export default function LeadsAutomacao() {
     setLoading(false);
 
     if (errors.length) toast({ title: "Algumas buscas falharam", description: errors.join("; "), variant: "destructive" });
-    else if (unique.length === 0) toast({ title: onlyHotLeads ? "Nenhum lead quente encontrado." : "Nenhuma empresa encontrada." });
-    else toast({ title: `${unique.length} empresas encontradas${onlyHotLeads ? " (apenas quentes)" : ""}` });
+     else if (unique.length === 0) toast({ title: onlyHotLeads ? "Nenhum lead prioritário encontrado." : "Nenhuma empresa encontrada." });
+    else toast({ title: `${unique.length} empresas encontradas${onlyHotLeads ? " (leads prioritários)" : ""}` });
   };
 
   // Filtering & sorting
