@@ -1,57 +1,81 @@
-// Mapa de bairros sugeridos por cidade (case-insensitive match)
+/**
+ * Bairros comerciais fortes por cidade.
+ * Priorizados por: alta densidade empresarial, maior poder aquisitivo,
+ * centros médicos/comerciais e polos empresariais.
+ * Bairros predominantemente residenciais são evitados.
+ */
 const bairrosMap: Record<string, string[]> = {
   "são paulo": [
-    "Pinheiros", "Vila Mariana", "Moema", "Itaim Bibi", "Jardins", "Perdizes",
-    "Lapa", "Santana", "Tatuapé", "Vila Olímpia", "Brooklin", "Campo Belo",
-    "Liberdade", "Consolação", "Bela Vista", "República", "Butantã", "Morumbi",
-    "Santo Amaro", "Saúde", "Ipiranga", "Penha", "Vila Prudente", "Mooca",
+    // Polos empresariais e comerciais de alto ticket
+    "Itaim Bibi", "Vila Olímpia", "Pinheiros", "Jardins", "Moema",
+    "Brooklin", "Vila Mariana", "Tatuapé", "Perdizes", "Lapa",
+    "Consolação", "Bela Vista", "Santo Amaro", "Mooca", "Santana",
+    "Campo Belo", "Liberdade", "República", "Morumbi", "Butantã",
+    "Ipiranga", "Saúde", "Penha", "Vila Prudente",
   ],
   "rio de janeiro": [
-    "Copacabana", "Ipanema", "Leblon", "Botafogo", "Flamengo", "Tijuca",
-    "Barra da Tijuca", "Centro", "Lapa", "Santa Teresa", "Recreio",
-    "Méier", "Madureira", "Jacarepaguá", "Vila Isabel", "Grajaú",
+    "Barra da Tijuca", "Botafogo", "Copacabana", "Ipanema", "Leblon",
+    "Centro", "Tijuca", "Flamengo", "Recreio", "Lapa",
+    "Jacarepaguá", "Méier", "Vila Isabel", "Madureira", "Santa Teresa",
+    "Grajaú",
   ],
   "belo horizonte": [
-    "Savassi", "Lourdes", "Funcionários", "Centro", "Pampulha", "Buritis",
-    "Barreiro", "Mangabeiras", "Serra", "Santo Agostinho", "Gutierrez",
-    "Santa Efigênia", "Floresta", "Padre Eustáquio", "Carlos Prates",
+    "Savassi", "Funcionários", "Lourdes", "Centro", "Santo Agostinho",
+    "Serra", "Buritis", "Pampulha", "Gutierrez", "Santa Efigênia",
+    "Floresta", "Mangabeiras", "Padre Eustáquio", "Carlos Prates",
+    "Barreiro",
   ],
   "curitiba": [
-    "Centro", "Batel", "Água Verde", "Bigorrilho", "Juvevê", "Centro Cívico",
-    "Rebouças", "Portão", "Santa Felicidade", "Ecoville", "Mercês", "Alto da XV",
+    "Batel", "Centro", "Água Verde", "Bigorrilho", "Juvevê",
+    "Centro Cívico", "Rebouças", "Ecoville", "Mercês", "Alto da XV",
+    "Portão", "Santa Felicidade",
   ],
   "porto alegre": [
-    "Moinhos de Vento", "Centro Histórico", "Bom Fim", "Cidade Baixa",
-    "Petrópolis", "Menino Deus", "Floresta", "Independência", "Auxiliadora",
-    "Mont'Serrat", "Rio Branco", "Tristeza", "Ipanema",
+    "Moinhos de Vento", "Centro Histórico", "Bom Fim", "Petrópolis",
+    "Independência", "Auxiliadora", "Mont'Serrat", "Rio Branco",
+    "Floresta", "Menino Deus", "Cidade Baixa", "Tristeza", "Ipanema",
   ],
   "salvador": [
-    "Barra", "Pituba", "Itaigara", "Ondina", "Rio Vermelho", "Pelourinho",
-    "Caminho das Árvores", "Paralela", "Stella Maris", "Brotas", "Graça",
+    "Pituba", "Caminho das Árvores", "Itaigara", "Barra", "Rio Vermelho",
+    "Paralela", "Ondina", "Graça", "Stella Maris", "Brotas",
+    "Pelourinho",
   ],
   "recife": [
-    "Boa Viagem", "Espinheiro", "Graças", "Derby", "Casa Forte", "Madalena",
-    "Pina", "Imbiribeira", "Aflitos", "Torre", "Encruzilhada",
+    "Boa Viagem", "Espinheiro", "Graças", "Derby", "Casa Forte",
+    "Madalena", "Pina", "Aflitos", "Torre", "Imbiribeira",
+    "Encruzilhada",
   ],
   "fortaleza": [
-    "Aldeota", "Meireles", "Centro", "Varjota", "Dionísio Torres", "Fátima",
-    "Papicu", "Cocó", "Edson Queiroz", "Montese", "Benfica",
+    "Aldeota", "Meireles", "Varjota", "Dionísio Torres", "Cocó",
+    "Centro", "Papicu", "Edson Queiroz", "Fátima", "Montese", "Benfica",
   ],
   "brasília": [
-    "Asa Sul", "Asa Norte", "Lago Sul", "Lago Norte", "Sudoeste",
-    "Noroeste", "Águas Claras", "Taguatinga", "Ceilândia", "Guará",
+    "Asa Sul", "Asa Norte", "Sudoeste", "Noroeste", "Lago Sul",
+    "Lago Norte", "Águas Claras", "Taguatinga", "Guará", "Ceilândia",
   ],
   "campinas": [
-    "Cambuí", "Centro", "Barão Geraldo", "Taquaral", "Sousas",
-    "Nova Campinas", "Guanabara", "Jardim Chapadão", "Botafogo",
+    "Cambuí", "Centro", "Nova Campinas", "Barão Geraldo", "Taquaral",
+    "Sousas", "Guanabara", "Jardim Chapadão", "Botafogo",
   ],
   "goiânia": [
-    "Setor Bueno", "Setor Marista", "Setor Oeste", "Centro", "Jardim Goiás",
-    "Setor Sul", "Setor Central", "Alphaville Flamboyant",
+    "Setor Bueno", "Setor Marista", "Setor Oeste", "Jardim Goiás",
+    "Centro", "Setor Sul", "Setor Central", "Alphaville Flamboyant",
   ],
   "florianópolis": [
-    "Centro", "Trindade", "Ingleses", "Jurerê", "Campeche", "Lagoa da Conceição",
-    "Canasvieiras", "Coqueiros", "Itacorubi", "Agronômica",
+    "Centro", "Trindade", "Itacorubi", "Agronômica", "Coqueiros",
+    "Ingleses", "Jurerê", "Campeche", "Lagoa da Conceição", "Canasvieiras",
+  ],
+  "vitória": [
+    "Praia do Canto", "Jardim da Penha", "Mata da Praia", "Enseada do Suá",
+    "Centro", "Jardim Camburi", "Santa Lúcia", "Bento Ferreira",
+  ],
+  "manaus": [
+    "Adrianópolis", "Vieiralves", "Centro", "Ponta Negra", "Aleixo",
+    "Flores", "Parque 10", "Dom Pedro",
+  ],
+  "belém": [
+    "Nazaré", "Umarizal", "Batista Campos", "Centro", "Marco",
+    "São Brás", "Reduto", "Pedreira",
   ],
 };
 
