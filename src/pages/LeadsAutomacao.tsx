@@ -359,11 +359,10 @@ export default function LeadsAutomacao() {
     else toast({ title: `${unique.length} empresas encontradas` });
   };
 
-  // Filtering & sorting
+  // Apply view mode filter first, then quick filters
   const filtered = useMemo(() => {
-    let list = leads;
+    let list = filterByViewMode(leads, viewMode);
 
-    // Quick filters
     for (const f of quickFilters) {
       switch (f) {
         case "morno": list = list.filter(l => getEffectiveLevel(l) === "morno"); break;
@@ -389,10 +388,9 @@ export default function LeadsAutomacao() {
       list = list.filter((l) => (l.nome || "").toLowerCase().includes(q));
     }
 
-    // Sort
     const sorted = [...list];
     switch (sortBy) {
-      case "score": sorted.sort((a, b) => getEffectiveScore(b) - getEffectiveScore(a)); break;
+      case "score": return commercialSort(sorted as LeadWithOrigin[]);
       case "google_avaliacoes": sorted.sort((a, b) => (b.google_avaliacoes ?? 0) - (a.google_avaliacoes ?? 0)); break;
       case "google_nota": sorted.sort((a, b) => (b.google_nota ?? 0) - (a.google_nota ?? 0)); break;
       case "signals": sorted.sort((a, b) => getAutomationSignals(b).length - getAutomationSignals(a).length); break;
@@ -402,7 +400,7 @@ export default function LeadsAutomacao() {
       }); break;
     }
     return sorted;
-  }, [leads, quickFilters, searchName, sortBy]);
+  }, [leads, viewMode, quickFilters, searchName, sortBy]);
 
   const toggleQuickFilter = useCallback((filter: QuickFilter) => {
     setQuickFilters((prev) => prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]);
