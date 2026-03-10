@@ -652,11 +652,11 @@ export default function LeadsAutomacao() {
           {/* Search blocks */}
           <Card className="border border-primary/50 bg-[hsl(0_0%_7%)] glow-neon-strong">
             <CardHeader className="pb-4">
-              <CardTitle className="text-2xl flex items-center gap-2 font-display text-foreground">
-                <Search className="h-7 w-7 text-neon" />
+               <CardTitle className="text-2xl flex items-center gap-2 font-display text-primary">
+                <Search className="h-7 w-7 text-primary" />
                 Buscar Empresas com Potencial de Automação
               </CardTitle>
-              <CardDescription className="text-sm text-muted-foreground">
+              <CardDescription className="text-sm text-primary/70">
                 Encontre empresas com baixa maturidade digital, atendimento manual e alto potencial de automação.
               </CardDescription>
             </CardHeader>
