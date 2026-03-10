@@ -19,6 +19,7 @@ const QUICK_FILTERS: { value: QuickFilter; label: string }[] = [
   { value: "com_email", label: "Com email" },
   { value: "sem_chatbot", label: "Sem chatbot" },
   { value: "sem_crm", label: "Sem CRM" },
+  { value: "whatsapp_manual", label: "WhatsApp manual" },
   { value: "tech_wordpress", label: "WordPress" },
   { value: "tech_wix", label: "Wix" },
   { value: "tech_shopify", label: "Shopify" },
