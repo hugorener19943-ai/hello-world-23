@@ -686,11 +686,11 @@ export default function LeadsAutomacao() {
             <Card className="border-border bg-card">
               <CardContent className="py-16 text-center text-muted-foreground">
                 <Search className="h-14 w-14 mx-auto mb-4 opacity-20" />
-                <p className="text-xl font-medium font-display">Ranking de Oportunidades Comerciais</p>
-                <p className="text-base mt-1">Preencha os blocos acima e clique em "Buscar Empresas" para encontrar leads com sinais reais de necessidade de automação.</p>
-                <div className="flex flex-wrap justify-center gap-2 mt-4 text-xs">
+                <p className="text-2xl font-semibold font-display">Ranking de Oportunidades Comerciais</p>
+                <p className="text-lg mt-2">Preencha os blocos acima e clique em "Buscar Empresas" para encontrar leads com sinais reais de necessidade de automação.</p>
+                <div className="flex flex-wrap justify-center gap-2 mt-4 text-sm">
                   {["Diagnóstico automático de estrutura digital", "Tecnologia, contato e intenção em um só lugar", "Sinais reais de necessidade operacional"].map((t) => (
-                    <Badge key={t} variant="outline" className="text-neon border-primary/30 text-xs">{t}</Badge>
+                    <Badge key={t} variant="outline" className="text-neon border-primary/30 text-sm">{t}</Badge>
                   ))}
                 </div>
               </CardContent>
