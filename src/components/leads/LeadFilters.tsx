@@ -5,7 +5,7 @@ import { Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export type QuickFilter =
-  | "" | "quente" | "muito_quente" | "com_whatsapp" | "com_email" | "com_instagram"
+  | "" | "quente" | "muito_quente" | "morno" | "com_whatsapp" | "com_email" | "com_instagram"
   | "sem_site" | "sem_chatbot" | "sem_crm" | "whatsapp_manual"
   | "tech_wordpress" | "tech_wix" | "tech_shopify"
   | "intent_agendamento" | "intent_orcamento";
