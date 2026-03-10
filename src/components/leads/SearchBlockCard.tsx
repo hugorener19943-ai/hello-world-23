@@ -202,7 +202,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
                 if (e.key === "Enter") {
                   e.preventDefault();
                   const val = (e.target as HTMLInputElement).value.trim();
-                  if (val && !(block.subnichos || []).includes(val)) {
+                  if (val && !hasSubnicho(block.subnichos || [], val)) {
                     onChange(block.id, "subnichos", [...(block.subnichos || []), val]);
                     (e.target as HTMLInputElement).value = "";
                   }
