@@ -69,10 +69,10 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
     searches: [
       {
         niche: block.query,
-        cidade: block.cidade,
-        estado: block.estado,
-        target_total: block.targetTotal,
-        ...(hasSubnichos ? { subnichos: block.subnichos } : {}),
+        city: block.cidade,
+        state: block.estado,
+        target_total: Math.max(block.targetTotal, 100),
+        ...(hasSubnichos ? { subniches: block.subnichos } : {}),
         ...(districts ? { districts } : {}),
       },
     ],
