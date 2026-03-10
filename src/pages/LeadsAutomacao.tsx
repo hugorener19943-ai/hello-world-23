@@ -656,6 +656,11 @@ export default function LeadsAutomacao() {
                   </Button>
                 )}
                 <TemplateSelector onApplyTemplate={applyTemplate} />
+                {(blocks.length > 1 || blocks.some(b => b.query || b.cidade)) && (
+                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => { setBlocks([newBlock()]); setLeads([]); setBlockStatuses({}); setBlockResults({}); setApiMeta(undefined); }}>
+                    <X className="h-4 w-4 mr-1" /> Limpar buscas
+                  </Button>
+                )}
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
                   <Checkbox id="onlyHot" checked={onlyHotLeads} onCheckedChange={(checked) => setOnlyHotLeads(!!checked)} className="border-destructive data-[state=checked]:bg-destructive" />
                   <label htmlFor="onlyHot" className="text-sm font-medium text-destructive cursor-pointer flex items-center gap-1">
