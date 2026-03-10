@@ -131,7 +131,7 @@ export interface ApiResponseMeta {
   preview_count?: number;
 }
 
-// Helpers
+// ─── Helpers ────────────────────────────────────────────
 
 export function getEffectiveScore(lead: LeadAutomacao): number {
   return lead.automation_score ?? lead.score_automacao ?? lead.score ?? 0;
@@ -148,6 +148,14 @@ export function getEffectiveLevel(lead: LeadAutomacao): string {
   return "baixo";
 }
 
+export function getLevelMicrocopy(level: string): string {
+  const l = level.toLowerCase();
+  if (l.includes("muito quente")) return "Alta prioridade comercial";
+  if (l.includes("quente")) return "Boa oportunidade";
+  if (l.includes("méd") || l.includes("med")) return "Estrutura intermediária";
+  return "Baixo potencial imediato";
+}
+
 export function isHotLead(lead: LeadAutomacao): boolean {
   if (lead.lead_para_automacao) return true;
   const level = getEffectiveLevel(lead);
@@ -156,27 +164,47 @@ export function isHotLead(lead: LeadAutomacao): boolean {
   return false;
 }
 
+export type SignalType = "problem" | "info" | "positive";
+
+export interface AutomationSignal {
+  label: string;
+  type: SignalType;
+}
+
 export function getAutomationSignals(lead: LeadAutomacao): string[] {
-  const signals: string[] = [];
-  if (lead.tem_chatbot === false || lead.chatbot_present === false) signals.push("Sem chatbot");
-  if (lead.whatsapp_manual) signals.push("WhatsApp manual");
-  if (lead.crm_present === false) signals.push("Sem CRM visível");
-  if (lead.form_is_poor) signals.push("Formulário ruim");
-  if (lead.site_uses_https === false) signals.push("Site sem HTTPS");
-  if (lead.has_meta_description === false) signals.push("Sem meta description");
-  if (lead.has_form === false) signals.push("Sem formulário");
+  return getAutomationSignalsTyped(lead).map(s => s.label);
+}
+
+export function getAutomationSignalsTyped(lead: LeadAutomacao): AutomationSignal[] {
+  const signals: AutomationSignal[] = [];
+  if (lead.tem_chatbot === false || lead.chatbot_present === false) signals.push({ label: "Sem chatbot", type: "problem" });
+  if (lead.whatsapp_manual) signals.push({ label: "WhatsApp manual", type: "problem" });
+  if (lead.crm_present === false) signals.push({ label: "Sem CRM visível", type: "problem" });
+  if (lead.form_is_poor) signals.push({ label: "Formulário ruim", type: "problem" });
+  if (lead.site_uses_https === false) signals.push({ label: "Site sem HTTPS", type: "problem" });
+  if (lead.has_meta_description === false) signals.push({ label: "Sem meta description", type: "problem" });
+  if (lead.has_form === false) signals.push({ label: "Sem formulário", type: "problem" });
+
+  // Positive signals
+  if (lead.instagram_ativo) signals.push({ label: "Instagram ativo", type: "positive" });
+  if (lead.whatsapp_confirmado) signals.push({ label: "WhatsApp confirmado", type: "positive" });
+  if (lead.contact_url || lead.contact_url_resolved) signals.push({ label: "Contato detectado", type: "info" });
+
   if (lead.weak_site_signals?.length) {
     for (const s of lead.weak_site_signals) {
-      if (!signals.includes(s)) signals.push(s);
+      if (!signals.some(x => x.label === s)) signals.push({ label: s, type: "problem" });
     }
   }
   if (lead.intent_keywords?.length) {
     for (const kw of lead.intent_keywords) {
-      if (kw.toLowerCase().includes("agendamento")) signals.push("Página com agendamento");
-      if (kw.toLowerCase().includes("orçamento") || kw.toLowerCase().includes("orcamento")) signals.push("Página com orçamento");
+      if (kw.toLowerCase().includes("agendamento") && !signals.some(x => x.label.includes("agendamento")))
+        signals.push({ label: "Página com agendamento", type: "info" });
+      if ((kw.toLowerCase().includes("orçamento") || kw.toLowerCase().includes("orcamento")) && !signals.some(x => x.label.includes("orçamento")))
+        signals.push({ label: "Página com orçamento", type: "info" });
     }
   }
-  return [...new Set(signals)];
+
+  return signals;
 }
 
 export function getTechBadges(lead: LeadAutomacao): string[] {
@@ -225,27 +253,104 @@ export function getPainText(score?: number): { text: string; level: "high" | "me
 export function getLeadSummary(lead: LeadAutomacao): string {
   const techs = getTechBadges(lead);
   const signals = getAutomationSignals(lead);
-  
-  if (techs.includes("Shopify") && signals.includes("Sem chatbot")) return "Loja Shopify sem chatbot detectado.";
-  if (techs.includes("Wix") && signals.includes("WhatsApp manual")) return "Site Wix com WhatsApp manual e formulário fraco.";
-  if (techs.includes("WordPress") && signals.includes("Sem CRM visível")) return "Empresa com WordPress e sem CRM visível.";
-  if (signals.includes("Página com agendamento") && signals.includes("Sem chatbot")) return "Página com agendamento e sem automação aparente.";
-  if (lead.whatsapp && signals.length > 2) return "Lead com forte potencial para automação via WhatsApp.";
-  if (signals.length > 3) return "Múltiplos sinais de necessidade de automação detectados.";
-  if (getEffectiveScore(lead) >= 70) return "Lead com alto potencial de automação comercial.";
-  return "Lead identificado com oportunidade de melhoria digital.";
+  const score = getEffectiveScore(lead);
+  const parts: string[] = [];
+
+  // Platform-specific
+  if (techs.includes("Shopify") && signals.includes("Sem chatbot")) {
+    parts.push("Loja com tecnologia Shopify e ausência de chatbot, indicando potencial para automação de atendimento e conversão.");
+  } else if (techs.includes("Wix") && (signals.includes("WhatsApp manual") || signals.includes("Formulário ruim"))) {
+    parts.push("Site em Wix com WhatsApp manual e formulário fraco, bom candidato para automação de captura.");
+  } else if (techs.includes("WordPress") && (signals.includes("Sem CRM visível") || signals.includes("Sem chatbot"))) {
+    parts.push("Site em WordPress com baixa maturidade operacional, bom candidato para CRM, automação e melhoria de captura.");
+  } else if (signals.includes("Página com agendamento") && signals.includes("Sem chatbot")) {
+    parts.push("Lead com oportunidade clara para chatbot e funil comercial. Há intenção de contato/agendamento e baixa evidência de automação.");
+  } else {
+    // Generic summary based on signals
+    const problems: string[] = [];
+    if (signals.includes("WhatsApp manual") || lead.whatsapp) problems.push("usa WhatsApp manual");
+    if (signals.includes("Sem CRM visível")) problems.push("não apresenta CRM visível");
+    if (signals.includes("Sem chatbot")) problems.push("sem chatbot detectado");
+    if (signals.includes("Formulário ruim") || signals.includes("Sem formulário")) problems.push("possui sinais de estrutura digital fraca");
+
+    if (problems.length >= 2) {
+      parts.push(`Empresa com forte potencial para automação. ${problems.slice(0, 3).map((p, i) => i === 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p).join(", ")}.`);
+    } else if (score >= 70) {
+      parts.push("Lead com alto potencial de automação comercial. Múltiplos sinais de oportunidade detectados.");
+    } else if (signals.length > 0) {
+      parts.push("Lead identificado com oportunidade de melhoria digital e potencial de automação.");
+    } else {
+      parts.push("Lead mapeado com dados básicos. Análise de estrutura digital disponível.");
+    }
+  }
+
+  return parts[0];
+}
+
+export interface ScoreReason {
+  label: string;
+  points: number;
+}
+
+export function getScoreReasons(lead: LeadAutomacao): ScoreReason[] {
+  const reasons: ScoreReason[] = [];
+  if (lead.chatbot_score != null && lead.chatbot_score > 0) reasons.push({ label: "Sem chatbot", points: lead.chatbot_score });
+  else if (lead.tem_chatbot === false || lead.chatbot_present === false) reasons.push({ label: "Sem chatbot", points: 20 });
+
+  if (lead.whatsapp_score != null && lead.whatsapp_score > 0) reasons.push({ label: "WhatsApp manual", points: lead.whatsapp_score });
+  else if (lead.whatsapp_manual) reasons.push({ label: "WhatsApp manual", points: 15 });
+
+  if (lead.crm_score != null && lead.crm_score > 0) reasons.push({ label: "Sem CRM visível", points: lead.crm_score });
+  else if (lead.crm_present === false) reasons.push({ label: "Sem CRM visível", points: 20 });
+
+  if (lead.form_score != null && lead.form_score > 0) reasons.push({ label: "Formulário ruim", points: lead.form_score });
+  else if (lead.form_is_poor) reasons.push({ label: "Formulário ruim", points: 15 });
+
+  if (lead.intent_score != null && lead.intent_score > 0) reasons.push({ label: "Palavras de intenção detectadas", points: lead.intent_score });
+  else if (lead.intent_keywords?.length) reasons.push({ label: "Palavras de intenção detectadas", points: 20 });
+
+  if (lead.site_weak_score != null && lead.site_weak_score > 0) reasons.push({ label: "Site fraco / sinais negativos", points: lead.site_weak_score });
+
+  return reasons.sort((a, b) => b.points - a.points);
 }
 
 export function getCommercialHooks(lead: LeadAutomacao): string[] {
   const hooks: string[] = [];
   const signals = getAutomationSignals(lead);
-  
-  if (signals.includes("WhatsApp manual") || lead.whatsapp) hooks.push("Venda automação de atendimento via WhatsApp");
-  if (signals.includes("Sem chatbot")) hooks.push("Venda chatbot para triagem");
-  if (signals.includes("Sem CRM visível")) hooks.push("Venda CRM ou funil comercial");
-  if (signals.includes("Formulário ruim") || signals.includes("Sem formulário")) hooks.push("Venda landing page ou formulário melhor");
-  if (lead.whatsapp_manual) hooks.push("Venda recuperação de leads");
-  if (hooks.length > 0) hooks.push("Venda integração site + WhatsApp + CRM");
-  
+
+  if (signals.includes("WhatsApp manual") || lead.whatsapp) hooks.push("Oferecer automação de atendimento via WhatsApp");
+  if (signals.includes("Sem chatbot")) hooks.push("Oferecer chatbot para triagem e qualificação");
+  if (signals.includes("Sem CRM visível")) hooks.push("Oferecer CRM e funil comercial");
+  if (signals.includes("Formulário ruim") || signals.includes("Sem formulário")) hooks.push("Oferecer landing page com captação melhor");
+  if (lead.whatsapp_manual) hooks.push("Oferecer recuperação de leads");
+  if (hooks.length > 0) hooks.push("Oferecer integração WhatsApp + CRM + automação");
+
   return [...new Set(hooks)].slice(0, 6);
+}
+
+export function buildCommercialClipboard(lead: LeadAutomacao): string {
+  const score = getEffectiveScore(lead);
+  const level = getEffectiveLevel(lead);
+  const summary = getLeadSummary(lead);
+  const hooks = getCommercialHooks(lead);
+  const site = lead.site || lead.website || "";
+
+  const lines = [
+    `📊 ${lead.nome || "Lead"} — Score: ${score}/100 (${level})`,
+    `📍 ${[lead.cidade, lead.estado].filter(Boolean).join("/")}${lead.categoria ? ` • ${lead.categoria}` : ""}`,
+    "",
+    `💡 ${summary}`,
+    "",
+  ];
+
+  if (lead.whatsapp || lead.telefone || lead.telefone_raw) lines.push(`📞 ${lead.whatsapp || lead.telefone || lead.telefone_raw}`);
+  if (lead.email) lines.push(`📧 ${lead.email}`);
+  if (site) lines.push(`🌐 ${site}`);
+
+  if (hooks.length > 0) {
+    lines.push("", "🎯 Oportunidades:");
+    hooks.forEach(h => lines.push(`  • ${h}`));
+  }
+
+  return lines.join("\n");
 }
