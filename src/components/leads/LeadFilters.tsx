@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 
 export type QuickFilter =
   | "" | "quente" | "muito_quente" | "com_whatsapp" | "com_email" | "com_instagram"
-  | "sem_site" | "sem_chatbot" | "sem_crm" | "tech_wordpress" | "tech_wix" | "tech_shopify"
+  | "sem_site" | "sem_chatbot" | "sem_crm" | "whatsapp_manual"
+  | "tech_wordpress" | "tech_wix" | "tech_shopify"
   | "intent_agendamento" | "intent_orcamento";
 
 export type SortOption = "score" | "google_avaliacoes" | "google_nota" | "signals" | "contacts";
@@ -18,6 +19,7 @@ const QUICK_FILTERS: { value: QuickFilter; label: string }[] = [
   { value: "com_email", label: "Com email" },
   { value: "sem_chatbot", label: "Sem chatbot" },
   { value: "sem_crm", label: "Sem CRM" },
+  { value: "whatsapp_manual", label: "WhatsApp manual" },
   { value: "tech_wordpress", label: "WordPress" },
   { value: "tech_wix", label: "Wix" },
   { value: "tech_shopify", label: "Shopify" },

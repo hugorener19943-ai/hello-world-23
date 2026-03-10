@@ -84,9 +84,15 @@ export interface LeadAutomacao {
   form_score?: number;
   crm_score?: number;
   dor_operacional_score?: number;
+  maturidade_score?: number;
+  commercial_hook_score?: number;
   automation_score?: number;
   automation_level?: string;
   lead_para_automacao?: boolean;
+
+  // API-returned reasons/hooks
+  score_reasons?: string[];
+  commercial_hooks?: string[];
 
   // Misc
   unique_key?: string;
@@ -143,8 +149,8 @@ export function getEffectiveLevel(lead: LeadAutomacao): string {
   if (lead.nivel_automacao) return lead.nivel_automacao.toLowerCase();
   if (lead.temperatura_lead) return lead.temperatura_lead.toLowerCase();
   if (score >= 90) return "muito quente";
-  if (score >= 60) return "quente";
-  if (score >= 30) return "médio";
+  if (score >= 45) return "quente";
+  if (score >= 25) return "morno";
   return "baixo";
 }
 
@@ -152,15 +158,16 @@ export function getLevelMicrocopy(level: string): string {
   const l = level.toLowerCase();
   if (l.includes("muito quente")) return "Alta prioridade comercial";
   if (l.includes("quente")) return "Boa oportunidade";
-  if (l.includes("méd") || l.includes("med")) return "Estrutura intermediária";
+  if (l.includes("morno") || l.includes("méd") || l.includes("med")) return "Estrutura intermediária";
   return "Baixo potencial imediato";
 }
 
 export function isHotLead(lead: LeadAutomacao): boolean {
   if (lead.lead_para_automacao) return true;
+  if (getEffectiveScore(lead) >= 45) return true;
+  if ((lead.dor_operacional_score ?? 0) >= 40) return true;
   const level = getEffectiveLevel(lead);
   if (level.includes("quente")) return true;
-  if (getEffectiveScore(lead) >= 60) return true;
   return false;
 }
 

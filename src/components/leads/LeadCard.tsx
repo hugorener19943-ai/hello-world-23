@@ -37,9 +37,9 @@ function levelConfig(level: string) {
     icon: <Flame className="h-3.5 w-3.5 text-orange-400" />, label: "Quente",
     border: "border-l-orange-500", glow: "shadow-orange-500/10",
   };
-  if (l.includes("méd") || l.includes("med")) return {
+  if (l.includes("morno") || l.includes("méd") || l.includes("med")) return {
     color: "text-yellow-400", bg: "bg-yellow-500/15 border-yellow-500/30",
-    icon: <Thermometer className="h-3.5 w-3.5 text-yellow-400" />, label: "Médio",
+    icon: <Thermometer className="h-3.5 w-3.5 text-yellow-400" />, label: "Morno",
     border: "border-l-yellow-500", glow: "shadow-yellow-500/10",
   };
   return {
@@ -92,8 +92,11 @@ export function LeadCard({ lead, selected = false, onToggleSelect }: LeadCardPro
   const salesTags = getSalesTags(lead);
   const pain = getPainText(lead.dor_operacional_score);
   const summary = getLeadSummary(lead);
-  const hooks = getCommercialHooks(lead);
-  const scoreReasons = getScoreReasons(lead);
+  // Prefer API-returned hooks/reasons, fallback to frontend-generated
+  const hooks = lead.commercial_hooks?.length ? lead.commercial_hooks : getCommercialHooks(lead);
+  const scoreReasons = lead.score_reasons?.length
+    ? lead.score_reasons.map(r => ({ label: r, points: 0 }))
+    : getScoreReasons(lead);
   const site = lead.site || lead.website;
   const phone = lead.telefone || lead.telefone_raw;
 
@@ -318,7 +321,7 @@ export function LeadCard({ lead, selected = false, onToggleSelect }: LeadCardPro
                   {scoreReasons.map((r) => (
                     <div key={r.label} className="flex items-center justify-between text-[11px] px-2 py-1 rounded bg-muted/30">
                       <span className="text-foreground/80">{r.label}</span>
-                      <span className="font-bold text-neon">+{r.points}</span>
+                      {r.points > 0 && <span className="font-bold text-neon">+{r.points}</span>}
                     </div>
                   ))}
                 </div>
