@@ -321,7 +321,7 @@ export function LeadCard({ lead, selected = false, onToggleSelect }: LeadCardPro
                   {scoreReasons.map((r) => (
                     <div key={r.label} className="flex items-center justify-between text-[11px] px-2 py-1 rounded bg-muted/30">
                       <span className="text-foreground/80">{r.label}</span>
-                      <span className="font-bold text-neon">+{r.points}</span>
+                      {r.points > 0 && <span className="font-bold text-neon">+{r.points}</span>}
                     </div>
                   ))}
                 </div>
