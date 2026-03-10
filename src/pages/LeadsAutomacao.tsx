@@ -158,7 +158,7 @@ export default function LeadsAutomacao() {
   const [blockResults, setBlockResults] = useState<Record<string, { found: number; requested: number; message?: string }>>({}); 
   const [searchName, setSearchName] = useState("");
   const [showResearch, setShowResearch] = useState(true);
-  const [onlyHotLeads, setOnlyHotLeads] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("prioritarios");
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const [selectedNiche, setSelectedNiche] = useState<string>("");
   const [sidebarTab, setSidebarTab] = useState<string>("research");
