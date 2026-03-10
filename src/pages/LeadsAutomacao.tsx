@@ -19,8 +19,8 @@ import { LeadFilters, type QuickFilter, type SortOption } from "@/components/lea
 import { LoadingSteps } from "@/components/leads/LoadingSteps";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-import type { SearchBlock, LeadWithOrigin, LeadAutomacao, ApiResponseMeta } from "@/components/leads/types";
-import { getEffectiveScore, getEffectiveLevel, getAutomationSignals, getTechBadges, isHotLead } from "@/components/leads/types";
+import type { SearchBlock, LeadWithOrigin, LeadAutomacao, ApiResponseMeta, ViewMode } from "@/components/leads/types";
+import { getEffectiveScore, getEffectiveLevel, getAutomationSignals, getTechBadges, isHotLead, filterByViewMode, commercialSort } from "@/components/leads/types";
 import type { FluxTemplate } from "@/lib/fluxTemplates";
 
 const API_URL = "https://api.fluxleads.com.br/webhook/buscar-empresas-automacao";
@@ -158,7 +158,7 @@ export default function LeadsAutomacao() {
   const [blockResults, setBlockResults] = useState<Record<string, { found: number; requested: number; message?: string }>>({}); 
   const [searchName, setSearchName] = useState("");
   const [showResearch, setShowResearch] = useState(true);
-  const [onlyHotLeads, setOnlyHotLeads] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("prioritarios");
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
   const [selectedNiche, setSelectedNiche] = useState<string>("");
   const [sidebarTab, setSidebarTab] = useState<string>("research");
@@ -348,25 +348,21 @@ export default function LeadsAutomacao() {
     });
 
     let unique = deduplicateLeads(allLeads);
-    if (onlyHotLeads) {
-      unique = unique.filter(isHotLead);
-    }
-    unique.sort((a, b) => getEffectiveScore(b) - getEffectiveScore(a));
+    unique = commercialSort(unique);
     setLeads(unique);
     setApiMeta(combinedMeta);
     setSelectedLeads(new Set());
     setLoading(false);
 
     if (errors.length) toast({ title: "Algumas buscas falharam", description: errors.join("; "), variant: "destructive" });
-     else if (unique.length === 0) toast({ title: onlyHotLeads ? "Nenhum lead prioritário encontrado." : "Nenhuma empresa encontrada." });
-    else toast({ title: `${unique.length} empresas encontradas${onlyHotLeads ? " (leads prioritários)" : ""}` });
+    else if (unique.length === 0) toast({ title: "Nenhuma empresa encontrada." });
+    else toast({ title: `${unique.length} empresas encontradas` });
   };
 
-  // Filtering & sorting
+  // Apply view mode filter first, then quick filters
   const filtered = useMemo(() => {
-    let list = leads;
+    let list = filterByViewMode(leads, viewMode);
 
-    // Quick filters
     for (const f of quickFilters) {
       switch (f) {
         case "morno": list = list.filter(l => getEffectiveLevel(l) === "morno"); break;
@@ -392,10 +388,9 @@ export default function LeadsAutomacao() {
       list = list.filter((l) => (l.nome || "").toLowerCase().includes(q));
     }
 
-    // Sort
     const sorted = [...list];
     switch (sortBy) {
-      case "score": sorted.sort((a, b) => getEffectiveScore(b) - getEffectiveScore(a)); break;
+      case "score": return commercialSort(sorted as LeadWithOrigin[]);
       case "google_avaliacoes": sorted.sort((a, b) => (b.google_avaliacoes ?? 0) - (a.google_avaliacoes ?? 0)); break;
       case "google_nota": sorted.sort((a, b) => (b.google_nota ?? 0) - (a.google_nota ?? 0)); break;
       case "signals": sorted.sort((a, b) => getAutomationSignals(b).length - getAutomationSignals(a).length); break;
@@ -405,7 +400,7 @@ export default function LeadsAutomacao() {
       }); break;
     }
     return sorted;
-  }, [leads, quickFilters, searchName, sortBy]);
+  }, [leads, viewMode, quickFilters, searchName, sortBy]);
 
   const toggleQuickFilter = useCallback((filter: QuickFilter) => {
     setQuickFilters((prev) => prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]);
@@ -657,11 +652,18 @@ export default function LeadsAutomacao() {
                   </Button>
                 )}
                 <TemplateSelector onApplyTemplate={applyTemplate} />
-                <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
-                  <Checkbox id="onlyHot" checked={onlyHotLeads} onCheckedChange={(checked) => setOnlyHotLeads(!!checked)} className="border-primary data-[state=checked]:bg-primary" />
-                  <label htmlFor="onlyHot" className="text-sm font-medium text-primary cursor-pointer flex items-center gap-1">
-                    <Flame className="h-4 w-4" /> Leads Prioritários
-                  </label>
+                <div className="flex items-center gap-1 px-3 py-2 rounded-md border border-primary/30 bg-primary/5">
+                  <Flame className="h-4 w-4 text-primary shrink-0" />
+                  <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                    <SelectTrigger className="h-8 w-[180px] text-xs border-0 bg-transparent font-semibold text-primary">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os Leads</SelectItem>
+                      <SelectItem value="prioritarios">Leads Prioritários</SelectItem>
+                      <SelectItem value="muito_quentes">Somente Muito Quentes</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="flex items-center gap-3 ml-auto">
                   <Button onClick={buscar} disabled={loading} className="glow-neon">
@@ -698,6 +700,27 @@ export default function LeadsAutomacao() {
           {/* Results */}
           {leads.length > 0 && (
             <>
+              {/* Stats Summary */}
+              {(() => {
+                const muitoQuentes = leads.filter(l => getEffectiveLevel(l).includes("muito quente")).length;
+                const quentes = leads.filter(l => { const lv = getEffectiveLevel(l); return lv.includes("quente") && !lv.includes("muito"); }).length;
+                const mornos = leads.filter(l => getEffectiveLevel(l) === "morno").length;
+                const baixos = leads.length - muitoQuentes - quentes - mornos;
+                const prioritarios = leads.filter(isHotLead).length;
+                return (
+                  <div className="rounded-lg border border-primary/30 bg-card p-4 space-y-2">
+                    <p className="text-sm font-bold text-foreground">{leads.length} Leads encontrados — <span className="text-primary">{filtered.length} exibidos</span></p>
+                    <div className="flex flex-wrap gap-3 text-xs font-medium">
+                      <span className="flex items-center gap-1"><Flame className="h-3.5 w-3.5 text-primary" /> Prioritários: <strong>{prioritarios}</strong></span>
+                      <span className="flex items-center gap-1">🔥 Muito Quentes: <strong>{muitoQuentes}</strong></span>
+                      <span className="flex items-center gap-1">🟠 Quentes: <strong>{quentes}</strong></span>
+                      <span className="flex items-center gap-1">🟡 Mornos: <strong>{mornos}</strong></span>
+                      <span className="flex items-center gap-1">⚪ Baixo: <strong>{baixos}</strong></span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* KPI Bar */}
               <KpiBar leads={leads} meta={apiMeta} onFilterClick={handleKpiFilterClick} />
 
