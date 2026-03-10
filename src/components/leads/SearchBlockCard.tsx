@@ -11,6 +11,15 @@ import type { SearchBlock } from "./types";
 
 const MAX_BAIRROS = 8;
 
+function normalizeKey(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+function hasSubnicho(list: string[], value: string): boolean {
+  const key = normalizeKey(value);
+  return list.some(s => normalizeKey(s) === key);
+}
+
 interface Props {
   block: SearchBlock;
   index: number;
@@ -193,7 +202,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
                 if (e.key === "Enter") {
                   e.preventDefault();
                   const val = (e.target as HTMLInputElement).value.trim();
-                  if (val && !(block.subnichos || []).includes(val)) {
+                  if (val && !hasSubnicho(block.subnichos || [], val)) {
                     onChange(block.id, "subnichos", [...(block.subnichos || []), val]);
                     (e.target as HTMLInputElement).value = "";
                   }
@@ -211,7 +220,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
             </p>
             <div className="flex flex-wrap gap-1.5">
               {subnichoSuggestions.map((s) => {
-                const isAdded = (block.subnichos || []).includes(s);
+                const isAdded = hasSubnicho(block.subnichos || [], s);
                 return (
                   <Badge
                     key={s}
@@ -225,8 +234,8 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
                     }`}
                     onClick={() => {
                       if (isAdded) {
-                        onChange(block.id, "subnichos", (block.subnichos || []).filter(x => x !== s));
-                      } else if ((block.subnichos || []).length < 10) {
+                        onChange(block.id, "subnichos", (block.subnichos || []).filter(x => normalizeKey(x) !== normalizeKey(s)));
+                      } else if ((block.subnichos || []).length < 10 && !hasSubnicho(block.subnichos || [], s)) {
                         onChange(block.id, "subnichos", [...(block.subnichos || []), s]);
                       }
                     }}
