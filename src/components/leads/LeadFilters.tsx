@@ -5,7 +5,7 @@ import { Filter, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 export type QuickFilter =
-  | "" | "quente" | "muito_quente" | "com_whatsapp" | "com_email" | "com_instagram"
+  | "" | "quente" | "muito_quente" | "morno" | "com_whatsapp" | "com_email" | "com_instagram"
   | "sem_site" | "sem_chatbot" | "sem_crm" | "whatsapp_manual"
   | "tech_wordpress" | "tech_wix" | "tech_shopify"
   | "intent_agendamento" | "intent_orcamento";
@@ -15,6 +15,7 @@ export type SortOption = "score" | "google_avaliacoes" | "google_nota" | "signal
 const QUICK_FILTERS: { value: QuickFilter; label: string }[] = [
   { value: "muito_quente", label: "Muito quentes" },
   { value: "quente", label: "Quentes" },
+  { value: "morno", label: "Mornos" },
   { value: "com_whatsapp", label: "Com WhatsApp" },
   { value: "com_email", label: "Com email" },
   { value: "sem_chatbot", label: "Sem chatbot" },

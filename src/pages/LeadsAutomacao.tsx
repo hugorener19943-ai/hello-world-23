@@ -369,6 +369,7 @@ export default function LeadsAutomacao() {
     // Quick filters
     for (const f of quickFilters) {
       switch (f) {
+        case "morno": list = list.filter(l => getEffectiveLevel(l) === "morno"); break;
         case "quente": list = list.filter(l => { const lv = getEffectiveLevel(l); return lv.includes("quente"); }); break;
         case "muito_quente": list = list.filter(l => getEffectiveLevel(l).includes("muito quente")); break;
         case "com_whatsapp": list = list.filter(l => l.whatsapp || l.whatsapp_link); break;
