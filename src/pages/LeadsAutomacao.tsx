@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Loader2, Download, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare, MapPin, CheckCircle2, X } from "lucide-react";
+import { Search, Loader2, Download, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare, MapPin, CheckCircle2, X, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
 import { TemplateSelector } from "@/components/leads/TemplateSelector";
@@ -656,21 +656,23 @@ export default function LeadsAutomacao() {
                   </Button>
                 )}
                 <TemplateSelector onApplyTemplate={applyTemplate} />
-                {(blocks.length > 1 || blocks.some(b => b.query || b.cidade)) && (
-                  <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => { setBlocks([newBlock()]); setLeads([]); setBlockStatuses({}); setBlockResults({}); setApiMeta(undefined); }}>
-                    <X className="h-4 w-4 mr-1" /> Limpar buscas
-                  </Button>
-                )}
                 <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-destructive/30 bg-destructive/10">
                   <Checkbox id="onlyHot" checked={onlyHotLeads} onCheckedChange={(checked) => setOnlyHotLeads(!!checked)} className="border-destructive data-[state=checked]:bg-destructive" />
                   <label htmlFor="onlyHot" className="text-sm font-medium text-destructive cursor-pointer flex items-center gap-1">
                     <Flame className="h-4 w-4" /> Apenas Quentes
                   </label>
                 </div>
-                <Button onClick={buscar} disabled={loading} className="glow-neon">
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
-                  Buscar Empresas
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button onClick={buscar} disabled={loading} className="glow-neon">
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
+                    Buscar Empresas
+                  </Button>
+                  {(blocks.length > 1 || blocks.some(b => b.query || b.cidade) || leads.length > 0) && (
+                    <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10" title="Limpar buscas" onClick={() => { setBlocks([newBlock()]); setLeads([]); setBlockStatuses({}); setBlockResults({}); setApiMeta(undefined); }}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
