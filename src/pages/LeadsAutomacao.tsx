@@ -348,10 +348,7 @@ export default function LeadsAutomacao() {
     });
 
     let unique = deduplicateLeads(allLeads);
-    if (onlyHotLeads) {
-      unique = unique.filter(isHotLead);
-    }
-    unique.sort((a, b) => getEffectiveScore(b) - getEffectiveScore(a));
+    unique = commercialSort(unique);
     setLeads(unique);
     setApiMeta(combinedMeta);
     setSelectedLeads(new Set());
