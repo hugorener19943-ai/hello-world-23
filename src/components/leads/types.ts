@@ -84,9 +84,15 @@ export interface LeadAutomacao {
   form_score?: number;
   crm_score?: number;
   dor_operacional_score?: number;
+  maturidade_score?: number;
+  commercial_hook_score?: number;
   automation_score?: number;
   automation_level?: string;
   lead_para_automacao?: boolean;
+
+  // API-returned reasons/hooks
+  score_reasons?: string[];
+  commercial_hooks?: string[];
 
   // Misc
   unique_key?: string;
