@@ -238,7 +238,6 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
                       } else if ((block.subnichos || []).length < 10 && !hasSubnicho(block.subnichos || [], s)) {
                         onChange(block.id, "subnichos", [...(block.subnichos || []), s]);
                       }
-                      }
                     }}
                   >
                     {isAdded ? "✓ " : ""}{s}
