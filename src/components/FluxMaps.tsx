@@ -231,6 +231,20 @@ const estados: StateData[] = [
           { nome: "Neves", conversao: "media" },
         ],
       },
+      {
+        cidade: "Duque de Caxias", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "25 de Agosto", conversao: "alta" },
+          { nome: "Jardim Primavera", conversao: "media" }, { nome: "Campos Elíseos", conversao: "media" },
+        ],
+      },
+      {
+        cidade: "Nova Iguaçu", potencial: "medio",
+        bairros: [
+          { nome: "Centro", conversao: "alta" }, { nome: "Califórnia", conversao: "alta" },
+          { nome: "Luz", conversao: "media" }, { nome: "Posse", conversao: "media" },
+        ],
+      },
     ],
   },
   {
