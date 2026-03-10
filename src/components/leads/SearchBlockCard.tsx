@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Loader2, CheckCircle2, XCircle, MapPin, AlertTriangle, Plus, X } from "lucide-react";
+import { Trash2, Loader2, CheckCircle2, XCircle, MapPin, AlertTriangle, Plus, X, Lightbulb } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { getBairrosPorCidade } from "@/lib/bairrosPorCidade";
+import { getSubnichoSuggestions } from "@/lib/subnichoSuggestions";
 import type { SearchBlock } from "./types";
 
 const MAX_BAIRROS = 8;
