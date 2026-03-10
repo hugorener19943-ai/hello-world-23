@@ -19,8 +19,8 @@ import { LeadFilters, type QuickFilter, type SortOption } from "@/components/lea
 import { LoadingSteps } from "@/components/leads/LoadingSteps";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-import type { SearchBlock, LeadWithOrigin, LeadAutomacao, ApiResponseMeta } from "@/components/leads/types";
-import { getEffectiveScore, getEffectiveLevel, getAutomationSignals, getTechBadges, isHotLead } from "@/components/leads/types";
+import type { SearchBlock, LeadWithOrigin, LeadAutomacao, ApiResponseMeta, ViewMode } from "@/components/leads/types";
+import { getEffectiveScore, getEffectiveLevel, getAutomationSignals, getTechBadges, isHotLead, filterByViewMode, commercialSort } from "@/components/leads/types";
 import type { FluxTemplate } from "@/lib/fluxTemplates";
 
 const API_URL = "https://api.fluxleads.com.br/webhook/buscar-empresas-automacao";
