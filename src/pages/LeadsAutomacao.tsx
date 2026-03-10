@@ -700,6 +700,27 @@ export default function LeadsAutomacao() {
           {/* Results */}
           {leads.length > 0 && (
             <>
+              {/* Stats Summary */}
+              {(() => {
+                const muitoQuentes = leads.filter(l => getEffectiveLevel(l).includes("muito quente")).length;
+                const quentes = leads.filter(l => { const lv = getEffectiveLevel(l); return lv.includes("quente") && !lv.includes("muito"); }).length;
+                const mornos = leads.filter(l => getEffectiveLevel(l) === "morno").length;
+                const baixos = leads.length - muitoQuentes - quentes - mornos;
+                const prioritarios = leads.filter(isHotLead).length;
+                return (
+                  <div className="rounded-lg border border-primary/30 bg-card p-4 space-y-2">
+                    <p className="text-sm font-bold text-foreground">{leads.length} Leads encontrados — <span className="text-primary">{filtered.length} exibidos</span></p>
+                    <div className="flex flex-wrap gap-3 text-xs font-medium">
+                      <span className="flex items-center gap-1"><Flame className="h-3.5 w-3.5 text-primary" /> Prioritários: <strong>{prioritarios}</strong></span>
+                      <span className="flex items-center gap-1">🔥 Muito Quentes: <strong>{muitoQuentes}</strong></span>
+                      <span className="flex items-center gap-1">🟠 Quentes: <strong>{quentes}</strong></span>
+                      <span className="flex items-center gap-1">🟡 Mornos: <strong>{mornos}</strong></span>
+                      <span className="flex items-center gap-1">⚪ Baixo: <strong>{baixos}</strong></span>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* KPI Bar */}
               <KpiBar leads={leads} meta={apiMeta} onFilterClick={handleKpiFilterClick} />
 
