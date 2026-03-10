@@ -179,7 +179,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
       {/* Subnichos - até 10 */}
       <div className="space-y-2">
         <Label className="text-base font-bold text-white flex items-center gap-1.5">
-          🔍 Subnichos <span className="text-xs font-normal text-muted-foreground">(até 10)</span>
+          🔍 Subnichos <span className="text-xs font-normal text-foreground/70">(até 10)</span>
         </Label>
         {block.subnichos && block.subnichos.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
@@ -209,7 +209,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
                 }
               }}
             />
-            <span className="text-xs text-muted-foreground">Enter para adicionar</span>
+            <span className="text-xs text-foreground/70">Enter para adicionar</span>
           </div>
         )}
         {/* Subnicho suggestions */}
@@ -254,7 +254,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
         <div className="flex items-center gap-2">
           <Label className="text-base font-bold text-white flex items-center gap-1.5">
             <MapPin className="h-4 w-4 text-neon" />
-            Bairros <span className="text-xs font-normal text-muted-foreground">(até {MAX_BAIRROS}, opcional)</span>
+            Bairros <span className="text-xs font-normal text-foreground/70">(até {MAX_BAIRROS}, opcional)</span>
           </Label>
           {hasSuggestions && (
             <Button
