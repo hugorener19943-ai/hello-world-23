@@ -164,10 +164,10 @@ export function getLevelMicrocopy(level: string): string {
 
 export function isHotLead(lead: LeadAutomacao): boolean {
   if (lead.lead_para_automacao) return true;
-  if (getEffectiveScore(lead) >= 45) return true;
-  if ((lead.dor_operacional_score ?? 0) >= 40) return true;
+  if (getEffectiveScore(lead) >= 8) return true;
+  if ((lead.dor_operacional_score ?? 0) >= 8) return true;
   const level = getEffectiveLevel(lead);
-  if (level.includes("quente")) return true;
+  if (level.includes("quente") || level.includes("morno")) return true;
   return false;
 }
 

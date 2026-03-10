@@ -18,6 +18,7 @@ export function KpiBar({ leads, meta, onFilterClick }: KpiBarProps) {
   const comInstagram = meta?.total_com_instagram ?? leads.filter(l => l.instagram).length;
   const semSite = meta?.total_sem_site ?? leads.filter(l => !l.site && !l.website).length;
 
+  const mornos = leads.filter(l => getEffectiveLevel(l) === "morno").length;
   const quentes = leads.filter(l => { const lv = getEffectiveLevel(l); return lv.includes("quente") && !lv.includes("muito"); }).length;
   const muitoQuentes = leads.filter(l => getEffectiveLevel(l).includes("muito quente")).length;
 
