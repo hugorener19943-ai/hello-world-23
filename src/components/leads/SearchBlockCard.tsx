@@ -209,7 +209,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
                 }
               }}
             />
-            <span className="text-xs text-foreground/70">Enter para adicionar</span>
+            <span className="text-xs text-white">Enter para adicionar</span>
           </div>
         )}
         {/* Subnicho suggestions */}
