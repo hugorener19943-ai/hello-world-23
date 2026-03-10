@@ -28,6 +28,7 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
   const [newBairroInput, setNewBairroInput] = useState("");
 
   const bairrosSugeridos = useMemo(() => getBairrosPorCidade(block.cidade), [block.cidade]);
+  const subnichoSuggestions = useMemo(() => getSubnichoSuggestions(block.query), [block.query]);
   const hasSuggestions = bairrosSugeridos.length > 0;
 
   const handleDragOver = (e: React.DragEvent) => {
