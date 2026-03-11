@@ -689,12 +689,16 @@ export default function LeadsAutomacao() {
           {/* Empty */}
           {!loading && leads.length === 0 && (
             <Card className="border-border bg-card">
-              <CardContent className="py-16 text-center text-muted-foreground">
-                <Search className="h-14 w-14 mx-auto mb-4 opacity-20" />
-                <p className="text-2xl font-semibold font-display">Ranking de Oportunidades Comerciais</p>
-                <p className="text-lg mt-2">Preencha os blocos acima e clique em "Iniciar Busca de Leads" para encontrar leads com sinais reais de necessidade de automação.</p>
+              <CardContent className="py-16 text-center">
+                <Search className="h-14 w-14 mx-auto mb-4 opacity-20 text-muted-foreground" />
+                <p className="text-2xl font-semibold font-display text-white">Ranking de Oportunidades Comerciais</p>
+                <p className="text-lg mt-2 text-white/80">Preencha os blocos acima e clique em "Iniciar Busca de Leads" para encontrar leads com sinais reais de necessidade de automação.</p>
                 <div className="flex flex-wrap justify-center gap-2 mt-4 text-sm">
-                  {["Diagnóstico automático de estrutura digital", "Tecnologia, contato e intenção em um só lugar", "Sinais reais de necessidade operacional"].map((t) => (
+                  {[
+                    "Prospecção inteligente baseada em dados reais de mercado",
+                    "Identifique negócios que ainda operam com processos manuais",
+                    "Encontre oportunidades comerciais antes dos seus concorrentes",
+                  ].map((t) => (
                     <Badge key={t} variant="outline" className="text-neon border-primary/30 text-sm">{t}</Badge>
                   ))}
                 </div>
