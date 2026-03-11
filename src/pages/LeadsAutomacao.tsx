@@ -646,6 +646,7 @@ export default function LeadsAutomacao() {
               {blocks.map((block, i) => (
                 <SearchBlockCard key={block.id} block={block} index={i} canRemove={blocks.length > 1} status={blockStatuses[block.id] || "idle"} result={blockResults[block.id]} onChange={updateBlock} onRemove={removeBlock} />
               ))}
+              <SearchSummary blocks={blocks} />
               <div className="flex flex-wrap gap-3">
                 {blocks.length < MAX_BLOCKS && (
                   <Button variant="outline" size="sm" onClick={addBlock} className="bg-background text-foreground border-border hover:bg-secondary">
