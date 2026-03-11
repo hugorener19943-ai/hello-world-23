@@ -668,7 +668,7 @@ export default function LeadsAutomacao() {
                 <div className="flex items-center gap-3 ml-auto">
                   <Button onClick={buscar} disabled={loading} className="glow-neon">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
-                    Buscar Empresas
+                    Iniciar Busca de Leads
                   </Button>
                   <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10" title="Limpar buscas" onClick={() => { setBlocks([newBlock()]); setLeads([]); setBlockStatuses({}); setBlockResults({}); setApiMeta(undefined); }}>
                     <Trash2 className="h-5 w-5" />
