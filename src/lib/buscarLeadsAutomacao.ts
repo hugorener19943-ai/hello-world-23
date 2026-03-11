@@ -27,15 +27,27 @@ export async function buscarLeadsAutomacao(params: {
   cidade: string;
   estado: string;
   target_total: number;
+  subnichos?: string[];
+  bairros?: string[];
 }): Promise<{ total: number; leads: LeadAutomacao[] }> {
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { Authorization: AUTH, "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: params.query,
-      local: { cidade: params.cidade, estado: params.estado },
-      target_total: params.target_total,
+      searches: [
+        {
+          search_id: "search_1",
+          niche: params.query,
+          city: params.cidade,
+          state: params.estado,
+          target_total: Math.max(params.target_total, 100),
+          subniches: params.subnichos || [],
+          districts: params.bairros || [],
+        },
+      ],
       format: "json",
+      max_combinations_per_search: 20,
+      max_pages_per_combination: 2,
     }),
   });
 

@@ -63,22 +63,21 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   let reason: FetchResult["reason"] = "all_fetched";
   let meta: ApiResponseMeta | undefined;
 
-  // Use the multi-search format to send subnichos natively to the API
-  const hasSubnichos = block.subnichos && block.subnichos.length > 0;
-  const districts = block.bairros.length > 0 ? block.bairros : undefined;
-
   const payload: any = {
     searches: [
       {
+        search_id: `search_${block.id}`,
         niche: block.query,
         city: block.cidade,
         state: block.estado,
         target_total: Math.max(block.targetTotal, 100),
-        ...(hasSubnichos ? { subniches: block.subnichos } : {}),
-        ...(districts ? { districts } : {}),
+        subniches: block.subnichos && block.subnichos.length > 0 ? block.subnichos : [],
+        districts: block.bairros.length > 0 ? block.bairros : [],
       },
     ],
     format: "json",
+    max_combinations_per_search: 20,
+    max_pages_per_combination: 2,
   };
 
   const res = await fetch(API_URL, {
