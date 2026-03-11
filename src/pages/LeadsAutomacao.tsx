@@ -356,8 +356,11 @@ export default function LeadsAutomacao() {
     setLoading(false);
 
     if (errors.length) toast({ title: "Algumas buscas falharam", description: errors.join("; "), variant: "destructive" });
-    else if (unique.length === 0) toast({ title: "Nenhuma empresa encontrada." });
-    else toast({ title: `${unique.length} empresas encontradas` });
+    else if (unique.length === 0) toast({ title: "Nenhuma empresa encontrada com os critérios atuais.", description: "Tente adicionar mais subnichos, remover bairros ou aumentar o raio da busca.", variant: "destructive" });
+    else {
+      const qualificados = unique.filter(l => getEffectiveScore(l) >= 60).length;
+      toast({ title: "Busca concluída com sucesso!", description: `Empresas encontradas: ${unique.length} · Leads qualificados: ${qualificados}` });
+    }
   };
 
   // Apply view mode filter first, then quick filters
@@ -583,7 +586,10 @@ export default function LeadsAutomacao() {
                 setTimeout(() => setSidebarTab("maps"), 0);
               }} />
             </TabsContent>
-            <TabsContent value="maps" className="flex-1 overflow-hidden mt-0">
+            <TabsContent value="maps" className="flex-1 overflow-hidden mt-0 flex flex-col">
+              <div className="px-4 py-3 border-b border-border/30">
+                <p className="text-xs text-white/70">Explore empresas diretamente pelo mapa. Clique em uma região e descubra empresas com alto potencial de automação.</p>
+              </div>
               <FluxMaps onSelectLocation={handleSelectLocation} onSelectMultipleBairros={handleSelectMultipleBairros} onSelectCity={(cidade, estado) => {
                 const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
                 setBlocks((prev) => { const updated = [...prev]; updated[targetIndex] = { ...updated[targetIndex], cidade, estado }; return updated; });
@@ -667,14 +673,17 @@ export default function LeadsAutomacao() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex items-center gap-3 ml-auto">
-                  <Button onClick={buscar} disabled={loading} className="glow-neon">
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
-                    Iniciar Busca de Leads
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10" title="Limpar buscas" onClick={() => { setBlocks([newBlock()]); setLeads([]); setBlockStatuses({}); setBlockResults({}); setApiMeta(undefined); }}>
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
+                <div className="flex flex-col items-end gap-1.5 ml-auto">
+                  <div className="flex items-center gap-3">
+                    <Button onClick={buscar} disabled={loading} className="glow-neon">
+                      {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Search className="h-4 w-4 mr-2" />}
+                      Iniciar Busca de Leads
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-11 w-11 text-destructive hover:text-destructive hover:bg-destructive/10" title="Limpar buscas" onClick={() => { setBlocks([newBlock()]); setLeads([]); setBlockStatuses({}); setBlockResults({}); setApiMeta(undefined); }}>
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-white/50 max-w-[340px] text-right">O sistema combina nicho, subnichos e localização para encontrar empresas com maior potencial comercial.</p>
                 </div>
               </div>
             </CardContent>
@@ -686,12 +695,16 @@ export default function LeadsAutomacao() {
           {/* Empty */}
           {!loading && leads.length === 0 && (
             <Card className="border-border bg-card">
-              <CardContent className="py-16 text-center text-muted-foreground">
-                <Search className="h-14 w-14 mx-auto mb-4 opacity-20" />
-                <p className="text-2xl font-semibold font-display">Ranking de Oportunidades Comerciais</p>
-                <p className="text-lg mt-2">Preencha os blocos acima e clique em "Iniciar Busca de Leads" para encontrar leads com sinais reais de necessidade de automação.</p>
+              <CardContent className="py-16 text-center">
+                <Search className="h-14 w-14 mx-auto mb-4 opacity-20 text-muted-foreground" />
+                <p className="text-2xl font-semibold font-display text-white">Ranking de Oportunidades Comerciais</p>
+                <p className="text-lg mt-2 text-white/80">Preencha os blocos acima e clique em "Iniciar Busca de Leads" para encontrar leads com sinais reais de necessidade de automação.</p>
                 <div className="flex flex-wrap justify-center gap-2 mt-4 text-sm">
-                  {["Diagnóstico automático de estrutura digital", "Tecnologia, contato e intenção em um só lugar", "Sinais reais de necessidade operacional"].map((t) => (
+                  {[
+                    "Prospecção inteligente baseada em dados reais de mercado",
+                    "Identifique negócios que ainda operam com processos manuais",
+                    "Encontre oportunidades comerciais antes dos seus concorrentes",
+                  ].map((t) => (
                     <Badge key={t} variant="outline" className="text-neon border-primary/30 text-sm">{t}</Badge>
                   ))}
                 </div>
