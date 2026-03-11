@@ -586,7 +586,10 @@ export default function LeadsAutomacao() {
                 setTimeout(() => setSidebarTab("maps"), 0);
               }} />
             </TabsContent>
-            <TabsContent value="maps" className="flex-1 overflow-hidden mt-0">
+            <TabsContent value="maps" className="flex-1 overflow-hidden mt-0 flex flex-col">
+              <div className="px-4 py-3 border-b border-border/30">
+                <p className="text-xs text-white/70">Explore empresas diretamente pelo mapa. Clique em uma região e descubra empresas com alto potencial de automação.</p>
+              </div>
               <FluxMaps onSelectLocation={handleSelectLocation} onSelectMultipleBairros={handleSelectMultipleBairros} onSelectCity={(cidade, estado) => {
                 const targetIndex = Math.min(activeBlockIndex, blocks.length - 1);
                 setBlocks((prev) => { const updated = [...prev]; updated[targetIndex] = { ...updated[targetIndex], cidade, estado }; return updated; });
