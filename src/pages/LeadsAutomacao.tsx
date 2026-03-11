@@ -356,8 +356,11 @@ export default function LeadsAutomacao() {
     setLoading(false);
 
     if (errors.length) toast({ title: "Algumas buscas falharam", description: errors.join("; "), variant: "destructive" });
-    else if (unique.length === 0) toast({ title: "Nenhuma empresa encontrada." });
-    else toast({ title: `${unique.length} empresas encontradas` });
+    else if (unique.length === 0) toast({ title: "Nenhuma empresa encontrada com os critérios atuais.", description: "Tente adicionar mais subnichos, remover bairros ou aumentar o raio da busca.", variant: "destructive" });
+    else {
+      const qualificados = unique.filter(l => getEffectiveScore(l) >= 60).length;
+      toast({ title: "Busca concluída com sucesso!", description: `Empresas encontradas: ${unique.length} · Leads qualificados: ${qualificados}` });
+    }
   };
 
   // Apply view mode filter first, then quick filters
