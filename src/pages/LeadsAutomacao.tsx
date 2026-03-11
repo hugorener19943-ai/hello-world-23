@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Search, Loader2, Download, Plus, Zap, PanelLeftOpen, PanelLeftClose, Flame, CheckSquare, MapPin, CheckCircle2, X, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchBlockCard } from "@/components/leads/SearchBlockCard";
+import { SearchSummary } from "@/components/leads/SearchSummary";
 import { TemplateSelector } from "@/components/leads/TemplateSelector";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
