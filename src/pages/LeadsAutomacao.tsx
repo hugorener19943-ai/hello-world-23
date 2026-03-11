@@ -635,10 +635,10 @@ export default function LeadsAutomacao() {
             <CardHeader className="pb-4">
                <CardTitle className="text-2xl flex items-center gap-2 font-display text-primary">
                 <Search className="h-7 w-7 text-primary" />
-                Buscar Empresas com Potencial de Automação
+                Encontre Empresas com Alto Potencial de Automação
               </CardTitle>
-              <CardDescription className="text-sm text-primary/70">
-                Encontre empresas com baixa maturidade digital, atendimento manual e alto potencial de automação.
+              <CardDescription className="text-sm text-white/80">
+                Descubra empresas com baixa maturidade digital, atendimento manual e grande oportunidade para automação e vendas.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
