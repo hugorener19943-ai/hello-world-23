@@ -804,15 +804,20 @@ export default function LeadsAutomacao() {
                 totalLeads={leads.length}
               />
 
-              {/* Lead Table */}
-              <LeadsTable
-                leads={filtered}
-                selectedLeads={selectedLeads}
-                onToggleSelect={toggleLeadSelection}
-                onSelectAll={selectAll}
-                onDeselectAll={deselectAll}
-                dedupeKeyFn={dedupeKey}
-              />
+              {/* Lead Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {filtered.map((lead) => {
+                  const key = dedupeKey(lead);
+                  return (
+                    <LeadCard
+                      key={key}
+                      lead={lead}
+                      selected={selectedLeads.has(key)}
+                      onToggleSelect={() => toggleLeadSelection(key)}
+                    />
+                  );
+                })}
+              </div>
 
               {filtered.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">Nenhum lead corresponde aos filtros.</p>
