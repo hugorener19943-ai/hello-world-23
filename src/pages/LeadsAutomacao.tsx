@@ -429,7 +429,7 @@ export default function LeadsAutomacao() {
 
   const deselectAll = useCallback(() => setSelectedLeads(new Set()), []);
 
-  const exportData = (onlySelected: boolean, format: "csv" | "json" = "csv") => {
+  const exportData = (onlySelected: boolean) => {
     const toExport = onlySelected
       ? filtered.filter((l) => selectedLeads.has(dedupeKey(l)))
       : leads;
@@ -437,35 +437,8 @@ export default function LeadsAutomacao() {
       toast({ title: "Nenhum lead para exportar", variant: "destructive" });
       return;
     }
-
-    if (format === "json") {
-      const blob = new Blob([JSON.stringify(toExport, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `leads_${onlySelected ? "selecionados" : "todos"}_${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast({ title: "JSON exportado!", description: `${toExport.length} leads` });
-      return;
-    }
-
-    const headers = ["nome", "telefone", "email", "site", "whatsapp", "instagram", "linkedin", "cidade", "estado", "categoria", "automation_score", "automation_level", "dor_operacional_score", "site_platform", "google_nota", "google_avaliacoes", "lead_para_automacao", "originLabel"];
-    const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const rows = toExport.map((l) => headers.map((h) => esc((l as any)[h])));
-    const csv = [headers.map(esc).join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `leads_${onlySelected ? "selecionados" : "todos"}_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({ title: "CSV exportado!", description: `${toExport.length} leads` });
+    const count = exportLeadsCSV(toExport);
+    toast({ title: "Excel exportado!", description: `${count} leads exportados com sucesso.` });
   };
 
   return (
