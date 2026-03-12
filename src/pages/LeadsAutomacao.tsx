@@ -777,26 +777,16 @@ export default function LeadsAutomacao() {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>Selecionar Todos</Button>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={deselectAll}>Limpar</Button>
                   {selectedLeads.size > 0 && <span className="text-xs text-neon font-semibold">{selectedLeads.size} selecionados</span>}
                 </div>
                 <div className="flex gap-2">
                   {selectedLeads.size > 0 && (
-                    <>
-                      <Button variant="default" size="sm" onClick={() => exportData(true, "csv")} className="bg-destructive hover:bg-destructive/90">
-                        <Download className="h-4 w-4 mr-2" /> CSV ({selectedLeads.size})
-                      </Button>
-                      <Button variant="default" size="sm" onClick={() => exportData(true, "json")} className="bg-destructive hover:bg-destructive/90">
-                        <Download className="h-4 w-4 mr-2" /> JSON ({selectedLeads.size})
-                      </Button>
-                    </>
+                    <Button variant="default" size="sm" onClick={() => exportData(true)} className="bg-destructive hover:bg-destructive/90">
+                      <Download className="h-4 w-4 mr-2" /> Exportar Excel ({selectedLeads.size})
+                    </Button>
                   )}
-                  <Button variant="outline" size="sm" onClick={() => exportData(false, "csv")} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
-                    <Download className="h-4 w-4 mr-2" /> CSV ({leads.length})
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => exportData(false, "json")} className="border-border">
-                    <Download className="h-4 w-4 mr-2" /> JSON ({leads.length})
+                  <Button variant="outline" size="sm" onClick={() => exportData(false)} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
+                    <Download className="h-4 w-4 mr-2" /> Exportar Excel ({leads.length})
                   </Button>
                 </div>
               </div>
