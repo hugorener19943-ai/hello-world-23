@@ -54,6 +54,29 @@ function firstString(val: unknown): string {
   return String(val);
 }
 
+/** Clean phone: keep only digits, add +55 if missing, format nicely */
+function formatPhone(val: unknown): string {
+  const raw = firstString(val);
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return "";
+  // Brazilian numbers
+  if (digits.length === 13 && digits.startsWith("55")) {
+    // 55 + DDD(2) + 9digits
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9)}`;
+  }
+  if (digits.length === 12 && digits.startsWith("55")) {
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 8)}-${digits.slice(8)}`;
+  }
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return raw; // fallback to original
+}
+
 export function flattenLead(lead: LeadWithOrigin, index: number): FlatLead {
   const { rua, numero } = parseEndereco(lead.endereco || "");
   const now = new Date().toISOString().replace("T", " ").substring(0, 19);
@@ -63,8 +86,8 @@ export function flattenLead(lead: LeadWithOrigin, index: number): FlatLead {
     empresa: lead.nome || "",
     categoria: lead.categoria || lead.nicho || "",
     subnicho: lead.subnicho_origem || "",
-    telefone: firstString(lead.telefone || lead.telefone_raw),
-    whatsapp: firstString(lead.whatsapp || lead.whatsapp_site),
+    telefone: formatPhone(lead.telefone || lead.telefone_raw),
+    whatsapp: formatPhone(lead.whatsapp || lead.whatsapp_site),
     email: firstString(lead.email),
     website: firstString(lead.site || lead.website),
     instagram: firstString(lead.instagram),
@@ -194,9 +217,16 @@ export function exportLeadsCSV(leads: LeadWithOrigin[], filename?: string) {
   const BOM = "\uFEFF";
   const sep = ";";
   const headers = COLUMNS.map(c => c.label);
+
+  // Phone-like columns that Excel must treat as text
+  const textForceKeys = new Set<keyof FlatLead>(["telefone", "whatsapp", "cep"]);
   
-  const esc = (v: string): string => {
+  const esc = (v: string, forceText = false): string => {
     if (!v) return "";
+    // Prefix with = and wrap in quotes so Excel keeps it as text
+    if (forceText && /^\+?\(?\d/.test(v)) {
+      return `="${v.replace(/"/g, '""')}"`;
+    }
     if (v.includes(";") || v.includes('"') || v.includes("\n")) {
       return `"${v.replace(/"/g, '""')}"`;
     }
@@ -205,10 +235,10 @@ export function exportLeadsCSV(leads: LeadWithOrigin[], filename?: string) {
 
   const rows = leads.map((lead, i) => {
     const flat = flattenLead(lead, i);
-    return COLUMNS.map(col => esc(String(flat[col.key] ?? "")));
+    return COLUMNS.map(col => esc(String(flat[col.key] ?? ""), textForceKeys.has(col.key)));
   });
 
-  const csv = BOM + [headers.map(esc).join(sep), ...rows.map(r => r.join(sep))].join("\r\n");
+  const csv = BOM + [headers.map(h => esc(h)).join(sep), ...rows.map(r => r.join(sep))].join("\r\n");
 
   const now = new Date();
   const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}_${String(now.getHours()).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}`;
