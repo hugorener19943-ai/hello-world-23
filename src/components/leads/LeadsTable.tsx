@@ -54,6 +54,29 @@ function firstString(val: unknown): string {
   return String(val);
 }
 
+/** Clean phone: keep only digits, add +55 if missing, format nicely */
+function formatPhone(val: unknown): string {
+  const raw = firstString(val);
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return "";
+  // Brazilian numbers
+  if (digits.length === 13 && digits.startsWith("55")) {
+    // 55 + DDD(2) + 9digits
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 9)}-${digits.slice(9)}`;
+  }
+  if (digits.length === 12 && digits.startsWith("55")) {
+    return `+${digits.slice(0, 2)} (${digits.slice(2, 4)}) ${digits.slice(4, 8)}-${digits.slice(8)}`;
+  }
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return raw; // fallback to original
+}
+
 export function flattenLead(lead: LeadWithOrigin, index: number): FlatLead {
   const { rua, numero } = parseEndereco(lead.endereco || "");
   const now = new Date().toISOString().replace("T", " ").substring(0, 19);
