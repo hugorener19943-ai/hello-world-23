@@ -15,6 +15,7 @@ import { TemplateSelector } from "@/components/leads/TemplateSelector";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
 import { LeadCard } from "@/components/leads/LeadCard";
+import { LeadsTable, exportLeadsCSV } from "@/components/leads/LeadsTable";
 import { KpiBar } from "@/components/leads/KpiBar";
 import { LeadFilters, type QuickFilter, type SortOption } from "@/components/leads/LeadFilters";
 import { LoadingSteps } from "@/components/leads/LoadingSteps";
