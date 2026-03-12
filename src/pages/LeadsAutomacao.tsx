@@ -15,6 +15,7 @@ import { TemplateSelector } from "@/components/leads/TemplateSelector";
 import { ResearchFlux } from "@/components/ResearchFlux";
 import { FluxMaps } from "@/components/FluxMaps";
 import { LeadCard } from "@/components/leads/LeadCard";
+import { LeadsTable, exportLeadsCSV } from "@/components/leads/LeadsTable";
 import { KpiBar } from "@/components/leads/KpiBar";
 import { LeadFilters, type QuickFilter, type SortOption } from "@/components/leads/LeadFilters";
 import { LoadingSteps } from "@/components/leads/LoadingSteps";
@@ -428,7 +429,7 @@ export default function LeadsAutomacao() {
 
   const deselectAll = useCallback(() => setSelectedLeads(new Set()), []);
 
-  const exportData = (onlySelected: boolean, format: "csv" | "json" = "csv") => {
+  const exportData = (onlySelected: boolean) => {
     const toExport = onlySelected
       ? filtered.filter((l) => selectedLeads.has(dedupeKey(l)))
       : leads;
@@ -436,35 +437,8 @@ export default function LeadsAutomacao() {
       toast({ title: "Nenhum lead para exportar", variant: "destructive" });
       return;
     }
-
-    if (format === "json") {
-      const blob = new Blob([JSON.stringify(toExport, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `leads_${onlySelected ? "selecionados" : "todos"}_${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast({ title: "JSON exportado!", description: `${toExport.length} leads` });
-      return;
-    }
-
-    const headers = ["nome", "telefone", "email", "site", "whatsapp", "instagram", "linkedin", "cidade", "estado", "categoria", "automation_score", "automation_level", "dor_operacional_score", "site_platform", "google_nota", "google_avaliacoes", "lead_para_automacao", "originLabel"];
-    const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-    const rows = toExport.map((l) => headers.map((h) => esc((l as any)[h])));
-    const csv = [headers.map(esc).join(","), ...rows.map((r) => r.join(","))].join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `leads_${onlySelected ? "selecionados" : "todos"}_${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({ title: "CSV exportado!", description: `${toExport.length} leads` });
+    const count = exportLeadsCSV(toExport);
+    toast({ title: "Excel exportado!", description: `${count} leads exportados com sucesso.` });
   };
 
   return (
@@ -803,26 +777,16 @@ export default function LeadsAutomacao() {
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
                   <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={selectAll}>Selecionar Todos</Button>
-                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={deselectAll}>Limpar</Button>
                   {selectedLeads.size > 0 && <span className="text-xs text-neon font-semibold">{selectedLeads.size} selecionados</span>}
                 </div>
                 <div className="flex gap-2">
                   {selectedLeads.size > 0 && (
-                    <>
-                      <Button variant="default" size="sm" onClick={() => exportData(true, "csv")} className="bg-destructive hover:bg-destructive/90">
-                        <Download className="h-4 w-4 mr-2" /> CSV ({selectedLeads.size})
-                      </Button>
-                      <Button variant="default" size="sm" onClick={() => exportData(true, "json")} className="bg-destructive hover:bg-destructive/90">
-                        <Download className="h-4 w-4 mr-2" /> JSON ({selectedLeads.size})
-                      </Button>
-                    </>
+                    <Button variant="default" size="sm" onClick={() => exportData(true)} className="bg-destructive hover:bg-destructive/90">
+                      <Download className="h-4 w-4 mr-2" /> Exportar Excel ({selectedLeads.size})
+                    </Button>
                   )}
-                  <Button variant="outline" size="sm" onClick={() => exportData(false, "csv")} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
-                    <Download className="h-4 w-4 mr-2" /> CSV ({leads.length})
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => exportData(false, "json")} className="border-border">
-                    <Download className="h-4 w-4 mr-2" /> JSON ({leads.length})
+                  <Button variant="outline" size="sm" onClick={() => exportData(false)} className="border-neon text-neon hover:bg-primary hover:text-primary-foreground">
+                    <Download className="h-4 w-4 mr-2" /> Exportar Excel ({leads.length})
                   </Button>
                 </div>
               </div>
@@ -840,15 +804,15 @@ export default function LeadsAutomacao() {
                 totalLeads={leads.length}
               />
 
-              {/* Lead Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                {filtered.map((lead) => {
-                  const id = dedupeKey(lead);
-                  return (
-                    <LeadCard key={id} lead={lead} selected={selectedLeads.has(id)} onToggleSelect={() => toggleLeadSelection(id)} />
-                  );
-                })}
-              </div>
+              {/* Lead Table */}
+              <LeadsTable
+                leads={filtered}
+                selectedLeads={selectedLeads}
+                onToggleSelect={toggleLeadSelection}
+                onSelectAll={selectAll}
+                onDeselectAll={deselectAll}
+                dedupeKeyFn={dedupeKey}
+              />
 
               {filtered.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">Nenhum lead corresponde aos filtros.</p>
