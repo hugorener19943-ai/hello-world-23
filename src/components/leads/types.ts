@@ -179,20 +179,35 @@ export function filterByViewMode(leads: LeadWithOrigin[], mode: ViewMode): LeadW
   return leads.filter(isHotLead);
 }
 
+function contactPriority(lead: LeadAutomacao): number {
+  let p = 0;
+  // WhatsApp (mobile) is highest priority
+  if (lead.whatsapp || lead.whatsapp_link || lead.whatsapp_site) p += 40;
+  if (lead.whatsapp_confirmado) p += 10;
+  // Email is second highest priority
+  if (lead.email) p += 30;
+  if (lead.emails_all?.length && lead.emails_all.length > 1) p += 5;
+  // Other contacts are nice-to-have
+  if (lead.instagram) p += 5;
+  if (lead.site || lead.website) p += 5;
+  if (lead.telefone || lead.telefone_raw) p += 5;
+  return p;
+}
+
 export function commercialSort(leads: LeadWithOrigin[]): LeadWithOrigin[] {
   return [...leads].sort((a, b) => {
+    // 1. Prioritize leads with WhatsApp + email
+    const contactDiff = contactPriority(b) - contactPriority(a);
+    if (contactDiff !== 0) return contactDiff;
+    // 2. Then by automation score
     const scoreDiff = getEffectiveScore(b) - getEffectiveScore(a);
     if (scoreDiff !== 0) return scoreDiff;
+    // 3. Then by pain score
     const dorDiff = (b.dor_operacional_score ?? 0) - (a.dor_operacional_score ?? 0);
     if (dorDiff !== 0) return dorDiff;
+    // 4. Google reviews
     const avDiff = (b.google_avaliacoes ?? 0) - (a.google_avaliacoes ?? 0);
-    if (avDiff !== 0) return avDiff;
-    const siteA = (a.site || a.website) ? 1 : 0;
-    const siteB = (b.site || b.website) ? 1 : 0;
-    if (siteB !== siteA) return siteB - siteA;
-    const wpA = (a.whatsapp || a.whatsapp_link) ? 1 : 0;
-    const wpB = (b.whatsapp || b.whatsapp_link) ? 1 : 0;
-    return wpB - wpA;
+    return avDiff;
   });
 }
 
