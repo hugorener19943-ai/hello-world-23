@@ -32,7 +32,7 @@ const PAGE_SIZE = 50;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
-  return { id: `b${++blockIdCounter}`, query: "", subnichos: [], cidade: "", estado: "", bairros: [], targetTotal: 100 };
+  return { id: `b${++blockIdCounter}`, query: "", subnichos: [], cidade: "", estado: "", bairros: [], targetTotal: 500 };
 }
 
 function dedupeKey(e: LeadAutomacao): string {
