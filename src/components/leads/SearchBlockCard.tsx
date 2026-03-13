@@ -181,7 +181,9 @@ export function SearchBlockCard({ block, index, canRemove, status = "idle", resu
               <SelectContent>
                 <SelectItem value="100">100 leads — busca rápida</SelectItem>
                 <SelectItem value="300">300 leads — cobertura equilibrada</SelectItem>
-                <SelectItem value="500">500 leads — cobertura máxima</SelectItem>
+                <SelectItem value="500">500 leads — cobertura ampla</SelectItem>
+                <SelectItem value="1000">1.000 leads — cobertura máxima</SelectItem>
+                <SelectItem value="2000">2.000 leads — prospecção completa</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-[11px] text-white/70">A busca será distribuída entre subnichos e bairros selecionados.</p>

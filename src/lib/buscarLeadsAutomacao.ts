@@ -46,8 +46,8 @@ export async function buscarLeadsAutomacao(params: {
         },
       ],
       format: "json",
-      max_combinations_per_search: 20,
-      max_pages_per_combination: 2,
+      max_combinations_per_search: 40,
+      max_pages_per_combination: 5,
     }),
   });
 

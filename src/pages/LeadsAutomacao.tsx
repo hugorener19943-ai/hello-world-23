@@ -32,7 +32,7 @@ const PAGE_SIZE = 50;
 
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
-  return { id: `b${++blockIdCounter}`, query: "", subnichos: [], cidade: "", estado: "", bairros: [], targetTotal: 100 };
+  return { id: `b${++blockIdCounter}`, query: "", subnichos: [], cidade: "", estado: "", bairros: [], targetTotal: 500 };
 }
 
 function dedupeKey(e: LeadAutomacao): string {
@@ -77,8 +77,8 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
       },
     ],
     format: "json",
-    max_combinations_per_search: 20,
-    max_pages_per_combination: 2,
+    max_combinations_per_search: 40,
+    max_pages_per_combination: 5,
   };
 
   const res = await fetch(API_URL, {
