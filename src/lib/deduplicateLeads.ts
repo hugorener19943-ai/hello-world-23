@@ -44,6 +44,15 @@ export function deduplicateLeads(leads: LeadWithOrigin[]): LeadWithOrigin[] {
   }
 
   return Array.from(map.values()).sort((a, b) => {
+    // Prioritize leads with WhatsApp and email
+    const contact = (v: LeadWithOrigin) => {
+      let p = 0;
+      if (v.whatsapp || v.whatsapp_link || v.whatsapp_site) p += 40;
+      if (v.email) p += 30;
+      return p;
+    };
+    const contactDiff = contact(b) - contact(a);
+    if (contactDiff !== 0) return contactDiff;
     const score = (v: LeadWithOrigin) => v.automation_score ?? v.score_automacao ?? v.score ?? 0;
     return score(b) - score(a);
   });
