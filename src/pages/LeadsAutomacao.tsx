@@ -77,8 +77,8 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
       },
     ],
     format: "json",
-    max_combinations_per_search: 20,
-    max_pages_per_combination: 2,
+    max_combinations_per_search: 40,
+    max_pages_per_combination: 5,
   };
 
   const res = await fetch(API_URL, {
