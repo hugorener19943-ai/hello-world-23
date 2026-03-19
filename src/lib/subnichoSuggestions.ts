@@ -86,6 +86,86 @@ const SUGGESTIONS: Record<string, string[]> = {
     "corretora de seguros", "planejamento financeiro",
     "escritorio de cambio", "cooperativa de credito",
   ],
+  construcao: [
+    "construtora", "empreiteira", "arquitetura", "engenharia civil",
+    "reforma residencial", "projeto estrutural", "paisagismo",
+    "impermeabilizacao", "pintura predial", "instalacao eletrica",
+  ],
+  logistica: [
+    "transportadora", "motoboy", "entrega rapida",
+    "logistica reversa", "armazem", "frete expresso",
+    "mudancas", "courrier",
+  ],
+  moda: [
+    "loja de roupas", "moda feminina", "moda masculina",
+    "loja de calcados", "moda infantil", "moda fitness",
+    "loja de acessorios", "moda praia", "brechó", "atelie de costura",
+  ],
+  turismo: [
+    "agencia de viagens", "pousada", "hotel", "hostel",
+    "turismo de aventura", "receptivo turistico",
+    "pacotes de viagem", "ecoturismo",
+  ],
+  fotografia: [
+    "fotografo", "estudio fotografico", "fotografia de casamento",
+    "fotografia newborn", "fotografia de produto",
+    "filmagem profissional", "ensaio fotografico", "drone",
+  ],
+  eventos: [
+    "organizadora de eventos", "buffet para festas", "decoracao de festas",
+    "cerimonialista", "casa de festas", "aluguel de brinquedos",
+    "som e iluminacao", "espaco para eventos",
+  ],
+  pet: [
+    "pet shop", "banho e tosa", "clinica veterinaria",
+    "hotel para pets", "adestramento", "dog walker",
+    "racao premium", "creche para caes",
+  ],
+  limpeza: [
+    "empresa de limpeza", "limpeza pos obra", "lavanderia",
+    "higienizacao de estofados", "desentupidora", "controle de pragas",
+    "limpeza de piscina", "limpeza industrial",
+  ],
+  agronegocio: [
+    "loja agropecuaria", "consultoria agro", "irrigacao",
+    "maquinas agricolas", "sementes e insumos", "pecuaria",
+    "agronomia", "drones agricolas",
+  ],
+  energia: [
+    "energia solar", "paineis solares", "instalacao fotovoltaica",
+    "eficiencia energetica", "projeto eletrico", "automacao residencial",
+    "carregador de veiculos eletricos", "iluminacao led",
+  ],
+  marketing: [
+    "agencia de marketing", "gestao de redes sociais", "trafego pago",
+    "marketing de conteudo", "branding", "producao de video",
+    "assessoria de imprensa", "influencer marketing",
+  ],
+  mecanica: [
+    "oficina mecanica", "auto eletrica", "funilaria e pintura",
+    "troca de oleo", "alinhamento e balanceamento", "ar condicionado automotivo",
+    "mecanica diesel", "centro automotivo",
+  ],
+  saude_mental: [
+    "psicologo", "psiquiatra", "terapia de casal",
+    "coaching", "hipnoterapia", "terapia ocupacional",
+    "clinica de reabilitacao", "centro de apoio",
+  ],
+  farmacia: [
+    "farmacia", "farmacia de manipulacao", "drogaria",
+    "farmacia homeopatica", "produtos naturais",
+    "suplementos", "farmacia veterinaria",
+  ],
+  seguros: [
+    "corretora de seguros", "seguro auto", "seguro de vida",
+    "seguro empresarial", "plano de saude", "consorcio",
+    "seguro residencial", "previdencia privada",
+  ],
+  grafica: [
+    "grafica", "impressao digital", "comunicacao visual",
+    "plotagem", "serigrafia", "grafica rapida",
+    "banner e adesivo", "cartao de visita",
+  ],
 };
 
 function normalize(text: string): string {
