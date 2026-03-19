@@ -25,7 +25,7 @@ import type { SearchBlock, LeadWithOrigin, LeadAutomacao, ApiResponseMeta, ViewM
 import { getEffectiveScore, getEffectiveLevel, getAutomationSignals, getTechBadges, isHotLead, filterByViewMode, commercialSort } from "@/components/leads/types";
 import type { FluxTemplate } from "@/lib/fluxTemplates";
 
-const API_URL = "https://api.fluxleads.com.br/webhook/fluxleads-dispatcher-v8";
+const API_URL = "https://api.fluxleads.com.br/webhook/fluxleads-v8";
 const AUTH = "Bearer key_pro_123";
 const MAX_BLOCKS = 5;
 const PAGE_SIZE = 50;
