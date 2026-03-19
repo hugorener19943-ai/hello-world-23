@@ -35,117 +35,132 @@ function formatLead(r: any): Empresa {
   const phones   = r.enrich_phones   || r.phone    || "";
   const emails   = r.enrich_emails   || r.email    || "";
   return {
-    nome:          r.name            || r.business_name || "",
-    telefone:      phones            || undefined,
+    nome:          r.name          || r.business_name || "",
+    telefone:      phones          || undefined,
     whatsapp:      whatsapp,
     email:         emails,
-    website:       r.website         || "",
-    endereco:      r.address         || "",
-    cidade:        r.city            || "",
-    nicho:         r.niche           || "",
-    score:         r.score           ?? "",
+    website:       r.website       || "",
+    endereco:      r.address       || "",
+    cidade:        r.city          || "",
+    nicho:         r.nicho         || "",
+    score:         r.score         ?? "",
     whatsapp_link: whatsapp
       ? `https://wa.me/${whatsapp.replace(/\D/g, "")}`
       : "",
-    fsq_id:        String(r.id       || r.osm_id || ""),
+    fsq_id:        r.fsq_id       || r.unique_key || "",
   };
 }
 
-export async function buscarEmpresas({
-  query,
-  cidade,
-  estado,
-  target_total = 300,
-  subnichos = [],
-  bairros = [],
-  onProgress,
-}: BuscarParams): Promise<{ status: string; cidade: string; nicho: string; total: number; empresas: Empresa[] }> {
+function dedupeKey(e: Empresa): string {
+  if (e.fsq_id) return e.fsq_id;
+  return `${(e.nome || "").toLowerCase()}|${(e.endereco || "").toLowerCase()}`;
+}
 
-  const dispRes = await fetch(DISPATCHER_URL, {
+export async function buscarEmpresas({
+  query, cidade, estado, target_total = 300, subnichos, bairros, onProgress,
+}: BuscarParams): Promise<{ status: string; cidade: string; nicho: string; total: number; empresas: Empresa[] }> {
+  const res = await fetch(DISPATCHER_URL, {
     method: "POST",
-    headers: { Authorization: AUTH, "Content-Type": "application/json" },
+    headers: {
+      "Authorization": AUTH,
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify({
-      niche:            query,
-      city:             cidade,
-      state:            estado,
-      subniches:        subnichos,
-      districts:        bairros,
-      max_combinations: Math.min(500, Math.max(10, target_total)),
+      searches: [
+        {
+          search_id: "search_1",
+          niche: query,
+          city: cidade,
+          state: estado,
+          target_total: Math.max(target_total, 100),
+          subniches: subnichos || [],
+          districts: bairros || [],
+        },
+      ],
+      format: "json",
+      max_combinations_per_search: 40,
+      max_pages_per_combination: 5,
     }),
   });
 
-  if (!dispRes.ok) {
-    const txt = await dispRes.text();
-    throw new Error(`Erro ao iniciar busca (${dispRes.status}): ${txt.substring(0, 200)}`);
+  const text = await res.text();
+
+  if (!res.ok) {
+    console.error("API error:", res.status, text.substring(0, 300));
+    throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
   }
 
-  const dispData = await dispRes.json();
-  const search_id: string = dispData.search_id || dispData.searches?.[0]?.search_id;
-  if (!search_id) {
-    throw new Error("Dispatcher não retornou search_id.");
+  if (text.trim().startsWith("<!") || text.includes("<html")) {
+    throw new Error("API retornou HTML em vez de JSON. Verifique a URL e autenticação.");
   }
 
-  onProgress?.(0, target_total);
-
-  const MAX_ATTEMPTS  = 36;
-  const POLL_INTERVAL = 5000;
-  const PAGE_SIZE     = 1000;
-
-  let attempts = 0;
-  const seen   = new Map<string, Empresa>();
-
-  while (attempts < MAX_ATTEMPTS) {
-    await sleep(POLL_INTERVAL);
-    attempts++;
-
-    try {
-      const expRes = await fetch(EXPORT_URL, {
-        method: "POST",
-        headers: { Authorization: AUTH, "Content-Type": "application/json" },
-        body: JSON.stringify({ search_id, page: 1, per_page: PAGE_SIZE }),
-      });
-
-      if (!expRes.ok) continue;
-
-      const expData = await expRes.json();
-      const leads: any[] = Array.isArray(expData.leads) ? expData.leads : [];
-
-      for (const lead of leads) {
-        const key = String(lead.id || lead.osm_id || lead.lead_fingerprint || "");
-        if (key && !seen.has(key)) seen.set(key, formatLead(lead));
-      }
-
-      onProgress?.(seen.size, target_total);
-      if (seen.size >= target_total) break;
-
-    } catch {
-      // ignora e tenta novamente
-    }
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    console.error("Response is not JSON:", text.substring(0, 300));
+    throw new Error("API retornou resposta inválida (não é JSON)");
   }
+
+  const rawLeads: any[] = Array.isArray(data.empresas) ? data.empresas : [];
+  const apiTotal = data.total ?? rawLeads.length;
+
+  console.log(`API returned ${rawLeads.length} leads, apiTotal=${apiTotal}`);
+
+  const seen = new Map<string, Empresa>();
+  for (const raw of rawLeads) {
+    const e = formatLead(raw);
+    const key = dedupeKey(e);
+    if (!seen.has(key)) seen.set(key, e);
+  }
+
+  onProgress?.(seen.size, apiTotal || target_total);
 
   const empresas = Array.from(seen.values());
-  return { status: "ok", cidade: `${cidade}, ${estado}`, nicho: query, total: empresas.length, empresas };
+  console.log("Total fetched (deduped):", empresas.length, "apiTotal:", apiTotal);
+
+  return {
+    status: "ok",
+    cidade: `${cidade}, ${estado}`,
+    nicho: query,
+    total: apiTotal || empresas.length,
+    empresas,
+  };
 }
 
-export async function exportarExcel(
-  query: string,
-  cidade: string,
-  estado: string,
-  target_total: number
-): Promise<void> {
-  const { empresas } = await buscarEmpresas({ query, cidade, estado, target_total });
-  const headers = ["nome","telefone","whatsapp","email","website","endereco","cidade","nicho","score"];
-  const esc = (v: any) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const rows = empresas.map((e) => [
-    e.nome, e.telefone ?? "", e.whatsapp, e.email,
-    e.website, e.endereco, e.cidade, e.nicho, e.score,
-  ]);
-  const csv = [headers.map(esc).join(","), ...rows.map((r) => r.map(esc).join(","))].join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement("a");
+export async function exportarExcel(query: string, cidade: string, estado: string, target_total: number): Promise<void> {
+  const res = await fetch(EXPORT_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": AUTH,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      searches: [
+        {
+          search_id: "search_1",
+          niche: query,
+          city: cidade,
+          state: estado,
+          target_total: Math.max(target_total, 100),
+          subniches: [],
+          districts: [],
+        },
+      ],
+      format: "xlsx",
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Erro ao exportar: ${text.substring(0, 200)}`);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
   a.href = url;
-  a.download = `fluxleads_${query.replace(/\s+/g, "_")}_${cidade.replace(/\s+/g, "_")}.csv`;
+  a.download = "fluxleads.xlsx";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
