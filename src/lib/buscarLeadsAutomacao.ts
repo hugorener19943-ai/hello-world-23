@@ -19,7 +19,7 @@ export interface LeadAutomacao {
   nicho?: string;
 }
 
-const API_URL = "https://api.fluxleads.com.br/webhook/fluxleads-dispatcher-v8";
+const API_URL = "https://api.fluxleads.com.br/webhook/fluxleads-v8";
 const AUTH = "Bearer key_pro_123";
 
 export async function buscarLeadsAutomacao(params: {
