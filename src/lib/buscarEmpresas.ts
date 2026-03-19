@@ -17,12 +17,39 @@ interface BuscarParams {
   cidade: string;
   estado: string;
   target_total?: number;
+  subnichos?: string[];
+  bairros?: string[];
   onProgress?: (fetched: number, target: number) => void;
 }
 
-const PAGE_SIZE = 50;
-const API_URL = "https://api.fluxleads.com.br/webhook/buscar-empresas";
-const AUTH = "Bearer key_pro_123";
+const DISPATCHER_URL = "https://api.fluxleads.com.br/webhook/fluxleads-v8";
+const EXPORT_URL     = "https://api.fluxleads.com.br/webhook/fluxleads-export-v8";
+const AUTH           = "Bearer key_pro_123";
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+function formatLead(r: any): Empresa {
+  const whatsapp = r.enrich_whatsapp || r.whatsapp || "";
+  const phones   = r.enrich_phones   || r.phone    || "";
+  const emails   = r.enrich_emails   || r.email    || "";
+  return {
+    nome:          r.name          || r.business_name || "",
+    telefone:      phones          || undefined,
+    whatsapp:      whatsapp,
+    email:         emails,
+    website:       r.website       || "",
+    endereco:      r.address       || "",
+    cidade:        r.city          || "",
+    nicho:         r.nicho         || "",
+    score:         r.score         ?? "",
+    whatsapp_link: whatsapp
+      ? `https://wa.me/${whatsapp.replace(/\D/g, "")}`
+      : "",
+    fsq_id:        r.fsq_id       || r.unique_key || "",
+  };
+}
 
 function dedupeKey(e: Empresa): string {
   if (e.fsq_id) return e.fsq_id;
@@ -30,64 +57,64 @@ function dedupeKey(e: Empresa): string {
 }
 
 export async function buscarEmpresas({
-  query, cidade, estado, target_total = 300, onProgress,
+  query, cidade, estado, target_total = 300, subnichos, bairros, onProgress,
 }: BuscarParams): Promise<{ status: string; cidade: string; nicho: string; total: number; empresas: Empresa[] }> {
-  const seen = new Map<string, Empresa>();
-  let apiTotal = 0;
-  let offset = 0;
-  let keepGoing = true;
+  const res = await fetch(DISPATCHER_URL, {
+    method: "POST",
+    headers: {
+      "Authorization": AUTH,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      searches: [
+        {
+          search_id: "search_1",
+          niche: query,
+          city: cidade,
+          state: estado,
+          target_total: Math.max(target_total, 100),
+          subniches: subnichos || [],
+          districts: bairros || [],
+        },
+      ],
+      format: "json",
+      max_combinations_per_search: 40,
+      max_pages_per_combination: 5,
+    }),
+  });
 
-  while (keepGoing && offset < target_total) {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Authorization": AUTH,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        query,
-        local: { cidade, estado, pais: "Brasil" },
-        target_total,
-        format: "json",
-        pageSize: PAGE_SIZE,
-        offset,
-      }),
-    });
+  const text = await res.text();
 
-    const text = await res.text();
-
-    if (!res.ok) {
-      console.error("API error:", res.status, text.substring(0, 300));
-      throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
-    }
-
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      console.error("Response is not JSON:", text.substring(0, 300));
-      throw new Error("API retornou resposta inválida (não é JSON)");
-    }
-
-    if (data.total != null) apiTotal = data.total;
-    const batch: Empresa[] = Array.isArray(data.empresas) ? data.empresas : [];
-
-    console.log(`Batch offset=${offset}: got ${batch.length}, apiTotal=${apiTotal}`);
-
-    for (const e of batch) {
-      const key = dedupeKey(e);
-      if (!seen.has(key)) seen.set(key, e);
-    }
-
-    onProgress?.(seen.size, apiTotal || target_total);
-
-    if (batch.length < PAGE_SIZE) {
-      keepGoing = false;
-    } else {
-      offset += PAGE_SIZE;
-      await new Promise(r => setTimeout(r, 150));
-    }
+  if (!res.ok) {
+    console.error("API error:", res.status, text.substring(0, 300));
+    throw new Error(`Erro API ${res.status}: ${text.substring(0, 200)}`);
   }
+
+  if (text.trim().startsWith("<!") || text.includes("<html")) {
+    throw new Error("API retornou HTML em vez de JSON. Verifique a URL e autenticação.");
+  }
+
+  let data: any;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    console.error("Response is not JSON:", text.substring(0, 300));
+    throw new Error("API retornou resposta inválida (não é JSON)");
+  }
+
+  const rawLeads: any[] = Array.isArray(data.empresas) ? data.empresas : [];
+  const apiTotal = data.total ?? rawLeads.length;
+
+  console.log(`API returned ${rawLeads.length} leads, apiTotal=${apiTotal}`);
+
+  const seen = new Map<string, Empresa>();
+  for (const raw of rawLeads) {
+    const e = formatLead(raw);
+    const key = dedupeKey(e);
+    if (!seen.has(key)) seen.set(key, e);
+  }
+
+  onProgress?.(seen.size, apiTotal || target_total);
 
   const empresas = Array.from(seen.values());
   console.log("Total fetched (deduped):", empresas.length, "apiTotal:", apiTotal);
@@ -102,16 +129,24 @@ export async function buscarEmpresas({
 }
 
 export async function exportarExcel(query: string, cidade: string, estado: string, target_total: number): Promise<void> {
-  const res = await fetch(API_URL, {
+  const res = await fetch(EXPORT_URL, {
     method: "POST",
     headers: {
       "Authorization": AUTH,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      query,
-      local: { cidade, estado, pais: "Brasil" },
-      target_total,
+      searches: [
+        {
+          search_id: "search_1",
+          niche: query,
+          city: cidade,
+          state: estado,
+          target_total: Math.max(target_total, 100),
+          subniches: [],
+          districts: [],
+        },
+      ],
       format: "xlsx",
     }),
   });
