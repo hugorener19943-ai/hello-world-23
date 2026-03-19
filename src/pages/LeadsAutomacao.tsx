@@ -42,20 +42,29 @@ function dedupeKey(e: LeadAutomacao): string {
   return `${(e.nome || "").toLowerCase()}|${(e.endereco || "").toLowerCase()}`;
 }
 
+function toStr(val: unknown): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  if (Array.isArray(val)) return val.filter(Boolean).join(", ");
+  return String(val);
+}
+
 function normalizeLeadFields(e: any): LeadAutomacao {
-  const whatsapp = e.enrich_whatsapp || e.whatsapp || "";
-  const phones = e.enrich_phones || e.phone || e.telefone || e.telefone_raw || "";
-  const emails = e.enrich_emails || e.email || "";
+  const whatsapp = toStr(e.enrich_whatsapp || e.whatsapp);
+  const phones = toStr(e.enrich_phones || e.phone || e.telefone || e.telefone_raw);
+  const emails = toStr(e.enrich_emails || e.email);
   return {
     ...e,
-    nome: e.name || e.business_name || e.nome || "",
+    nome: toStr(e.name || e.business_name || e.nome),
     telefone: phones || undefined,
+    telefone_raw: phones || undefined,
     whatsapp: whatsapp,
+    whatsapp_link: whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, "")}` : "",
     email: emails,
-    site: e.website || e.site || "",
-    website: e.website || e.site || "",
-    endereco: e.address || e.endereco || "",
-    cidade: e.city || e.cidade || "",
+    site: toStr(e.website || e.site),
+    website: toStr(e.website || e.site),
+    endereco: toStr(e.address || e.endereco),
+    cidade: toStr(e.city || e.cidade),
     score: e.automation_score ?? e.score_automacao ?? e.score ?? 0,
   };
 }
