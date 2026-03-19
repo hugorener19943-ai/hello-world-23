@@ -511,7 +511,7 @@ export function ResearchFlux({ onSelectNiche, onConfirmSubnichos }: ResearchFlux
   const currentNicheData = openNiche ? niches.find((n) => n.name === openNiche) : null;
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full max-h-[calc(100vh-120px)]">
       <div className="p-5 space-y-2">
         <p className="text-sm text-white px-2 mb-3">
           Clique em um nicho, depois selecione os subnichos
