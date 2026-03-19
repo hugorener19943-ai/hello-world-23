@@ -429,7 +429,7 @@ export default function LeadsAutomacao() {
 
   const deselectAll = useCallback(() => setSelectedLeads(new Set()), []);
 
-  const exportData = (onlySelected: boolean) => {
+  const exportData = async (onlySelected: boolean) => {
     const toExport = onlySelected
       ? filtered.filter((l) => selectedLeads.has(dedupeKey(l)))
       : leads;
@@ -437,8 +437,13 @@ export default function LeadsAutomacao() {
       toast({ title: "Nenhum lead para exportar", variant: "destructive" });
       return;
     }
-    const count = exportLeadsCSV(toExport);
-    toast({ title: "Excel exportado!", description: `${count} leads exportados com sucesso.` });
+    try {
+      const count = await exportLeadsCSV(toExport);
+      toast({ title: "Excel exportado!", description: `${count} leads exportados com sucesso.` });
+    } catch (err: any) {
+      console.error("Export error:", err);
+      toast({ title: "Erro na exportação", description: err.message || "Erro desconhecido", variant: "destructive" });
+    }
   };
 
   return (
