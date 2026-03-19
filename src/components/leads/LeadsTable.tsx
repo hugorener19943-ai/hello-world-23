@@ -213,37 +213,72 @@ export function LeadsTable({ leads, selectedLeads, onToggleSelect, onSelectAll, 
   );
 }
 
-export function exportLeadsCSV(leads: LeadWithOrigin[], filename?: string) {
+const EXPORT_API_URL = "https://api.fluxleads.com.br/webhook/fluxleads-export-v8";
+const EXPORT_AUTH = "Bearer key_pro_123";
+
+export async function exportLeadsCSV(leads: LeadWithOrigin[], filename?: string): Promise<number> {
+  const flatLeads = leads.map((lead, i) => flattenLead(lead, i));
+
+  const res = await fetch(EXPORT_API_URL, {
+    method: "POST",
+    headers: { Authorization: EXPORT_AUTH, "Content-Type": "application/json" },
+    body: JSON.stringify({ leads: flatLeads, format: "xlsx" }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Erro ao exportar: ${res.status} ${text.substring(0, 200)}`);
+  }
+
+  const contentType = res.headers.get("content-type") || "";
+
+  // If API returns a file (xlsx/csv), download it directly
+  if (contentType.includes("spreadsheet") || contentType.includes("octet-stream") || contentType.includes("csv") || contentType.includes("excel")) {
+    const blob = await res.blob();
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}_${String(now.getHours()).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}`;
+    const ext = contentType.includes("csv") ? "csv" : "xlsx";
+    const name = filename || `fluxleads_resultado_${ts}.${ext}`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return leads.length;
+  }
+
+  // If API returns JSON with a download URL
+  const data = await res.json();
+  if (data.url || data.download_url) {
+    const downloadUrl = data.url || data.download_url;
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = filename || data.filename || "fluxleads_resultado.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    return leads.length;
+  }
+
+  // Fallback: generate CSV locally
   const BOM = "\uFEFF";
   const sep = ";";
   const headers = COLUMNS.map(c => c.label);
-
-  // Phone-like columns that Excel must treat as text
   const textForceKeys = new Set<keyof FlatLead>(["telefone", "whatsapp", "cep"]);
-  
   const esc = (v: string, forceText = false): string => {
     if (!v) return "";
-    // Prefix with = and wrap in quotes so Excel keeps it as text
-    if (forceText && /^\+?\(?\d/.test(v)) {
-      return `="${v.replace(/"/g, '""')}"`;
-    }
-    if (v.includes(";") || v.includes('"') || v.includes("\n")) {
-      return `"${v.replace(/"/g, '""')}"`;
-    }
+    if (forceText && /^\+?\(?\d/.test(v)) return `="${v.replace(/"/g, '""')}"`;
+    if (v.includes(";") || v.includes('"') || v.includes("\n")) return `"${v.replace(/"/g, '""')}"`;
     return v;
   };
-
-  const rows = leads.map((lead, i) => {
-    const flat = flattenLead(lead, i);
-    return COLUMNS.map(col => esc(String(flat[col.key] ?? ""), textForceKeys.has(col.key)));
-  });
-
+  const rows = flatLeads.map(flat => COLUMNS.map(col => esc(String(flat[col.key] ?? ""), textForceKeys.has(col.key))));
   const csv = BOM + [headers.map(h => esc(h)).join(sep), ...rows.map(r => r.join(sep))].join("\r\n");
-
   const now = new Date();
   const ts = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}_${String(now.getHours()).padStart(2, "0")}-${String(now.getMinutes()).padStart(2, "0")}`;
   const name = filename || `fluxleads_resultado_${ts}.csv`;
-
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -253,6 +288,5 @@ export function exportLeadsCSV(leads: LeadWithOrigin[], filename?: string) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-
   return leads.length;
 }
