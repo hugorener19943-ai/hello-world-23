@@ -43,10 +43,19 @@ function dedupeKey(e: LeadAutomacao): string {
 }
 
 function normalizeLeadFields(e: any): LeadAutomacao {
+  const whatsapp = e.enrich_whatsapp || e.whatsapp || "";
+  const phones = e.enrich_phones || e.phone || e.telefone || e.telefone_raw || "";
+  const emails = e.enrich_emails || e.email || "";
   return {
     ...e,
-    site: e.site || e.website,
-    telefone: e.telefone || e.telefone_raw,
+    nome: e.name || e.business_name || e.nome || "",
+    telefone: phones || undefined,
+    whatsapp: whatsapp,
+    email: emails,
+    site: e.website || e.site || "",
+    website: e.website || e.site || "",
+    endereco: e.address || e.endereco || "",
+    cidade: e.city || e.cidade || "",
     score: e.automation_score ?? e.score_automacao ?? e.score ?? 0,
   };
 }
