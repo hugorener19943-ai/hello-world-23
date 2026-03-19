@@ -30,10 +30,17 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function toStr(val: unknown): string {
+  if (!val) return "";
+  if (typeof val === "string") return val;
+  if (Array.isArray(val)) return val.filter(Boolean).join(", ");
+  return String(val);
+}
+
 function formatLead(r: any): Empresa {
-  const whatsapp = r.enrich_whatsapp || r.whatsapp || "";
-  const phones   = r.enrich_phones   || r.phone    || "";
-  const emails   = r.enrich_emails   || r.email    || "";
+  const whatsapp = toStr(r.enrich_whatsapp || r.whatsapp);
+  const phones   = toStr(r.enrich_phones   || r.phone);
+  const emails   = toStr(r.enrich_emails   || r.email);
   return {
     nome:          r.name          || r.business_name || "",
     telefone:      phones          || undefined,
