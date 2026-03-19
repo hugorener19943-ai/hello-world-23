@@ -69,41 +69,20 @@ interface FetchResult {
 
 async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   const seen = new Map<string, LeadAutomacao>();
-  let pagesScanned = 0;
   let reason: FetchResult["reason"] = "all_fetched";
-  let meta: ApiResponseMeta | undefined;
-
-  const payload: any = {
-    searches: [
-      {
-        search_id: `search_${block.id}`,
-        niche: block.query,
-        city: block.cidade,
-        state: block.estado,
-        target_total: Math.max(block.targetTotal, 100),
-        subniches: block.subnichos && block.subnichos.length > 0 ? block.subnichos : [],
-        districts: block.bairros.length > 0 ? block.bairros : [],
-      },
-    ],
-    format: "json",
-    max_combinations_per_search: 40,
-    max_pages_per_combination: 5,
-  };
 
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { Authorization: AUTH, "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      niche:            block.query,
+      city:             block.cidade,
+      state:            block.estado,
+      subniches:        block.subnichos || [],
+      districts:        block.bairros   || [],
+      max_combinations: Math.min(500, Math.max(10, block.targetTotal)),
+    }),
   });
-
-  const contentType = res.headers.get("content-type");
-  if (!contentType?.includes("application/json")) {
-    const text = await res.text();
-    if (text.trim().startsWith("<!") || text.includes("<html")) {
-      throw new Error(`API retornou HTML em vez de JSON. Status: ${res.status}.`);
-    }
-    throw new Error(`Formato inesperado da resposta: ${contentType}`);
-  }
 
   if (!res.ok) {
     const text = await res.text();
@@ -111,33 +90,50 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   }
 
   const data = await res.json();
-  pagesScanned = 1;
+  const search_id: string = data.search_id;
+  if (!search_id) throw new Error("Dispatcher não retornou search_id.");
 
-  meta = {
-    status: data.status,
-    total: data.total,
-    total_unicos: data.total_unicos,
-    total_enriquecidos: data.total_enriquecidos,
-    total_qualificados: data.total_qualificados,
-    total_com_email: data.total_com_email,
-    total_com_whatsapp: data.total_com_whatsapp,
-    total_com_instagram: data.total_com_instagram,
-    total_sem_site: data.total_sem_site,
-    preview_count: data.preview_count,
-  };
+  const EXPORT_URL    = "https://api.fluxleads.com.br/webhook/fluxleads-export-v8";
+  const MAX_ATTEMPTS  = 36;
+  const POLL_INTERVAL = 5000;
+  const PAGE_SIZE     = 1000;
+  let attempts        = 0;
 
-  const batch: LeadAutomacao[] = Array.isArray(data.empresas) ? data.empresas.map(normalizeLeadFields) : [];
+  while (attempts < MAX_ATTEMPTS) {
+    await new Promise(r => setTimeout(r, POLL_INTERVAL));
+    attempts++;
 
-  for (const e of batch) {
-    const key = dedupeKey(e);
-    if (!seen.has(key)) seen.set(key, e);
+    try {
+      const expRes = await fetch(EXPORT_URL, {
+        method: "POST",
+        headers: { Authorization: AUTH, "Content-Type": "application/json" },
+        body: JSON.stringify({ search_id, page: 1, per_page: PAGE_SIZE }),
+      });
+
+      if (!expRes.ok) continue;
+
+      const expData = await expRes.json();
+      const batch: LeadAutomacao[] = Array.isArray(expData.leads)
+        ? expData.leads.map(normalizeLeadFields)
+        : [];
+
+      for (const e of batch) {
+        const key = dedupeKey(e);
+        if (!seen.has(key)) seen.set(key, e);
+      }
+
+      if (seen.size >= block.targetTotal) break;
+
+    } catch {
+      // ignora e tenta novamente
+    }
   }
 
-  if (seen.size < block.targetTotal) {
-    reason = batch.length === 0 ? "no_more_pages" : "api_limit";
-  }
+  const leads = Array.from(seen.values());
+  if (leads.length === 0) reason = "no_more_pages";
+  else if (leads.length < block.targetTotal) reason = "api_limit";
 
-  return { leads: Array.from(seen.values()), meta, reason, pagesScanned };
+  return { leads, meta: undefined, reason, pagesScanned: attempts };
 }
 
 function deduplicateLeads(leads: LeadWithOrigin[]): LeadWithOrigin[] {
