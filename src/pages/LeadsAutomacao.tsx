@@ -428,6 +428,22 @@ export default function LeadsAutomacao() {
     setLeads([]);
   }, [toast]);
 
+  const streamingLeadsRef = useRef<LeadWithOrigin[]>([]);
+
+  const handlePartialLeads = useCallback((newLeads: LeadAutomacao[], blockIndex: number) => {
+    const valid = blocks.filter((b) => b.query && b.cidade && b.estado);
+    const label = `Busca ${blockIndex + 1}: ${valid[blockIndex]?.query || ""}`;
+    const withOrigin: LeadWithOrigin[] = newLeads.map(e => ({ ...e, originBlockIndex: blockIndex, originLabel: label }));
+
+    streamingLeadsRef.current = [...streamingLeadsRef.current, ...withOrigin];
+
+    // Apply relevance filter and dedup on what we have so far
+    const relevantLeads = filterByRelevance(streamingLeadsRef.current, valid);
+    let unique = deduplicateLeads(relevantLeads);
+    unique = commercialSort(unique);
+    setLeads(unique);
+  }, [blocks]);
+
   const buscar = async () => {
     const valid = blocks.filter((b) => b.query && b.cidade && b.estado);
     if (valid.length === 0) {
@@ -436,6 +452,7 @@ export default function LeadsAutomacao() {
     }
     setLoading(true);
     setLeads([]);
+    streamingLeadsRef.current = [];
     setApiMeta(undefined);
     setBlockResults({});
     setSearchName("");
@@ -445,7 +462,6 @@ export default function LeadsAutomacao() {
     valid.forEach((b) => (statuses[b.id] = "loading"));
     setBlockStatuses({ ...statuses });
 
-    const allLeads: LeadWithOrigin[] = [];
     const errors: string[] = [];
     const blockResultsMap: Record<string, { found: number; requested: number; message?: string }> = {};
     let combinedMeta: ApiResponseMeta | undefined;
@@ -453,7 +469,7 @@ export default function LeadsAutomacao() {
     const results = await Promise.allSettled(
       valid.map(async (block, idx) => {
         try {
-          const result = await fetchBlock(block);
+          const result = await fetchBlock(block, handlePartialLeads, idx);
           statuses[block.id] = "done";
           setBlockStatuses({ ...statuses });
           if (result.meta && !combinedMeta) combinedMeta = result.meta;
@@ -480,6 +496,8 @@ export default function LeadsAutomacao() {
       })
     );
 
+    // Final pass — ensure final state is clean
+    const allLeads: LeadWithOrigin[] = [];
     results.forEach((r, idx) => {
       if (r.status === "fulfilled") {
         const { empresas, label } = r.value;
@@ -489,9 +507,7 @@ export default function LeadsAutomacao() {
       }
     });
 
-    // Filter out leads irrelevant to the searched niche/subnichos
     const relevantLeads = filterByRelevance(allLeads, valid);
-
     let unique = deduplicateLeads(relevantLeads);
     unique = commercialSort(unique);
     setLeads(unique);
