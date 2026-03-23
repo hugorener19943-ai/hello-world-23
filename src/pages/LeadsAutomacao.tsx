@@ -84,6 +84,51 @@ const IRRELEVANT_NAMES = [
   "lotérica", "loterica", "cartório", "cartorio",
 ];
 
+// Broad niche synonym map — when user searches a broad niche, accept all related terms
+const NICHE_SYNONYMS: Record<string, string[]> = {
+  saude: [
+    "saude", "clinica", "hospital", "laboratorio", "consultorio", "medico", "medicina",
+    "odontologia", "odontologica", "dentista", "fisioterapia", "fisioterapeuta",
+    "psicologia", "psicologo", "nutricionista", "nutricao", "farmacia", "drogaria",
+    "oftalmologia", "oftalmologista", "dermatologia", "dermatologista", "cardiologia",
+    "ortopedia", "pediatria", "ginecologia", "urologia", "neurologia", "oncologia",
+    "radiologia", "ultrassom", "endoscopia", "pronto socorro", "upa", "ubs",
+    "posto de saude", "centro medico", "policlinica", "ambulatorio", "home care",
+    "fonoaudiologia", "terapia ocupacional", "acupuntura", "quiropraxia",
+    "pilates", "rpg", "reabilitacao", "protese", "implante", "ortodontia",
+    "endodontia", "periodontia", "cirurgiao", "anestesia", "hemato", "gastro",
+    "otorrino", "pneumo", "nefro", "reumato", "geriatra", "geriatria",
+    "psiquiatra", "psiquiatria", "mastologia", "proctologia", "angiologia",
+    "exame", "diagnostico", "imagem", "tomografia", "ressonancia", "raio x",
+    "vacina", "vacinacao", "enfermagem", "enfermeiro", "cuidador", "estetica",
+    "harmonizacao", "botox", "preenchimento", "laser", "depilacao",
+    "massoterapia", "massagem", "spa", "bem estar", "wellness",
+    "otica", "optica", "lente", "oculos", "audiologia", "aparelho auditivo",
+  ],
+  estetica: [
+    "estetica", "beleza", "salao", "barbearia", "cabelo", "cabeleireiro", "manicure",
+    "pedicure", "maquiagem", "depilacao", "laser", "harmonizacao", "botox",
+    "preenchimento", "limpeza de pele", "peeling", "microagulhamento", "spa",
+    "massagem", "bronzeamento", "sobrancelha", "cilios", "nail", "unhas",
+    "design de sobrancelha", "micropigmentacao", "skincare",
+  ],
+  juridico: [
+    "juridico", "advocacia", "advogado", "escritorio de advocacia", "direito",
+    "consultoria juridica", "assessoria juridica", "mediacao", "arbitragem",
+  ],
+  veterinaria: [
+    "veterinaria", "veterinario", "vet", "pet", "petshop", "pet shop",
+    "clinica veterinaria", "hospital veterinario", "animal", "canil", "gatil",
+    "banho e tosa", "adestramento",
+  ],
+  alimentacao: [
+    "restaurante", "pizzaria", "hamburgueria", "lanchonete", "bar", "pub",
+    "cafeteria", "padaria", "confeitaria", "doceria", "sorveteria", "acaiteria",
+    "churrascaria", "sushi", "japonesa", "italiana", "food", "gastronomia",
+    "buffet", "delivery", "marmita", "pastelaria", "tapiocaria",
+  ],
+};
+
 function normalize(text: string): string {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 }
@@ -92,13 +137,20 @@ function buildKeywords(blocks: SearchBlock[]): string[] {
   const keywords: string[] = [];
   for (const b of blocks) {
     if (b.query) {
-      // Split compound niches like "clínica médica" into individual words too
-      const parts = normalize(b.query).split(/[\s,;/]+/).filter(w => w.length > 2);
-      keywords.push(normalize(b.query), ...parts);
+      const norm = normalize(b.query);
+      const parts = norm.split(/[\s,;/]+/).filter(w => w.length > 2);
+      keywords.push(norm, ...parts);
+      // Expand broad niche synonyms
+      for (const [nicheKey, synonyms] of Object.entries(NICHE_SYNONYMS)) {
+        if (norm.includes(nicheKey) || parts.some(p => p === nicheKey)) {
+          keywords.push(...synonyms);
+        }
+      }
     }
     for (const s of b.subnichos || []) {
-      const parts = normalize(s).split(/[\s,;/]+/).filter(w => w.length > 2);
-      keywords.push(normalize(s), ...parts);
+      const norm = normalize(s);
+      const parts = norm.split(/[\s,;/]+/).filter(w => w.length > 2);
+      keywords.push(norm, ...parts);
     }
   }
   return [...new Set(keywords)];
