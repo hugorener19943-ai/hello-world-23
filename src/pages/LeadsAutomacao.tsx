@@ -30,6 +30,59 @@ const AUTH = "Bearer key_pro_123";
 const MAX_BLOCKS = 5;
 const PAGE_SIZE = 50;
 
+// ─── Cache helpers ──────────────────────────────────────
+const CACHE_KEY_PREFIX = "fluxleads_cache_";
+
+function buildCacheKey(block: SearchBlock): string {
+  const parts = [
+    normalize(block.query),
+    normalize(block.cidade),
+    normalize(block.estado),
+    ...(block.subnichos || []).map(normalize).sort(),
+    ...(block.bairros || []).map(normalize).sort(),
+  ];
+  return CACHE_KEY_PREFIX + parts.join("|");
+}
+
+function loadCachedLeads(blocks: SearchBlock[]): LeadAutomacao[] {
+  const all: LeadAutomacao[] = [];
+  for (const block of blocks) {
+    try {
+      const key = buildCacheKey(block);
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed?.leads)) {
+          all.push(...parsed.leads);
+        }
+      }
+    } catch { /* ignore corrupt cache */ }
+  }
+  return all;
+}
+
+function saveCacheForBlock(block: SearchBlock, leads: LeadAutomacao[]) {
+  try {
+    const key = buildCacheKey(block);
+    const existing = localStorage.getItem(key);
+    let merged = [...leads];
+    if (existing) {
+      const parsed = JSON.parse(existing);
+      if (Array.isArray(parsed?.leads)) {
+        const seenKeys = new Set(leads.map(dedupeKey));
+        for (const old of parsed.leads) {
+          const k = dedupeKey(old);
+          if (!seenKeys.has(k)) {
+            merged.push(old);
+            seenKeys.add(k);
+          }
+        }
+      }
+    }
+    localStorage.setItem(key, JSON.stringify({ leads: merged, updatedAt: Date.now() }));
+  } catch { /* storage full — ignore */ }
+}
+
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
   return { id: `b${++blockIdCounter}`, query: "", subnichos: [], cidade: "", estado: "", bairros: [], targetTotal: 500 };
@@ -451,12 +504,28 @@ export default function LeadsAutomacao() {
       return;
     }
     setLoading(true);
-    setLeads([]);
     streamingLeadsRef.current = [];
     setApiMeta(undefined);
     setBlockResults({});
     setSearchName("");
     setQuickFilters([]);
+
+    // Load cached leads immediately
+    const cached = loadCachedLeads(valid);
+    if (cached.length > 0) {
+      const cachedWithOrigin: LeadWithOrigin[] = cached.map((e, i) => ({
+        ...e,
+        originBlockIndex: 0,
+        originLabel: "Cache",
+      }));
+      const relevantCached = filterByRelevance(cachedWithOrigin, valid);
+      const uniqueCached = commercialSort(deduplicateLeads(relevantCached));
+      setLeads(uniqueCached);
+      streamingLeadsRef.current = [...uniqueCached];
+      toast({ title: `${uniqueCached.length} leads do cache carregados`, description: "Buscando novos resultados..." });
+    } else {
+      setLeads([]);
+    }
 
     const statuses: Record<string, "idle" | "loading" | "done" | "error"> = {};
     valid.forEach((b) => (statuses[b.id] = "loading"));
@@ -496,18 +565,25 @@ export default function LeadsAutomacao() {
       })
     );
 
-    // Final pass — ensure final state is clean
+    // Final pass — ensure final state is clean and save to cache
     const allLeads: LeadWithOrigin[] = [];
     results.forEach((r, idx) => {
       if (r.status === "fulfilled") {
         const { empresas, label } = r.value;
         empresas.forEach((e: LeadAutomacao) => allLeads.push({ ...e, originBlockIndex: idx, originLabel: label }));
+        // Save to cache per block
+        saveCacheForBlock(valid[idx], empresas);
       } else {
         errors.push(`Busca ${idx + 1}: ${r.reason?.message || "Erro desconhecido"}`);
       }
     });
 
-    const relevantLeads = filterByRelevance(allLeads, valid);
+    // Merge cached + new
+    const cachedAgain = loadCachedLeads(valid);
+    const cachedWithOrigin: LeadWithOrigin[] = cachedAgain.map(e => ({ ...e, originBlockIndex: 0, originLabel: "Cache" }));
+    const combined = [...allLeads, ...cachedWithOrigin];
+
+    const relevantLeads = filterByRelevance(combined, valid);
     let unique = deduplicateLeads(relevantLeads);
     unique = commercialSort(unique);
     setLeads(unique);
