@@ -162,15 +162,24 @@ function filterByRelevance(leads: LeadWithOrigin[], blocks: SearchBlock[]): Lead
 
   return leads.filter((lead) => {
     const name = normalize(toStr(lead.nome));
-    const nicho = normalize(toStr(lead.nicho));
-    const category = normalize(toStr((lead as any).category || (lead as any).categoria));
-    const combined = `${name} ${nicho} ${category}`;
 
     // Reject blacklisted names
     if (IRRELEVANT_NAMES.some(bl => name.includes(bl))) return false;
 
-    // Accept if any keyword matches name, nicho, or category
-    return keywords.some(kw => combined.includes(kw));
+    const nicho = normalize(toStr(lead.nicho));
+    const category = normalize(toStr((lead as any).category || (lead as any).categoria));
+    const queryOrigem = normalize(toStr(lead.query_origem));
+    const subnichoOrigem = normalize(toStr(lead.subnicho_origem));
+    const combined = `${name} ${nicho} ${category} ${queryOrigem} ${subnichoOrigem}`;
+
+    // Accept if any keyword matches
+    if (keywords.some(kw => combined.includes(kw))) return true;
+
+    // Keep leads without a site — they match the niche search by origin
+    const hasSite = !!(lead.site || lead.website);
+    if (!hasSite) return true;
+
+    return false;
   });
 }
 
