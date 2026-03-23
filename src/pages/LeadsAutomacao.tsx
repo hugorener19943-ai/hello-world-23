@@ -30,6 +30,59 @@ const AUTH = "Bearer key_pro_123";
 const MAX_BLOCKS = 5;
 const PAGE_SIZE = 50;
 
+// ─── Cache helpers ──────────────────────────────────────
+const CACHE_KEY_PREFIX = "fluxleads_cache_";
+
+function buildCacheKey(block: SearchBlock): string {
+  const parts = [
+    normalize(block.query),
+    normalize(block.cidade),
+    normalize(block.estado),
+    ...(block.subnichos || []).map(normalize).sort(),
+    ...(block.bairros || []).map(normalize).sort(),
+  ];
+  return CACHE_KEY_PREFIX + parts.join("|");
+}
+
+function loadCachedLeads(blocks: SearchBlock[]): LeadAutomacao[] {
+  const all: LeadAutomacao[] = [];
+  for (const block of blocks) {
+    try {
+      const key = buildCacheKey(block);
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed?.leads)) {
+          all.push(...parsed.leads);
+        }
+      }
+    } catch { /* ignore corrupt cache */ }
+  }
+  return all;
+}
+
+function saveCacheForBlock(block: SearchBlock, leads: LeadAutomacao[]) {
+  try {
+    const key = buildCacheKey(block);
+    const existing = localStorage.getItem(key);
+    let merged = [...leads];
+    if (existing) {
+      const parsed = JSON.parse(existing);
+      if (Array.isArray(parsed?.leads)) {
+        const seenKeys = new Set(leads.map(dedupeKey));
+        for (const old of parsed.leads) {
+          const k = dedupeKey(old);
+          if (!seenKeys.has(k)) {
+            merged.push(old);
+            seenKeys.add(k);
+          }
+        }
+      }
+    }
+    localStorage.setItem(key, JSON.stringify({ leads: merged, updatedAt: Date.now() }));
+  } catch { /* storage full — ignore */ }
+}
+
 let blockIdCounter = 0;
 function newBlock(): SearchBlock {
   return { id: `b${++blockIdCounter}`, query: "", subnichos: [], cidade: "", estado: "", bairros: [], targetTotal: 500 };
