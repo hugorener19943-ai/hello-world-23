@@ -71,6 +71,52 @@ function normalizeLeadFields(e: any): LeadAutomacao {
   };
 }
 
+// Blacklist of generic business names that are never relevant to niche searches
+const IRRELEVANT_NAMES = [
+  "bradesco", "itau", "itaú", "santander", "caixa economica", "caixa econômica",
+  "banco do brasil", "nubank", "inter", "procon", "detran", "poupatempo",
+  "correios", "receita federal", "inss", "sesc", "senac", "senai", "sebrae",
+  "lotérica", "loterica", "cartório", "cartorio",
+];
+
+function normalize(text: string): string {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+function buildKeywords(blocks: SearchBlock[]): string[] {
+  const keywords: string[] = [];
+  for (const b of blocks) {
+    if (b.query) {
+      // Split compound niches like "clínica médica" into individual words too
+      const parts = normalize(b.query).split(/[\s,;/]+/).filter(w => w.length > 2);
+      keywords.push(normalize(b.query), ...parts);
+    }
+    for (const s of b.subnichos || []) {
+      const parts = normalize(s).split(/[\s,;/]+/).filter(w => w.length > 2);
+      keywords.push(normalize(s), ...parts);
+    }
+  }
+  return [...new Set(keywords)];
+}
+
+function filterByRelevance(leads: LeadWithOrigin[], blocks: SearchBlock[]): LeadWithOrigin[] {
+  const keywords = buildKeywords(blocks);
+  if (keywords.length === 0) return leads;
+
+  return leads.filter((lead) => {
+    const name = normalize(toStr(lead.nome));
+    const nicho = normalize(toStr(lead.nicho));
+    const category = normalize(toStr((lead as any).category || (lead as any).categoria));
+    const combined = `${name} ${nicho} ${category}`;
+
+    // Reject blacklisted names
+    if (IRRELEVANT_NAMES.some(bl => name.includes(bl))) return false;
+
+    // Accept if any keyword matches name, nicho, or category
+    return keywords.some(kw => combined.includes(kw));
+  });
+}
+
 interface FetchResult {
   leads: LeadAutomacao[];
   meta?: ApiResponseMeta;
@@ -364,7 +410,10 @@ export default function LeadsAutomacao() {
       }
     });
 
-    let unique = deduplicateLeads(allLeads);
+    // Filter out leads irrelevant to the searched niche/subnichos
+    const relevantLeads = filterByRelevance(allLeads, valid);
+
+    let unique = deduplicateLeads(relevantLeads);
     unique = commercialSort(unique);
     setLeads(unique);
     setApiMeta(combinedMeta);
