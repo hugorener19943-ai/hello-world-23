@@ -39,7 +39,12 @@ function dedupeKey(e: LeadAutomacao): string {
   if (e.unique_key) return e.unique_key;
   if (e.fsq_id) return e.fsq_id;
   if (e.unique_source_id) return e.unique_source_id;
-  return `${(e.nome || "").toLowerCase()}|${(e.endereco || "").toLowerCase()}`;
+  // Normalize name + phone for stronger dedup
+  const name = (e.nome || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+  const phone = (toStr(e.whatsapp) || toStr(e.telefone) || toStr(e.telefone_raw) || "").replace(/\D/g, "");
+  if (name && phone) return `${name}|${phone}`;
+  const addr = (e.endereco || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  return `${name}|${addr}`;
 }
 
 function toStr(val: unknown): string {
