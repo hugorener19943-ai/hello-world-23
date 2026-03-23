@@ -190,7 +190,11 @@ interface FetchResult {
   pagesScanned: number;
 }
 
-async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
+async function fetchBlock(
+  block: SearchBlock,
+  onPartialLeads?: (newLeads: LeadAutomacao[], blockIndex: number) => void,
+  blockIndex?: number,
+): Promise<FetchResult> {
   const seen = new Map<string, LeadAutomacao>();
   let reason: FetchResult["reason"] = "all_fetched";
 
@@ -219,7 +223,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   const EXPORT_URL    = "https://api.fluxleads.com.br/webhook/fluxleads-export-v8";
   const MAX_ATTEMPTS  = 36;
   const POLL_INTERVAL = 5000;
-  const PAGE_SIZE     = 1000;
+  const PG_SIZE       = 1000;
   let attempts        = 0;
 
   while (attempts < MAX_ATTEMPTS) {
@@ -230,7 +234,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
       const expRes = await fetch(EXPORT_URL, {
         method: "POST",
         headers: { Authorization: AUTH, "Content-Type": "application/json" },
-        body: JSON.stringify({ search_id, page: 1, per_page: PAGE_SIZE }),
+        body: JSON.stringify({ search_id, page: 1, per_page: PG_SIZE }),
       });
 
       if (!expRes.ok) continue;
@@ -240,9 +244,18 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
         ? expData.leads.map(normalizeLeadFields)
         : [];
 
+      const newInBatch: LeadAutomacao[] = [];
       for (const e of batch) {
         const key = dedupeKey(e);
-        if (!seen.has(key)) seen.set(key, e);
+        if (!seen.has(key)) {
+          seen.set(key, e);
+          newInBatch.push(e);
+        }
+      }
+
+      // Stream new leads immediately to the UI
+      if (newInBatch.length > 0 && onPartialLeads) {
+        onPartialLeads(newInBatch, blockIndex ?? 0);
       }
 
       if (seen.size >= block.targetTotal) break;
@@ -415,6 +428,22 @@ export default function LeadsAutomacao() {
     setLeads([]);
   }, [toast]);
 
+  const streamingLeadsRef = useRef<LeadWithOrigin[]>([]);
+
+  const handlePartialLeads = useCallback((newLeads: LeadAutomacao[], blockIndex: number) => {
+    const valid = blocks.filter((b) => b.query && b.cidade && b.estado);
+    const label = `Busca ${blockIndex + 1}: ${valid[blockIndex]?.query || ""}`;
+    const withOrigin: LeadWithOrigin[] = newLeads.map(e => ({ ...e, originBlockIndex: blockIndex, originLabel: label }));
+
+    streamingLeadsRef.current = [...streamingLeadsRef.current, ...withOrigin];
+
+    // Apply relevance filter and dedup on what we have so far
+    const relevantLeads = filterByRelevance(streamingLeadsRef.current, valid);
+    let unique = deduplicateLeads(relevantLeads);
+    unique = commercialSort(unique);
+    setLeads(unique);
+  }, [blocks]);
+
   const buscar = async () => {
     const valid = blocks.filter((b) => b.query && b.cidade && b.estado);
     if (valid.length === 0) {
@@ -423,6 +452,7 @@ export default function LeadsAutomacao() {
     }
     setLoading(true);
     setLeads([]);
+    streamingLeadsRef.current = [];
     setApiMeta(undefined);
     setBlockResults({});
     setSearchName("");
@@ -432,7 +462,6 @@ export default function LeadsAutomacao() {
     valid.forEach((b) => (statuses[b.id] = "loading"));
     setBlockStatuses({ ...statuses });
 
-    const allLeads: LeadWithOrigin[] = [];
     const errors: string[] = [];
     const blockResultsMap: Record<string, { found: number; requested: number; message?: string }> = {};
     let combinedMeta: ApiResponseMeta | undefined;
@@ -440,7 +469,7 @@ export default function LeadsAutomacao() {
     const results = await Promise.allSettled(
       valid.map(async (block, idx) => {
         try {
-          const result = await fetchBlock(block);
+          const result = await fetchBlock(block, handlePartialLeads, idx);
           statuses[block.id] = "done";
           setBlockStatuses({ ...statuses });
           if (result.meta && !combinedMeta) combinedMeta = result.meta;
@@ -467,6 +496,8 @@ export default function LeadsAutomacao() {
       })
     );
 
+    // Final pass — ensure final state is clean
+    const allLeads: LeadWithOrigin[] = [];
     results.forEach((r, idx) => {
       if (r.status === "fulfilled") {
         const { empresas, label } = r.value;
@@ -476,9 +507,7 @@ export default function LeadsAutomacao() {
       }
     });
 
-    // Filter out leads irrelevant to the searched niche/subnichos
     const relevantLeads = filterByRelevance(allLeads, valid);
-
     let unique = deduplicateLeads(relevantLeads);
     unique = commercialSort(unique);
     setLeads(unique);
