@@ -364,7 +364,10 @@ export default function LeadsAutomacao() {
       }
     });
 
-    let unique = deduplicateLeads(allLeads);
+    // Filter out leads irrelevant to the searched niche/subnichos
+    const relevantLeads = filterByRelevance(allLeads, valid);
+
+    let unique = deduplicateLeads(relevantLeads);
     unique = commercialSort(unique);
     setLeads(unique);
     setApiMeta(combinedMeta);
