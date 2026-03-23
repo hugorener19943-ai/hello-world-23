@@ -206,7 +206,7 @@ export function LeadCard({ lead, selected = false, onToggleSelect }: LeadCardPro
                   </a>
                 </div>
               )}
-              {lead.instagram && (
+              {lead.instagram && typeof lead.instagram === "string" && (
                 <div className="flex items-center gap-1.5">
                   <Instagram className="h-3 w-3 shrink-0" />
                   <a href={lead.instagram.startsWith("http") ? lead.instagram : `https://instagram.com/${lead.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer" className="hover:underline truncate">{lead.instagram}</a>

@@ -65,6 +65,8 @@ function normalizeLeadFields(e: any): LeadAutomacao {
     website: toStr(e.website || e.site),
     endereco: toStr(e.address || e.endereco),
     cidade: toStr(e.city || e.cidade),
+    instagram: toStr(e.instagram),
+    linkedin: toStr(e.linkedin),
     score: e.automation_score ?? e.score_automacao ?? e.score ?? 0,
   };
 }
