@@ -504,12 +504,28 @@ export default function LeadsAutomacao() {
       return;
     }
     setLoading(true);
-    setLeads([]);
     streamingLeadsRef.current = [];
     setApiMeta(undefined);
     setBlockResults({});
     setSearchName("");
     setQuickFilters([]);
+
+    // Load cached leads immediately
+    const cached = loadCachedLeads(valid);
+    if (cached.length > 0) {
+      const cachedWithOrigin: LeadWithOrigin[] = cached.map((e, i) => ({
+        ...e,
+        originBlockIndex: 0,
+        originLabel: "Cache",
+      }));
+      const relevantCached = filterByRelevance(cachedWithOrigin, valid);
+      const uniqueCached = commercialSort(deduplicateLeads(relevantCached));
+      setLeads(uniqueCached);
+      streamingLeadsRef.current = [...uniqueCached];
+      toast({ title: `${uniqueCached.length} leads do cache carregados`, description: "Buscando novos resultados..." });
+    } else {
+      setLeads([]);
+    }
 
     const statuses: Record<string, "idle" | "loading" | "done" | "error"> = {};
     valid.forEach((b) => (statuses[b.id] = "loading"));
