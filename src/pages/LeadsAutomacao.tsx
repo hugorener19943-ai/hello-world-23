@@ -565,18 +565,25 @@ export default function LeadsAutomacao() {
       })
     );
 
-    // Final pass — ensure final state is clean
+    // Final pass — ensure final state is clean and save to cache
     const allLeads: LeadWithOrigin[] = [];
     results.forEach((r, idx) => {
       if (r.status === "fulfilled") {
         const { empresas, label } = r.value;
         empresas.forEach((e: LeadAutomacao) => allLeads.push({ ...e, originBlockIndex: idx, originLabel: label }));
+        // Save to cache per block
+        saveCacheForBlock(valid[idx], empresas);
       } else {
         errors.push(`Busca ${idx + 1}: ${r.reason?.message || "Erro desconhecido"}`);
       }
     });
 
-    const relevantLeads = filterByRelevance(allLeads, valid);
+    // Merge cached + new
+    const cachedAgain = loadCachedLeads(valid);
+    const cachedWithOrigin: LeadWithOrigin[] = cachedAgain.map(e => ({ ...e, originBlockIndex: 0, originLabel: "Cache" }));
+    const combined = [...allLeads, ...cachedWithOrigin];
+
+    const relevantLeads = filterByRelevance(combined, valid);
     let unique = deduplicateLeads(relevantLeads);
     unique = commercialSort(unique);
     setLeads(unique);
