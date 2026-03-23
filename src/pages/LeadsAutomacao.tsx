@@ -190,7 +190,11 @@ interface FetchResult {
   pagesScanned: number;
 }
 
-async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
+async function fetchBlock(
+  block: SearchBlock,
+  onPartialLeads?: (newLeads: LeadAutomacao[], blockIndex: number) => void,
+  blockIndex?: number,
+): Promise<FetchResult> {
   const seen = new Map<string, LeadAutomacao>();
   let reason: FetchResult["reason"] = "all_fetched";
 
@@ -219,7 +223,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
   const EXPORT_URL    = "https://api.fluxleads.com.br/webhook/fluxleads-export-v8";
   const MAX_ATTEMPTS  = 36;
   const POLL_INTERVAL = 5000;
-  const PAGE_SIZE     = 1000;
+  const PG_SIZE       = 1000;
   let attempts        = 0;
 
   while (attempts < MAX_ATTEMPTS) {
@@ -230,7 +234,7 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
       const expRes = await fetch(EXPORT_URL, {
         method: "POST",
         headers: { Authorization: AUTH, "Content-Type": "application/json" },
-        body: JSON.stringify({ search_id, page: 1, per_page: PAGE_SIZE }),
+        body: JSON.stringify({ search_id, page: 1, per_page: PG_SIZE }),
       });
 
       if (!expRes.ok) continue;
@@ -240,9 +244,18 @@ async function fetchBlock(block: SearchBlock): Promise<FetchResult> {
         ? expData.leads.map(normalizeLeadFields)
         : [];
 
+      const newInBatch: LeadAutomacao[] = [];
       for (const e of batch) {
         const key = dedupeKey(e);
-        if (!seen.has(key)) seen.set(key, e);
+        if (!seen.has(key)) {
+          seen.set(key, e);
+          newInBatch.push(e);
+        }
+      }
+
+      // Stream new leads immediately to the UI
+      if (newInBatch.length > 0 && onPartialLeads) {
+        onPartialLeads(newInBatch, blockIndex ?? 0);
       }
 
       if (seen.size >= block.targetTotal) break;
